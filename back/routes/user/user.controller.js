@@ -52,7 +52,7 @@ const createUser = async (req, res) => { //회원가입
             values(?,?)` //임시데이터
             const params = [userid, userpw]
             const [result] = await connection.execute(sql, params)
-
+            console.log(userid, userpw)
             // const access_token = createToken(user_id)
             const data = {
                 success: true,
@@ -83,59 +83,35 @@ const createUser = async (req, res) => { //회원가입
     }
 }
 
-
-
-const loginUser = async (req, res) => {
-    let connection;
+const loginUser = async (req, res) => { // 로그인
+    let connection; 
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
+            const data = {}
             const { userid, userpw } = req.body;
             const sql = `SELECT userid, userpw FROM user WHERE userid = ?, userpw = ?`
             const params = [userid, userpw]
             const result = await connection.execute(sql, params)
-            if (result[0][0].state == 1) {//탈퇴했을경우
-                const data = {
-                    success: false,
-                    error: 'quit',
-                }
-                res.json(data)
-            } else {
-                const voteSQL = `SELECT * 
-                                FROM vote_result
-                                NATURAL JOIN politician  
-                                NATURAL JOIN vote_title
-                                WHERE user_id = ?
-                `
-                const voteParams = [id];
-                const [voteResult] = await connection.execute(voteSQL, voteParams)
-                console.log(voteResult);
-                let data = { ...result[0][0], success: true,vote_list:voteResult }
-                if (client == id) { //본인 정보를 조회할 경우
-                    data.isMine = true;
-                    res.json(data);
-                } else {//타인의 정보를 조회할 경우 가려줘야함. 
-                    data.isMine = false;
-                    res.json(hideInfo(data));
-                }
+            console.log(result)
+            if(result.count == 0){
+                data = { login: false }
+            } else{
+                data = { login: true }
             }
+            // 쿠키 관련
+            // res.cookie('AccessToken', token2, { httpOnly: true, secure: true })
+            // req.session.isLogin = true;
+
+
         } catch (error) {
             console.log('Query Error');
             console.log(error)
-            if (error.errno == 1062) {
-                const data = {
-                    success: false,
-                    error: "방금 다른 누군가가 닉네임을 가져갔습니다.\n\n닉네임을 다시 설정해 주세요."
-                }
-                res.json(data)
-            }
-            else {
                 const data = {
                     success: false,
                     error: error.sqlMessage,
                 }
-                res.json(data)
-            }
+            res.json(data)
         }
     } catch (error) {
         console.log('DB Error')
@@ -150,129 +126,61 @@ const loginUser = async (req, res) => {
     }
 }
 
-const updateUser = async (req, res) => {
-    const { id } = req.query;
-    const { nickname, residence, image, show } = req.body;
-    const AccessToken = req.cookies.AccessToken;
-    if (AccessToken == undefined) {
-        const data = {
-            success: false,
-            error: '접근권한이 없습니다'
-        }
-        res.json(data)
-    } else {
-        const client = jwtId(AccessToken)
-        if (id != client) {
-            const data = {
-                success: false,
-                error: '접근권한이 없습니다'
-            }
-            res.json(data)
-        } else {
-            let connection;
-            try {
-                connection = await pool.getConnection(async conn => conn);
-                try {
-                    const sql = `UPDATE user 
-                                    SET nickname=?,
-                                    residence=?,
-                                    image=?,
-                                    user.show = ?
-                                    WHERE user_id=? ;`
-                    const params = [nickname, residence, image, show, id]
-                    const [result] = await connection.execute(sql, params)
-                    const data = {
-                        success: true,
-                        result: result,
-                    }
-                    res.json(data);
-                } catch (error) {
-                    console.log('Query Error');
-                    console.log(error)
-                    if (error.errno == 1062) {
-                        const data = {
-                            success: false,
-                            error: "방금 다른 누군가가 닉네임을 가져갔습니다.\n\n닉네임을 다시 설정해 주세요."
-                        }
-                        res.json(data)
-                    }
-                    else {
-                        const data = {
-                            success: false,
-                            error: error.sqlMessage,
-                        }
-                        res.json(data)
-                    }
-                }
-            } catch (error) {
-                console.log('DB Error')
-                console.log(error)
-                const data = {
-                    success: false,
-                    error: error.sqlMessage
-                }
-                res.json(data)
-            } finally {
-                connection.release();
-            }
-        }
-    }
-}
 
-const deleteUser = async (req, res) => {
-    const { id } = req.query;
-    const AccessToken = req.cookies.AccessToken;
-    if (AccessToken == undefined) {
-        const data = {
-            success: false,
-            error: '접근권한이 없습니다'
-        }
-        res.json(data)
-    } else {
+// const deleteUser = async (req, res) => {
+//     const { id } = req.query;
+//     const AccessToken = req.cookies.AccessToken;
+//     if (AccessToken == undefined) {
+//         const data = {
+//             success: false,
+//             error: '접근권한이 없습니다'
+//         }
+//         res.json(data)
+//     } else {
 
-        const client = jwtId(AccessToken)
-        if (id != client) {
-            const data = {
-                success: false,
-                error: '접근권한이 없습니다'
-            }
-            res.json(data)
-        } else {
-            let connection;
-            try {
-                connection = await pool.getConnection(async conn => conn);
-                try {
-                    const sql = `UPDATE user SET state=1,kakao_code=NULL WHERE user_id=? ;`
-                    const params = [id]
-                    const [result] = await connection.execute(sql, params)
-                    const data = {
-                        success: true,
-                        result: result,
-                    }
-                    res.json(data);
-                } catch (error) {
-                    console.log('Query Error');
-                    console.log(error)
-                    const data = {
-                        success: false,
-                        error: error.sqlMessage
-                    }
-                    res.json(data)
-                }
-            } catch (error) {
-                console.log('DB Error')
-                console.log(error)
-                const data = {
-                    success: false,
-                    error: error.sqlMessage
-                }
-                res.json(data)
-            } finally {
-                connection.release();
-            }
-        }
-    }
-}
+//         const client = jwtId(AccessToken)
+//         if (id != client) {
+//             const data = {
+//                 success: false,
+//                 error: '접근권한이 없습니다'
+//             }
+//             res.json(data)
+//         } else {
+//             let connection;
+//             try {
+//                 connection = await pool.getConnection(async conn => conn);
+//                 try {
+//                     const sql = `UPDATE user SET state=1,kakao_code=NULL WHERE user_id=? ;`
+//                     const params = [id]
+//                     const [result] = await connection.execute(sql, params)
+//                     const data = {
+//                         success: true,
+//                         result: result,
+//                     }
+//                     res.json(data);
+//                 } catch (error) {
+//                     console.log('Query Error');
+//                     console.log(error)
+//                     const data = {
+//                         success: false,
+//                         error: error.sqlMessage
+//                     }
+//                     res.json(data)
+//                 }
+//             } catch (error) {
+//                 console.log('DB Error')
+//                 console.log(error)
+//                 const data = {
+//                     success: false,
+//                     error: error.sqlMessage
+//                 }
+//                 res.json(data)
+//             } finally {
+//                 connection.release();
+//             }
+//         }
+//     }
+// }
 
 
 
@@ -289,9 +197,9 @@ const logoutUser = (req, res) => {
 module.exports = {
     idCheck,
     createUser,
-    showUser,
-    updateUser,
-    deleteUser,
+    loginUser,
+    // updateUser,
+    // deleteUser,
     logoutUser,
 }
 

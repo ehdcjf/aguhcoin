@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const PORT = process.env.PORT || 3500 
+console.log(PORT)
 // const nunjucks = require('nunjucks');
 require('dotenv').config();
 

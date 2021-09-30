@@ -10,10 +10,10 @@ const createUser = async (req, res) => {
   try {
       connection = await pool.getConnection(async conn => conn);
       try {
-          const { userid,userpw} = req.body;
-          const sql = `INSERT INTO USER (userid,userpw) 
-          values(?,?)`
-          const params = [userid,userpw]
+          const { user_id,user_pw,user_name} = req.body;
+          const sql = `INSERT INTO USER (user_id,user_pw,user_name) 
+          values(?,?,?)`
+          const params = [user_id,user_pw,user_name]
           const [result] = await connection.execute(sql, params)
           console.log(result)
 

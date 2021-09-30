@@ -8,7 +8,7 @@ require('dotenv').config();
 const db = require('./models');
 const logger = require('./logger');
 const router = require('./routes');
-db.sequelize.sync({force:true})
+db.sequelize.sync({force:false})
 .then(_=>{
   console.log(`DB Connection Success`);
 })

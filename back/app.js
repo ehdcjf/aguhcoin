@@ -1,14 +1,17 @@
 const express = require('express');
 const morgan = require('morgan');
 const app = express();
+const bodyParser = require('body-parser');
+const cors = require('cors')
+const cookieParser = require('cookie-parser')
 const PORT = process.env.PORT || 3500 
-const nunjucks = require('nunjucks');
+// const nunjucks = require('nunjucks');
 require('dotenv').config();
 
 const db = require('./models');
 const logger = require('./logger');
 const router = require('./routes');
-db.sequelize.sync({force:true})
+db.sequelize.sync({force:false})
 .then(_=>{
   console.log(`DB Connection Success`);
 })
@@ -18,8 +21,21 @@ db.sequelize.sync({force:true})
 
 app.use(morgan('dev'));
 
-app.set('view engine','html');
-nunjucks.configure('views',{express:app});
+app.use(
+  cors({
+      origin: 'http://localhost:3001',
+      credentials: true
+
+  })
+);
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+
+// app.set('view engine','html');
+// nunjucks.configure('views',{express:app});
 
 
 app.use('/',router)

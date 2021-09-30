@@ -6,21 +6,7 @@ const config = {
   password: '1234',
   database: 'exchange',
 }
+
 const pool = mysql.createPool(config);
-
-
-
-
-
-
-
-// let getConnection = async (callback) => {
-//   await pool.getConnection(async (error, connection) => {
-//     await callback(error, connection);
-//     connection.release();
-//   })
-// }
-
-// const connection = pool.getConnection(async conn => conn);
 
 module.exports = pool;

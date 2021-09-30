@@ -5,14 +5,16 @@ const bodyParser = require('body-parser');
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const PORT = process.env.PORT || 3500 
-console.log(PORT)
+const dbsetting = require('./dbsetting')
 // const nunjucks = require('nunjucks');
 const mysql = require('mysql2')
 require('dotenv').config();
 
 const logger = require('./logger');
 const router = require('./routes');
-const db = require('./models');
+
+//시퀄라이즈 걷어내기 
+// const db = require('./models');
 // db.sequelize.sync({force:false})
 // .then(_=>{
 //   console.log(`DB Connection Success`);
@@ -21,34 +23,8 @@ const db = require('./models');
 //   console.log(`DB disconnection ${err}`);
 // })
 
-function dbset(){
-  let con = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "1234",
-    multipleStatements: true
-  });
-
-  const sql =`
-  `
-  
-  con.connect(function(err) {
-    if (err) throw err;
-    console.log("Connected!");
-    con.query("CREATE DATABASE hz", function (err, result) {
-      if (err) throw err;
-      console.log("Database created");
-    });
-  });
-  con.query('source ')
-
-}
-
-
-
-
-
-dbset();
+//DB 만들기.
+dbsetting.dbinit();
 app.use(morgan('dev'));
 
 app.use(

@@ -2,8 +2,8 @@ const pool = require('../../config/dbconnection');
 // const createToken = require('../../jwt');
 // const jwtId = require('../../jwtId')
 
-
-const idCheck = async (req, res) => { // 아이디 중복 검사
+// 아이디 중복 검사
+const idCheck = async (req, res) => { 
     let connection;
     try {
         connection = await pool.getConnection(async conn => conn);
@@ -42,13 +42,15 @@ const idCheck = async (req, res) => { // 아이디 중복 검사
     }
 }
 
-const createUser = async (req, res) => { //회원가입
+//============회원가입
+const createUser = async (req, res) => { 
+  console.log(req.body)
     let connection;
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
             const { userid, userpw } = req.body;
-            const sql = `INSERT INTO USER (userid, userpw) 
+            const sql = `INSERT INTO USER (user_id, user_pw) 
             values(?,?)` //임시데이터
             const params = [userid, userpw]
             const [result] = await connection.execute(sql, params)
@@ -59,7 +61,7 @@ const createUser = async (req, res) => { //회원가입
                 userid: userid,
                 userpw: userpw,
             }
-            res.cookie('AccessToken', access_token, { httpOnly: true, secure: true })
+            // res.cookie('AccessToken', access_token, { httpOnly: true, secure: true })
             res.json(data);
         } catch (error) {
             console.log('Query Error');
@@ -83,7 +85,9 @@ const createUser = async (req, res) => { //회원가입
     }
 }
 
-const loginUser = async (req, res) => { // 로그인
+
+//====================로그인
+const loginUser = async (req, res) => { 
     let connection; 
     try {
         connection = await pool.getConnection(async conn => conn);

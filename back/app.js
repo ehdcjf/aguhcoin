@@ -35,7 +35,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 
-// app.set('view engine','html');
+app.set('view engine','html');
 // nunjucks.configure('views',{express:app});
 
 

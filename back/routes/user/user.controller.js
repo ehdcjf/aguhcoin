@@ -8,15 +8,17 @@ const idCheck = async (req, res) => {
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
-            const { userid } = req.body // post로 userid 받아오기
-            const sql = `SELECT COUNT(user_id) as count,user_id FROM user WHERE nickname=?`
-            // SELECT * from users where userid = ?
+            const { userid } = req.query // post로 userid 받아오기
+            console.log(req.query)
+            const sql = `SELECT * FROM user WHERE userid=?`
+            // SELECT * from user where userid = ?
             const params = [userid]
-            const [[result]] = await connection.execute(sql, params)
+            const result = await connection.execute(sql, params)
             let data = {
                 success: false,
             }
-            if (result.count == 0 || result.user_id == userid) { // user_id, userid 상황에 따라 변경 필요
+            console.log(result[0].length == 0)
+            if (result[0].length == 0) { // user_id, userid 상황에 따라 변경 필요
                 data.success = true;
             }
             res.json(data);
@@ -49,10 +51,10 @@ const createUser = async (req, res) => {
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
-            const { userid, userpw } = req.body;
-            const sql = `INSERT INTO USER (user_id, user_pw) 
-            values(?,?)` //임시데이터
-            const params = [userid, userpw]
+            const { userid, userpw, username } = req.body;
+            const sql = `INSERT INTO USER (userid, userpw, username) 
+            values(?,?,?)` //임시데이터
+            const params = [userid, userpw, username]
             const [result] = await connection.execute(sql, params)
             console.log(userid, userpw)
             // const access_token = createToken(user_id)
@@ -92,15 +94,18 @@ const loginUser = async (req, res) => {
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
-            const data = {}
+            let data = {}
             const { userid, userpw } = req.body;
-            const sql = `SELECT userid, userpw FROM user WHERE userid = ?, userpw = ?`
+            console.log(req.body)
+            const sql = `SELECT * FROM user WHERE userid = ? AND userpw = ?`
             const params = [userid, userpw]
             const result = await connection.execute(sql, params)
-            console.log(result)
-            if(result.count == 0){
+            console.log('zzz',result)
+            if(result[0].length==0){
+                console.log('djqtdma')
                 data = { login: false }
             } else{
+                console.log('dlTdma')
                 data = { login: true }
             }
             // 쿠키 관련

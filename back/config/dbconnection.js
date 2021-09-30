@@ -10,6 +10,10 @@ const pool = mysql.createPool(config);
 
 
 
+
+
+
+
 // let getConnection = async (callback) => {
 //   await pool.getConnection(async (error, connection) => {
 //     await callback(error, connection);

@@ -10,8 +10,7 @@ const idCheck = async (req, res) => {
         try {
             const { userid } = req.query // post로 userid 받아오기
             console.log(req.query)
-            const sql = `SELECT * FROM user WHERE userid=?`
-            // SELECT * from user where userid = ?
+            const sql = `SELECT * FROM user WHERE user_id=?`
             const params = [userid]
             const result = await connection.execute(sql, params)
             let data = {
@@ -52,10 +51,19 @@ const createUser = async (req, res) => {
         connection = await pool.getConnection(async conn => conn);
         try {
             const { userid, userpw, username } = req.body;
-            const sql = `INSERT INTO USER (userid, userpw, username) 
-            values(?,?,?)` //임시데이터
+            const sql = `INSERT INTO USER (user_id, user_pw) 
+            values(?,?);
+            ` 
             const params = [userid, userpw, username]
             const [result] = await connection.execute(sql, params)
+
+        
+            const user_idx = result.insertId;
+            const assetSql = `INSERT INTO ASSET (user_idx, input, output, regdate) 
+            values(?,?,?,now())`
+            const assetParams = [user_idx, input, output, regdate] //sql과 함께 바꿔야 함
+            const [assetResult] = await connection.execute(assetSql, params)
+
             console.log(userid, userpw)
             // const access_token = createToken(user_id)
             const data = {
@@ -97,7 +105,7 @@ const loginUser = async (req, res) => {
             let data = {}
             const { userid, userpw } = req.body;
             console.log(req.body)
-            const sql = `SELECT * FROM user WHERE userid = ? AND userpw = ?`
+            const sql = `SELECT * FROM user WHERE user_id = ? AND user_pw = ?`
             const params = [userid, userpw]
             const result = await connection.execute(sql, params)
             console.log('zzz',result)

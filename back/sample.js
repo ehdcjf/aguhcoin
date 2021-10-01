@@ -11,7 +11,7 @@ const createUser = async (req, res) => {
         connection = await pool.getConnection(async conn => conn);
         try {
             const { kakao, nickname, hometown, residence, gender, birth, image, vote19, vote20, vote_id } = req.body;
-            const sql = `INSERT INTO USER (kakao_code,nickname,hometown,residence,gender,birth,image,vote_19th) 
+            const sql = ` USER (kakao_code,nickname,hometown,residence,gender,birth,image,vote_19th) 
             values(?,?,?,?,?,?,?,?)`
             const params = [kakao, nickname, hometown, residence, gender, birth, image, vote19]
             const [result] = await connection.execute(sql, params)

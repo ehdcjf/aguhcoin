@@ -41,18 +41,46 @@ CREATE TABLE IF NOT EXISTS `transaction` (
   `b_orderid` int(11) NOT NULL,
   `b_amount` int(11) NOT NULL,
   `b_commission` int(11) NOT NULL,
+<<<<<<< HEAD
   `price` float NOT NULL,
+=======
+  `price` FLOAT(11) NOT NULL,
+>>>>>>> dba086f431cd0bfc40074c1c070075d61e611b11
   `txid` varchar(150) DEFAULT NULL,
   `tx_date` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+<<<<<<< HEAD
+=======
+CREATE TABLE IF NOT EXISTS `asset` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_idx` INT(11) NOT NULL,
+  `input` FLOAT(11) NOT NULL,
+  `output` FLOAT(11) NOT NULL,
+  `reg_date` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `order` (
+   `id` INT(11) NOT NULL AUTO_INCREMENT,
+   `user_idx` INT(11) NOT NULL,
+   `price` INT(11) NOT NULL,
+   `qty` INT(11) NOT NULL,
+   `order_type` INT(11) NOT NULL,
+   `active` INT(11) NOT NULL,
+   PRIMARY KEY (`id`)
+)
+ENGINE=InnoDB AUTO_INCREMENT=1;
+
+>>>>>>> dba086f431cd0bfc40074c1c070075d61e611b11
 
 CREATE TABLE IF NOT EXISTS `user` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` varchar(50) NOT NULL,
   `user_pw` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
+<<<<<<< HEAD
 ) ENGINE=InnoDB AUTO_INCREMENT=301 DEFAULT CHARSET=utf8mb4;
 
 
@@ -657,3 +685,6 @@ INSERT INTO asset (user_idx, input, output, asset_date) VALUES (0298,1000000,0,N
 INSERT INTO user (user_id, user_pw) VALUES ('0299', '1234');
 INSERT INTO asset (user_idx, input, output, asset_date) VALUES (0299,1000000,0,NOW());
 
+=======
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+>>>>>>> dba086f431cd0bfc40074c1c070075d61e611b11

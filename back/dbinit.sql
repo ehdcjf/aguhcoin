@@ -18,10 +18,9 @@ CREATE TABLE IF NOT EXISTS `transaction` (
 CREATE TABLE IF NOT EXISTS `asset` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_idx` INT(11) NOT NULL,
-  `input` varchar(255) NOT NULL,
-  `output` varchar(10) NOT NULL,
+  `input` INT(11) NOT NULL,
+  `output` INT(11) NOT NULL,
   `reg_date` datetime NOT NULL,
-  `transactionId` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `coininfo` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
-INSERT INTO `coininfo` (`id`, `name`, `unit`) VALUES (1, 'aguhcoin', 'AGU');
+/*INSERT INTO `coininfo` (`id`, `name`, `unit`) VALUES (1, 'aguhcoin', 'AGU');*/
 
 CREATE TABLE IF NOT EXISTS `order` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -43,14 +43,14 @@ CREATE TABLE IF NOT EXISTS `order` (
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
 
 
-INSERT INTO `order` (`id`, `user_idx`, `price`, `qty`, `order_type`, `leftover`, `order_date`) VALUES
+/*INSERT INTO `order` (`id`, `user_idx`, `price`, `qty`, `order_type`, `leftover`, `order_date`) VALUES
 	(1, 100, 100, 10, 0, 10, '2021-10-01 12:24:55'),
 	(2, 200, 200, 10, 0, 10, '2021-10-01 12:24:55'),
 	(3, 200, 250, 10, 0, 10, '2021-10-01 12:24:55'),
 	(4, 300, 300, 10, 1, 10, '2021-10-01 12:24:55'),
 	(5, 100, 400, 10, 1, 10, '2021-10-01 12:24:55'),
 	(6, 200, 500, 10, 1, 10, '2021-10-01 12:24:55');
-
+*/
 CREATE TABLE IF NOT EXISTS `transaction` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `a_orderid` int(11) NOT NULL,
@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=301 DEFAULT CHARSET=utf8mb4;
 
+/*
 INSERT INTO user (user_id, user_pw) VALUES ('0000', '1234');
 INSERT INTO asset (user_idx, input, output, asset_date) VALUES (0000,1000000,0,NOW());
 INSERT INTO user (user_id, user_pw) VALUES ('0001', '1234');
@@ -673,4 +674,4 @@ INSERT INTO asset (user_idx, input, output, asset_date) VALUES (0297,1000000,0,N
 INSERT INTO user (user_id, user_pw) VALUES ('0298', '1234');
 INSERT INTO asset (user_idx, input, output, asset_date) VALUES (0298,1000000,0,NOW());
 INSERT INTO user (user_id, user_pw) VALUES ('0299', '1234');
-INSERT INTO asset (user_idx, input, output, asset_date) VALUES (0299,1000000,0,NOW());
+INSERT INTO asset (user_idx, input, output, asset_date) VALUES (0299,1000000,0,NOW()); */

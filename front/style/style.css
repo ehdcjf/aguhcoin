@@ -1,0 +1,7 @@
+.ql-video {
+  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  height: 600px;
+  width: 100%;
+}

@@ -136,60 +136,7 @@ const loginUser = async (req, res) => {
 }
 
 
-// const deleteUser = async (req, res) => {
-//     const { id } = req.query;
-//     const AccessToken = req.cookies.AccessToken;
-//     if (AccessToken == undefined) {
-//         const data = {
-//             success: false,
-//             error: '접근권한이 없습니다'
-//         }
-//         res.json(data)
-//     } else {
 
-//         const client = jwtId(AccessToken)
-//         if (id != client) {
-//             const data = {
-//                 success: false,
-//                 error: '접근권한이 없습니다'
-//             }
-//             res.json(data)
-//         } else {
-//             let connection;
-//             try {
-//                 connection = await pool.getConnection(async conn => conn);
-//                 try {
-//                     const sql = `UPDATE user SET state=1,kakao_code=NULL WHERE user_id=? ;`
-//                     const params = [id]
-//                     const [result] = await connection.execute(sql, params)
-//                     const data = {
-//                         success: true,
-//                         result: result,
-//                     }
-//                     res.json(data);
-//                 } catch (error) {
-//                     console.log('Query Error');
-//                     console.log(error)
-//                     const data = {
-//                         success: false,
-//                         error: error.sqlMessage
-//                     }
-//                     res.json(data)
-//                 }
-//             } catch (error) {
-//                 console.log('DB Error')
-//                 console.log(error)
-//                 const data = {
-//                     success: false,
-//                     error: error.sqlMessage
-//                 }
-//                 res.json(data)
-//             } finally {
-//                 connection.release();
-//             }
-//         }
-//     }
-// }
 
 
 
@@ -207,8 +154,6 @@ module.exports = {
     idCheck,
     createUser,
     loginUser,
-    // updateUser,
-    // deleteUser,
     logoutUser,
 }
 

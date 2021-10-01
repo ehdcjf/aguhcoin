@@ -1,36 +1,24 @@
-import BlogLayout from "../components/BlogLayout";
-import Head from "next/head";
-import { useSelector, useDispatch } from "react-redux";
-import { useEffect } from "react";
-import { UserLogoutAction } from "../reducers/user";
-import { deleteToken } from "../components/api/deleteToken";
-import Router from "next/router";
-import dynamic from "next/dynamic";
-import Link from "next/link";
-
-const Home = dynamic(() => import("../containers/Home"), {
-  ssr: false,
-});
+import BlogLayout from '../components/BlogLayout';
+import Head from 'next/head';
+import Image from 'next/image';
 
 const Index = () => {
-  const dispatch = useDispatch();
-  useEffect(async () => {
-    const logout = new URL(window.location.href).searchParams.get("logout");
-    if (logout == "success") {
-      const result = await deleteToken();
-      if (result.isLogout) dispatch(UserLogoutAction());
-      Router.push("/", undefined, { shallow: true });
-    }
-  }, []);
-
-  return (
-    <>
-      <Head>
-        <title>Blog</title>
-      </Head>
-      <Home />
-    </>
-  );
-};
+    return (
+        <>  
+            <Head>
+                <title>악어코인</title>
+            </Head>
+            <BlogLayout>
+                메인화면
+                <Image
+                    src="/croco1.png"
+                    width="500%"
+                    height="500%"
+                    
+                />
+            </BlogLayout>
+        </>
+    );
+}
 
 export default Index;

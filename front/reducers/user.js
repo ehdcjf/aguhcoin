@@ -1,104 +1,91 @@
 const initialState = {
-  loadding: false,
-  IsLogin: false,
-  nickname: null,
-  image: '/defaultProfil.png',
-  user_id:null,
+    loadding:false,
+    IsLogin:false,
 }
 
+const USER_LOGIN_REQUEST = "USER_LOGIN_REQUEST"
+const USER_LOGIN_SUCCESS = "USER_LOGIN_SUCCESS"
+const USER_LOGIN_ERROR = "USER_LOGIN_ERROR"
 
-const USER_UPDATE_ACTION = 'USER_UPDATE_ACTION'
-const USER_LOGIN_REQUEST = 'USER_LOGIN_REQUEST'
-const USER_LOGIN_SUCCESS = 'USER_LOGIN_SUCCESS'
-const USER_LOGIN_ERROR = 'USER_LOGIN_ERROR'
-const USER_LOGOUT = 'USER_LOGOUT'
+const USER_LOGOUT = "USER_LOGOUT"
 
-export const UserLoginAction = (data) => {
-  return async (dispatch) => {
-    dispatch(UserLoginRequest());
-    try {
+export const UserLoginAction = data => {
+   return async (dispatch)=>{
+       dispatch(UserLogin_REQUEST())
+       try{
+        //fetch 성공적인부분
+        const response = await fetch('http://localhost:3000/api/login',{
+            method:'POST',
+            headers:{
+                "Content-type":"application/json",
+            },
+            body:JSON.stringify({...data})
+        })
+        const result = await response.json()
 
-      data.success === true
-        ? dispatch(UserLoginSuccess(data))
-        : dispatch(UserLoginError())
-    } catch (e) {
-      dispatch(UserLoginError())
+        // {
+        //     result:'OK',
+        //     msg:'로그인에 성공했습니다.'
+        // }
+        result.result === 'OK' 
+        ? dispatch(UserLogin_SUCCESS(result))
+        : dispatch(UserLogin_ERROR())
+        
+       } catch (e) {
+        //error
+        dispatch(UserLogin_ERROR())
+       }
+   }
+}
+
+export const UserLogin_REQUEST = data => {
+    return {
+        type:USER_LOGIN_REQUEST,
     }
-  }
+} 
+export const UserLogin_SUCCESS = () => {
+    return {
+        type:USER_LOGIN_SUCCESS,
+    }
 }
-
-export const UserUpdateAction = (data) => {
-  return {
-    type:USER_UPDATE_ACTION,
-    data:data,
-  }
+export const UserLogin_ERROR = () => {
+    return {
+        type:USER_LOGIN_ERROR,
+    }
 }
-
-
-export const UserLoginRequest = () => {
-  return {
-    type: USER_LOGIN_REQUEST,
-
-  }
-}
-export const UserLoginSuccess = (data) => {
-  return {
-    type: USER_LOGIN_SUCCESS,
-    data: data,
-
-  }
-}
-export const UserLoginError = () => {
-  return {
-    type: USER_LOGIN_ERROR,
-
-  }
-}
-
 
 export const UserLogoutAction = () => {
-  return {
-    type: USER_LOGOUT,
-  }
+    return {
+        type:USER_LOGOUT
+    }
 }
 
-const reducer = (state = initialState, action) => {
-  switch (action.type) {
-
-    case USER_LOGIN_REQUEST:
-      return {
-        ...state,
-        loadding: true,
-
-      }
-    case USER_LOGIN_SUCCESS:
-      return {
-        ...state,
-        IsLogin: true,
-        nickname: action.data.nickname,
-        image: action.data.image,
-        user_id:action.data.user_id,
-        loadding: false,
-      }
-    case USER_LOGIN_ERROR:
-      return {
-        ...state,
-        loadding: false,
-      }
-    case USER_LOGOUT:
-      return {
-        ...state,
-        ...initialState,
-      }
-    case USER_UPDATE_ACTION:
-      return {
-        ...state,
-        nickname:action.data.nickname,
-        image: action.data.image,
-      }
-    default:
-      return state
-  }
+const reducer = (state=initialState,action) => {
+    switch(action.type){
+        case USER_LOGIN_REQUEST:
+            return {
+                ...state,
+                loadding:true,
+            }
+        case USER_LOGIN_SUCCESS:
+            return {
+                ...state,
+                IsLogin:true,   
+                loadding:false,
+            }
+        case USER_LOGIN_ERROR:
+            return {
+                ...state,
+                loadding:false,
+            }
+        case USER_LOGOUT:
+            return {
+                ...state,
+                IsLogin:false,
+            }
+        default:
+            return state
+    }
 }
 
 export default reducer

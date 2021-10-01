@@ -1,35 +1,28 @@
-import "../index.css";
-import Head from "next/head";
-import "../style/style.css";
-import 'react-quill/dist/quill.snow.css'
-import wrapper from "../store/configureStore";
-import { CookiesProvider } from "react-cookie";
-import { useStore } from "react-redux";
-import { PersistGate } from "redux-persist/integration/react";
+import '../index.css'
+import Head from 'next/head'
+import Store,{initalState} from '../store/context'
+import {useReducer,useContext} from 'react'
+import {reducer} from '../store/reducer'
+import wrapper from '../store/configureStore'
 
-const App = ({ Component }) => {
-  const store = useStore((state) => state);
-  return (
-    <>
-      <Head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="true"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap"
-          rel="stylesheet"
-        />
-      </Head>
 
-      <CookiesProvider>
-        <PersistGate persistor={store.__persistor} loading={<div>Loading</div>}>
-          <Component />
-        </PersistGate>
-      </CookiesProvider>
-    </>
-  );
-};
-export default wrapper.withRedux(App);
+
+const App = ({Component}) => {
+    // const globalContext = useContext(Store)
+    // const [state,dispatch] = useReducer(reducer,globalContext)
+
+    return (
+        <>
+            <Head>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+                <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;500;900&display=swap" rel="stylesheet" />
+            </Head>
+            {/* <Store.Provider value={{state,dispatch}}> */}
+            <Component /> {/* 우리가만든 파일들이 여기에 위치해요. */}
+            {/* </Store.Provider> */}
+        </>
+    )
+}
+
+export default wrapper.withRedux(App)

@@ -8,21 +8,24 @@ const pool = require('../../config/dbconnection');
 //내가 100원에 10개 사려고 했다면 나한테 1000원이 있는지 확인. 
 
 
-const createOrder = async(req,res)=>{
-  const {user_idx,qty,price,type,coin_id=1} =req.body;
+const createOrder = async (req, res) => {
+    const { user_idx, qty, price, order_type, coin_id = 1 } = req.body;
 
-  let connection;
-    
+    let connection;
+
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
-            if(type==0){ //살 때.
-          
+            if (type == 0) { //살 때.
+
             }
             const sql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
             const params = [user_idx]
             const [[result1]] = await connection.execute(sql, params)
             console.log(result1.asset)
+
+            const sql2 = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
+
             res.json(result1);
         } catch (error) {
             console.log('Query Error');
@@ -44,9 +47,9 @@ const createOrder = async(req,res)=>{
     } finally {
         connection.release();
     }
-  
+
 }
 
-module.exports={
-  createOrder
+module.exports = {
+    createOrder
 }

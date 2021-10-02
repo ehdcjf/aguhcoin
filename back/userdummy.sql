@@ -598,3 +598,12 @@ INSERT INTO user (user_id, user_pw) VALUES ('0298', '1234');
 INSERT INTO asset (user_idx, input, output, asset_date) VALUES (0298,1000000,0,NOW());
 INSERT INTO user (user_id, user_pw) VALUES ('0299', '1234');
 INSERT INTO asset (user_idx, input, output, asset_date) VALUES (0299,1000000,0,NOW());
+
+
+-- INSERT INTO `order_list` ( `user_idx`, `price`, `qty`, `order_type`, `leftover`) VALUES
+-- 	(100, 100, 10, 0, 10),
+-- 	(200, 200, 10, 0, 10),
+-- 	(200, 250, 10, 0, 10),
+-- 	(300, 300, 10, 1, 10),
+-- 	(100, 400, 10, 1, 10),
+-- 	(200, 500, 10, 1, 10);

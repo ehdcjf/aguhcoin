@@ -29,8 +29,6 @@ const createOrderBuy = async (req, res) => {
       const myOrder = preOrder.leftover * preOrder.price;
       const available = myAsset.asset - myOrder;
 
-      console.log(qty * price)
-      console.log(available)
       if ((qty * price) > available) {
 
         // 구매 못할 때.
@@ -45,6 +43,7 @@ const createOrderBuy = async (req, res) => {
 
 
         //우선 빨리 DB에 넣어줘야할 것 같음.  주문은 시간이 매우 중요하니까. 
+        //그리고 주문이 있다는 거 ws로 쏴줘야함. 거래확인까지 하고 할지? 아님 지금할지 정해야됨.
         const insertOrderSql = `
         INSERT INTO order_list (user_idx, qty, price, leftover, order_type) VALUES (?,?,?,?,?);`;
         const insertOrderParams = [user_idx, qty, price, qty, order_type];
@@ -59,36 +58,42 @@ const createOrderBuy = async (req, res) => {
           ORDER BY price ASC, order_date ASC, qty DESC;
         `
         const availableOrderParams = [user_idx, price];
-        const [availableOrderResult] = await connection.execute(availableOrderSql, availableOrderParams);
-        let updateSQL = ''
-        let insertSQL = ''
-        for (let i = 0; i < availableOrderResult.length; i++) {
-          const order = availableOrderResult[i];
-          const sellerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0;
-          const buyerLeftover = qty - order.leftover > 0 ? qty - order.leftover : 0;
-          const calcAsset = sellerLeftover > 0 ? qty * order.price : order.leftover * order.price;
-          const calcCoin = sellerLeftover > 0 ? qty : order.leftover;
-          //트랜잭션 RPC 진행하고 txid 값을 가져와야함. 
-          updateSQL += `
+        const [availableOrder] = await connection.execute(availableOrderSql, availableOrderParams);
+        if (availableOrder.length == 0) {
+          //주문 완료에 대한 메시지
+          res.json(messageData.addOrder())
+        } else {
+          let updateSQL = ''
+          let insertSQL = ''
+          for (let i = 0; i < availableOrder.length; i++) {
+            const order = availableOrder[i];
+            const sellerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0;
+            const buyerLeftover = qty - order.leftover > 0 ? qty - order.leftover : 0;
+            const calcAsset = sellerLeftover > 0 ? qty * order.price : order.leftover * order.price;
+            const calcCoin = sellerLeftover > 0 ? qty : order.leftover;
+            //트랜잭션 RPC 진행하고 txid 값을 가져와야함. 
+            //각 거래가 이루어질 때마다 ws로 계속 쏴주기? 아니면 마지막에 한번 쏴주기? 
+            updateSQL += `
               UPDATE order_list SET leftover=${sellerLeftover} WHERE id=${order.id}; 
               UPDATE order_list SET leftover=${buyerLeftover} WHERE id=${nowOrderIndex};\n`
-          insertSQL += `
+            insertSQL += `
               INSERT INTO asset (user_idx,input,output) VALUES(${order.user_idx},${calcAsset},0);
               INSERT INTO coin (user_idx,c_input,c_output) VALUES(${order.user_idx},0,${calcCoin});
               INSERT INTO asset (user_idx,input,output) VALUES(${user_idx},0,${calcAsset});
               INSERT INTO coin (user_idx,c_input,c_output) VALUES(${user_idx},${calcCoin},0);
               INSERT INTO transaction (a_orderid,a_amount,a_commission,b_orderid,b_amount,b_commission,price) 
               VALUES(${order.id},${order.leftover},${calcCoin},${nowOrderIndex},${qty},${calcCoin},${calcAsset});\n`
-          qty -= order.leftover;
-          if (qty <= 0) {
-            break;
+            qty -= order.leftover;
+            if (qty <= 0) {
+              break;
+            }
           }
+          updateSQL += 'UNLOCK TABLES;'
+          const lastSQL = updateSQL + insertSQL
+          await connection.query(lastSQL);
+          ////트랜잭션 완료에 대한 메시지.?? 그냥 주문이 완료됬다고만 알려줄까? 
+          res.json(messageData.transaction())
         }
-        updateSQL += 'UNLOCK TABLES;'
-        const lastSQL = updateSQL + insertSQL
-        await connection.query(lastSQL);
-        ////트랜잭션 완료에 대한 메시지.
-        res.json({ success: true })
       }
     } catch (error) {
       console.log('Query Error');

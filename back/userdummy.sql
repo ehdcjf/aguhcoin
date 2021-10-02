@@ -607,3 +607,4 @@ INSERT INTO asset (user_idx, input, output, asset_date) VALUES (0299,1000000,0,N
 -- 	(300, 300, 10, 1, 10),
 -- 	(100, 400, 10, 1, 10),
 -- 	(200, 500, 10, 1, 10);
+INSERT INTO `order_list` ( `user_idx`, `price`, `qty`, `order_type`, `leftover`) VALUES(100, 100, 10, 0, 10)

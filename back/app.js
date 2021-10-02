@@ -4,7 +4,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
-const PORT = process.env.PORT || 3500 
+const PORT = process.env.PORT || 3500
 const dbsetting = require('./dbsetting')
 const socket = require('./socket')
 // const nunjucks = require('nunjucks');
@@ -31,8 +31,8 @@ app.use(morgan('dev'));
 
 app.use(
   cors({
-      origin: 'http://localhost:3001',
-      credentials: true
+    origin: 'http://localhost:80',
+    credentials: true
 
   })
 );
@@ -42,13 +42,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 
-app.set('view engine','html');
+app.set('view engine', 'html');
 // nunjucks.configure('views',{express:app});
 
 
-app.use('/',router)
+app.use('/', router)
 
-app.use((req,res,next)=>{
+app.use((req, res, next) => {
   const error = new Error(`${req.method} ${req.url} 정보가 없습니다.`);
   error.status = 404;
   logger.error(error.message);

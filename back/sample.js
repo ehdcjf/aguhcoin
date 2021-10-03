@@ -382,3 +382,52 @@ const hideInfo = (data) => {
 
 
 
+
+
+
+async function start5() {
+    const buylist = await client.query(
+        "select sellbuy,price,sum(amount) as sum from sellbuy where sellbuy = ? group by price order by price desc limit 5",
+        [0]
+    );
+    const selllist = await client.query(
+        "select sellbuy,price,sum(amount) as sum from sellbuy where sellbuy = ? group by price order by price asc limit 5",
+        [1]
+    );
+    let totalbuyamount = await client.query(
+        "SELECT sum(amount) as sum from sellbuy GROUP BY sellbuy HAVING sellbuy = 0"
+    );
+    let totalsellamount = await client.query(
+        "SELECT sum(amount) as sum from sellbuy GROUP BY sellbuy HAVING sellbuy = 1"
+    );
+    const conclusion = await client.query(
+        "SELECT * FROM conclusion order by num asc"
+    );
+    const mysell = await client.query("select* from sellbuy where sellbuy = 1");
+    const mybuy = await client.query("select* from sellbuy where sellbuy = 0");
+
+    if (totalbuyamount[0] == undefined) {
+        console.log("aa");
+        totalbuyamount = 0;
+    } else {
+        totalbuyamount = totalbuyamount[0].sum;
+    }
+    if (totalsellamount[0] == undefined) {
+        console.log("bb");
+        totalsellamount = 0;
+    } else {
+        totalsellamount = totalsellamount[0].sum;
+    }
+    socket.emit("yamadata", {
+        buylist: buylist,
+        selllist: selllist,
+        totalbuyamount: totalbuyamount,
+        totalsellamount: totalsellamount,
+        conclusion: conclusion,
+        mysell: mysell,
+        mybuy: mybuy,
+    });
+}
+
+
+

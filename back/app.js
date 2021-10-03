@@ -33,7 +33,6 @@ app.use(
   cors({
     origin: 'http://localhost:80',
     credentials: true
-
   })
 );
 

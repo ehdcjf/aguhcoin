@@ -9,7 +9,9 @@ const WebSocketWrap = ({ children }) => {
     useWebSocket(socketUrl);
 
   useMemo(() => {
-    console.log(lastJsonMessage); // 여기서 객체로 받아옴. 이걸처리해주면됨. 받아서 리덕스나? 뭐 컨텍스트 업데이트해주면됨.
+    if (lastJsonMessage != null) {
+      console.log(lastJsonMessage); // 여기서 객체로 받아옴. 이걸처리해주면됨. 받아서 리덕스나? 뭐 컨텍스트 업데이트해주면됨.
+    }
   }, [lastJsonMessage]);
 
   //   const connectionStatus = {

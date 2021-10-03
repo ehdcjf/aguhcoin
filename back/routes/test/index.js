@@ -4,7 +4,8 @@ const testController = require('./test.controller');
 
 
 
-router.post('/', testController.createOrderBuy)
+router.post('/buy', testController.createOrderBuy)
+router.post('/sell', testController.createOrderSell)
 
 
 module.exports = router

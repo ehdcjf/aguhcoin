@@ -143,11 +143,6 @@ const loginUser = async (req, res) => {
     }
 }
 
-
-
-
-
-
 const logoutUser = (req, res) => {
     res.clearCookie('AccessToken', { path: '/' })
     const data = {
@@ -157,46 +152,34 @@ const logoutUser = (req, res) => {
 }
 
 
+const txHistory = async (req, res) => {
+    console.log(req.body)
+    let connection; 
+    try {
+        connection = await pool.getConnection(async conn => conn);
+        try {
+            let data = {}
+            const { userid } = req.body; // \`order\`
+            console.log(req.body)
+            const useridSql = `SELECT * FROM user WHERE user_id = ? `
+            const useridParams = [userid]
+            const [useridResult] = await connection.execute(useridSql, useridParams)
+            const user_idx = useridResult.insertId;
+
+        
+            
+        } catch(e){ console.log(e) }
+    } catch(e){ console.log(e) }
+}
+const outstandingLog = async (req, res) => {
+
+}
 
 module.exports = {
     idCheck,
     createUser,
     loginUser,
     logoutUser,
-}
-
-
-
-
-const hideInfo = (data) => {
-    let temp = { ...data };
-    const show = data.show;
-    for (let i = 0; i < 5; i++) {
-        if (!(show & (1 << i))) {
-            switch (i) {
-                case 0:
-                    temp.gender = null;
-                    break;
-                case 1:
-                    temp.birth = null;
-                    break;
-                case 2:
-                    temp.hometown = null;
-                    break;
-                case 3:
-                    temp.residence = null;
-                    break;
-                case 4:
-                    temp.vote_19th = null;
-                    temp.vote_list = null;
-                    break;
-                
-
-                default:
-                    break;
-            }
-        }
-    }
-
-    return temp
+    txHistory,
+    outstandingLog
 }

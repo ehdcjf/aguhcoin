@@ -24,7 +24,7 @@ const createOrderBuy = async (req, res) => {
       const [[myAsset]] = await connection.execute(assetSql, assetParams)
 
       //이전 주문 목록에서 내가 주문한 게 있는지? 있다면 그건 구매에 사용할 수 없는 자산.
-      const orderSql = `SELECT leftover,price FROM order_list WHERE user_idx = ? AND order_type = 0`;
+      const orderSql = `SELECT leftover,price FROM order_list WHERE user_idx = ? AND order_type = 0 AND del=0`;
       const orderParams = [user_idx];
       const [[preOrder]] = await connection.execute(orderSql, orderParams)
 
@@ -54,7 +54,7 @@ const createOrderBuy = async (req, res) => {
         const availableOrderSql = `
           SELECT *
           FROM order_list
-          WHERE user_idx NOT IN(?) AND price<=? AND leftover>0 AND order_type=1
+          WHERE user_idx NOT IN(?) AND price<=? AND leftover>0 AND order_type=1 AND del=0
           ORDER BY price ASC, order_date ASC, qty DESC;
         `
         const availableOrderParams = [user_idx, price];
@@ -102,22 +102,12 @@ const createOrderBuy = async (req, res) => {
         }
       }
     } catch (error) {
-      console.log('Query Error');
-      console.log(error)
-      const data = {
-        success: false,
-        error: error.sqlMessage,
-      }
-      res.json(data)
+      console.log('Query Error\n' + error);
+      res.json(messageData.errorMessage(error))
     }
   } catch (error) {
-    console.log('DB Error')
-    console.log(error)
-    const data = {
-      success: false,
-      error: error.sqlMessage,
-    }
-    res.json(data)
+    console.log('DB Error\n' + error)
+    res.json(messageData.errorMessage(error))
   } finally {
     connection.release();
   }
@@ -139,7 +129,7 @@ const createOrderSell = async (req, res) => {
       const [[myCoin]] = await connection.execute(hasCoinSql, hasCoinParams)
 
       //이전 주문 목록에서 내가 매도한 코인이 있는지? 있다면 그건 판매할 수 없는 코인.
-      const orderSql = `SELECT SUM(leftover) as leftover FROM order_list WHERE user_idx = ? AND order_type = 1`;
+      const orderSql = `SELECT SUM(leftover) as leftover FROM order_list WHERE user_idx = ? AND order_type = 1 AND del=0`;
       const orderParams = [user_idx];
       const [[preOrder]] = await connection.execute(orderSql, orderParams)
 
@@ -172,7 +162,7 @@ const createOrderSell = async (req, res) => {
         const availableOrderSql = `
           SELECT *
           FROM order_list
-          WHERE user_idx NOT IN(?) AND price>=? AND leftover>0 AND order_type=0
+          WHERE user_idx NOT IN(?) AND price>=? AND leftover>0 AND order_type=0 AND del=0
           ORDER BY price DESC, order_date ASC, qty DESC;
         `
         const availableOrderParams = [user_idx, price];
@@ -218,30 +208,49 @@ const createOrderSell = async (req, res) => {
         }
       }
     } catch (error) {
-      console.log('Query Error');
-      console.log(error)
-      const data = {
-        success: false,
-        error: error.sqlMessage,
-      }
-      res.json(data)
+      console.log('Query Error\n' + error);
+      res.json(messageData.errorMessage(error))
     }
   } catch (error) {
-    console.log('DB Error')
-    console.log(error)
-    const data = {
-      success: false,
-      error: error.sqlMessage,
-    }
-    res.json(data)
+    console.log('DB Error\n' + error);
+    res.json(messageData.errorMessage(error))
   } finally {
     connection.release();
+  }
+}
 
+const deleteOrder = async (req, res) => {
+  const { order_id } = req.body;
+  //쿠키에서 아이디 확인도 해야됨.
+  let connection;
+  try {
+    connection = await pool.getConnection(async conn => conn);
+    try {
+      const transactionListSql = `UPDATE order_list SET del=1 WHERE id=?;`
+      await connection.execute(transactionListSql, [order_id]);
+      const data = {
+        success: true,
+        msg: ` 주문번호:${order_id}\n주문을 취소했습니다.`
+      }
+      res.json(data)
+    } catch (error) {
+      console.log('Query Error\n' + error);
+      res.json(messageData.errorMessage(error))
+    }
+  } catch (error) {
+    console.log('DB Error\n' + error)
+    res.json(messageData.errorMessage(error))
+  } finally {
+    connection.release();
   }
 }
 
 
+
+
+
 module.exports = {
   createOrderBuy,
-  createOrderSell
+  createOrderSell,
+  deleteOrder,
 }

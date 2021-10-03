@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const testController = require('./test.controller');
+const exchangeController = require('./exchange.controller');
 
 
 
-router.post('/buy', testController.createOrderBuy)
-router.post('/sell', testController.createOrderSell)
+router.post('/buy', exchangeController.createOrderBuy)
+router.post('/sell', exchangeController.createOrderSell)
+router.post('/cancle', exchangeController.deleteOrder)
 
 
 module.exports = router

@@ -17,7 +17,7 @@ const defaultRet = {
 // 쿼리문 에러는 쿼리를 잘 짰으면 발생할 이유가 없음. 
 // DB 조회시 오류가 발생했다면 그것도 알려줘야함. 목록이 없는 게 아니라. 오류라는
 
-async function getBuyList() {  //return array
+async function getBuyList() {
   let ret = { ...defaultRet };
   let connection;
   try {
@@ -52,7 +52,7 @@ async function getBuyList() {  //return array
 
 
 
-async function getSellList() {  //return array
+async function getSellList() {
   let ret = { ...defaultRet };
   let connection;
   try {
@@ -86,7 +86,7 @@ async function getSellList() {  //return array
 }
 
 
-async function getTransactionList(n) {  //return array
+async function getTransactionList(n) {
   let ret = { ...defaultRet };
   let connection;
   try {
@@ -157,8 +157,6 @@ async function getResult(n) {  //return array
       ret.sellList.success = true;
       ret.sellList.list = selltemp[0].reverse();
 
-
-
       const transactionListSql = `
         SELECT  *
         FROM transaction
@@ -171,8 +169,6 @@ async function getResult(n) {  //return array
       })
       ret.txList.success = true;
       ret.txList.list = txtemp[0];
-
-
     } catch (error) {
       console.log('Query Error');
       console.log(error)

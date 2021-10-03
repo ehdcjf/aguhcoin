@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS `order_list` (
   `leftover` int(11) NOT NULL,
 	`order_date` INT(11) NULL DEFAULT unix_timestamp(),
   `coin_id` int(11) DEFAULT 1,
+  `del` TINYINT(4) NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
 

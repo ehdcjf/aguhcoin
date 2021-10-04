@@ -20,29 +20,18 @@ export const UserJoinAction = data => {
         try {
 
             let url = 'http://localhost:3500/user/join';
-            let options = {
-              method: "POST",
-              mode: "cors",
-              credentials: "include",
-              headers: {
-                "content-type": "application/json",
-              },
-              body: JSON.stringify({
-                ...data,
-              }),
-            //   withCredentials: true,
-            };
-            const response = await fetch(url, options);
+            let options = await fetch(url, {
+                method: 'POST',
+                mode: "cord",
+                credentials: "include",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({...data}),
+            });
+            const response = await fetch(url, options)
             const result = await response.json();
-            // const response = await axios(
-            //     {   
-            //         method: 'post',
-            //         url: url,
-            //         data:{...data}
-            //       });
-            console.log(result);
-            // const result =response;
-            
+            console.log(result)
             dispatch(UserJoin_SUCCESS(result));
         } catch (e) {
             dispatch(UserJoin_ERROR());

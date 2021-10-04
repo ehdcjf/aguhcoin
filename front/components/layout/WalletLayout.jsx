@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import Link from 'next/link';
 
 const WalletContainer = styled.div`
     display: block;
@@ -33,6 +34,15 @@ const Category = styled.div`
         color: crimson;
         border-bottom: 3px solid crimson;
     }
+
+    & > div > a {
+        display: inline-block;
+        width: 100%;
+        color: #000;
+    }
+    & > div > a:hover {
+        color: crimson;
+    }
 `
 
 const WalletLayout = ({children}) => {
@@ -41,33 +51,22 @@ const WalletLayout = ({children}) => {
             <WalletContainer>
                 <Content>
                     <Category>
-                        <div>보유코인</div>
-                        <div>거래내역</div>
-                        <div>미체결</div>
+                        <div>
+                            <Link href="/wallet/mycoins">
+                                <a>보유코인</a>
+                            </Link>
+                        </div>
+                        <div>
+                            <Link href="/wallet/transaction">
+                                <a>거래내역</a>
+                            </Link>
+                        </div>
+                        <div>
+                            <Link href="/wallet/nontrading">
+                                <a>미체결</a>
+                            </Link>
+                        </div>
                     </Category>
-                    {/* 이중 동적라라우터???? */}
-                    {/* <Category>
-                            <div>
-                                <Link href="/wallet/mycoins">
-                                    <a>보유코인</a>
-                                </Link>
-                            </div>
-                            <div>
-                                <Link href="/wallet/transaction">
-                                    <a>거래내역</a>
-                                </Link>
-                            </div>
-                            <div>
-                                <Link href="/exchange">
-                                    <a>미체결</a>
-                                </Link>
-                            </div>
-                            <div>
-                                <Link href="/">
-                                    <a>확인용</a>
-                                </Link>
-                            </div>
-                        </Category> */}
                     {children}
                 </Content>
             </WalletContainer>

@@ -22,7 +22,7 @@ const MyCoins = styled.div`
         margin-left: 10px;
         font-size: 12px;
         font-weight: normal;
-        color: gray;
+        color: #999;
     }
 `
 
@@ -53,8 +53,6 @@ const SecondRow = styled.div`
     display: flex;
     flex-direction: row;
     height: 70%;
-    /* height: 30%; */
-    /* padding-bottom: 20px; */
 
     & > div {
         display: flex;
@@ -129,39 +127,112 @@ const TransactionHistory = styled.div`
         border: 1px solid steelblue;
     }
 
-    & > div:nth-child(2) > table {
-        height: 100%;
-    }
-    & > div:nth-child(2) > table {
-        height: 10%;
-    }
-    & > div:nth-child(2) > div:nth-child(2) {
-        height: 90%;
-    }
-
     table {
-        
-        
-    }
-    table > thead > tr {
-        
-        /* line-height: 20px; */
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
     }
     table > thead > tr > th {
-        padding: 10px 0;
+        padding: 10px;
         font-size: 14px;
         font-weight: normal;
         line-height: 20px;
         background: #eee;
-        border-top: 1px solid lightgray;
+        border: 1px solid lightgray;
+        border-left: none;
+    }
+    table > thead > tr > th:nth-last-child() {
+        border-right: none;
+    }
+    table > tbody > tr > td {
+        padding: 10px;
+        font-size: 14px;
+        font-weight: normal;
+        text-align: center;
         border-bottom: 1px solid lightgray;
+    }
+    table > tbody > tr > td:nth-child(n+3):nth-child(-n+7) {
+        text-align: right;
+    }
+    table > tbody > tr > td:nth-child(1), td:nth-child(8) {
+        font-size: 12px;
+        font-weight: lighter;
+    }
+    table > tbody > tr > td > span {
+        margin-left: 5px;
+        color: #999;
+        font-size: 12px;
+    }
+`
+
+const NonTrading = styled.div`
+    width: 100%;
+    height: 100%;
+
+    & > div {
+        height: 60px;
+        padding: 10px 20px;
+        text-align: right;
+    }
+    & > div > select {
+        padding: 10px;
+        padding-right: 40px;
+        border: 1px solid lightgray;
+    }
+
+    table {
+        width: 100%;
+        /* margin-top: 40px; */
+        border-collapse: collapse;
+        border-spacing: 0;
+    }
+    table > thead > tr > th {
+        padding: 10px;
+        font-size: 14px;
+        font-weight: normal;
+        line-height: 20px;
+        background: #eee;
+        border: 1px solid lightgray;
+        border-left: none;
+    }
+    table > thead > tr > th:nth-last-child() {
+        border-right: none;
+    }
+    table > tbody > tr > td {
+        padding: 10px;
+        font-size: 14px;
+        font-weight: normal;
+        text-align: center;
+        border-bottom: 1px solid lightgray;
+    }
+    table > tbody > tr > td:nth-child(n+3):nth-child(-n+6) {
+        text-align: right;
+    }
+    table > tbody > tr > td:nth-child(1) {
+        font-size: 12px;
+        font-weight: lighter;
+    }
+    table > tbody > tr > td > span {
+        margin-left: 5px;
+        color: #999;
+        font-size: 12px;
+    }
+    table > tbody > tr > td > button {
+        padding: 5px 20px;
+        color: #fff;
+        background: crimson;
+        border: none;
+        cursor: pointer;
+    }
+    table > tbody > tr > td > button:hover {
+        text-decoration: underline;
+        filter: brightness(110%);
     }
 `
 
 const NoResult = styled.div`
     width: 100%;
     height: 100%;
-
 `
 
 const Wallet = () => {
@@ -225,7 +296,7 @@ const Wallet = () => {
                     </MyCoins> */}
 
                     {/* 거래내역 */}
-                    <TransactionHistory>
+                    {/* <TransactionHistory>
                         <div>
                             <div>
                                 <div>
@@ -254,6 +325,10 @@ const Wallet = () => {
                             </div>
                         </div>
                         <div>
+                            {
+                                // boolean false일 경우 '검색 결과 없음' 출력
+                                // <NoResult>검색 결과 없음</NoResult>
+                            }
                             <table>
                                 <colgroup>
                                     <col width="10%" />
@@ -273,32 +348,184 @@ const Wallet = () => {
                                         <th>거래단가</th>
                                         <th>거래금액</th>
                                         <th>수수료</th>
-                                        <th>정산금액</th>
+                                        <th>정산금액(수수료반영)</th>
                                         <th>주문시간</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>1</td>
-                                        <td>2</td>
-                                        <td>3</td>
-                                        <td>4</td>
-                                        <td>5</td>
-                                        <td>6</td>
-                                        <td>7</td>
-                                        <td>8</td>
+                                        <td>
+                                            <p>2021.10.04</p>
+                                            <p>13:00</p>
+                                        </td>
+                                        <td>
+                                            {
+                                                // 매수 빨간색, 매도 파란색
+                                            }
+                                            <div style={{color:"red"}}>매수</div>
+                                        </td>
+                                        <td>
+                                            999,999,999
+                                            <span>AGU</span>
+                                        </td>
+                                        <td>
+                                            99,999
+                                            <span>KRW</span>
+                                        </td>
+                                        <td>
+                                            99,999
+                                            <span>KRW</span>
+                                        </td>
+                                        <td>
+                                            99.99
+                                            <span>KRW</span>
+                                        </td>
+                                        <td>
+                                            100,098.99
+                                            <span>KRW</span>
+                                        </td>
+                                        <td>
+                                            <p>2021.10.04</p>
+                                            <p>12:50</p>
+                                        </td>
                                     </tr>
-                                    {
-                                        // boolean false일 경우 '검색 결과 없음' 출력
-                                        // <NoResult>검색 결과 없음</NoResult>
-                                    }
+                                    <tr>
+                                        <td>
+                                            <p>2021.10.04</p>
+                                            <p>13:00</p>
+                                        </td>
+                                        <td>
+                                            {
+                                                // 매수 빨간색, 매도 파란색
+                                            }
+                                            <div style={{color:"blue"}}>매도</div>
+                                        </td>
+                                        <td>
+                                            999,999,999
+                                            <span>AGU</span>
+                                        </td>
+                                        <td>
+                                            99,999
+                                            <span>KRW</span>
+                                        </td>
+                                        <td>
+                                            99,999
+                                            <span>KRW</span>
+                                        </td>
+                                        <td>
+                                            99.99
+                                            <span>KRW</span>
+                                        </td>
+                                        <td>
+                                            100,098.99
+                                            <span>KRW</span>
+                                        </td>
+                                        <td>
+                                            <p>2021.10.04</p>
+                                            <p>12:50</p>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
-                            <div>
-                                로우 2-2 거래내역 출력
-                            </div>
                         </div>
-                    </TransactionHistory>
+                    </TransactionHistory> */}
+
+                    {/* 미체결 */}
+                    <NonTrading>
+                        <div>
+                            <select>
+                                <option>전체 주문</option>
+                                <option>일반 주문</option>
+                                <option>예약 주문</option>
+                            </select>
+                        </div>
+                        <table>
+                            <colgroup>
+                                <col width="10%" />
+                                <col width="5%" />
+                                <col width="18.75%" />
+                                <col width="18.75%" />
+                                <col width="18.75%" />
+                                <col width="18.75%" />
+                                <col width="10%" />
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>시간</th>
+                                    <th>거래종류</th>
+                                    <th>주문가격</th>
+                                    <th>주문수량</th>
+                                    <th>체결수량</th>
+                                    <th>미체결량</th>
+                                    <th>주문취소</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <p>2021.10.04</p>
+                                        <p>13:00</p>
+                                    </td>
+                                    <td>
+                                        {
+                                            // 매수 빨간색, 매도 파란색
+                                        }
+                                        <div style={{ color: "red" }}>매수</div>
+                                    </td>
+                                    <td>
+                                        999
+                                        <span>KRW</span>
+                                    </td>
+                                    <td>
+                                        20.00000000
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        0.00000000
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        20.00000000
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        <button type="submit">주문취소</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p>2021.10.04</p>
+                                        <p>13:00</p>
+                                    </td>
+                                    <td>
+                                        {
+                                            // 매수 빨간색, 매도 파란색
+                                        }
+                                        <div style={{ color: "blue" }}>매도</div>
+                                    </td>
+                                    <td>
+                                        999
+                                        <span>KRW</span>
+                                    </td>
+                                    <td>
+                                        20.00000000
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        0.00000000
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        20.00000000
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        <button type="submit">주문취소</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </NonTrading>
                 </WalletLayout>
             </MainLayout>
 

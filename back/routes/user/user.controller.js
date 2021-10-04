@@ -45,7 +45,7 @@ const idCheck = async (req, res) => {
 
 //============회원가입
 const createUser = async (req, res) => { 
-  console.log(req.body)
+  console.log(req.body,'asd')
     let connection;
     try {
         connection = await pool.getConnection(async conn => conn);
@@ -68,6 +68,7 @@ const createUser = async (req, res) => {
                 userid: userid,
                 userpw: userpw,
             }
+            console.log(data,'data')
             // res.cookie('AccessToken', access_token, { httpOnly: true, secure: true })
             res.json(data);
         } catch (error) {
@@ -161,7 +162,7 @@ const txHistory = async (req, res) => {
             const useridParams = [userid]
             const [useridResult] = await connection.execute(useridSql, useridParams)
             const user_idx = useridResult[0].id; //이 부분 수정해야 함
-            const dataSql = `SELECT * FROM order_list WHERE user_idx = ?`
+            const dataSql = `SELECT * FROM order_list WHERE user_idx = ?` // del=1 취소된 거래에 대한 내용.
             const dataParams = [user_idx]
             const [result] = await connection.execute(dataSql, dataParams)
             data = {
@@ -202,8 +203,8 @@ const outstandingLog = async (req, res) => {
             const useridParams = [userid]
             const [useridResult] = await connection.execute(useridSql, useridParams)
           
-            const user_idx = useridResult[0].id; //이 부분 수정해야 함
-            const dataSql = `SELECT * FROM order_list WHERE user_idx = ? AND leftover != 0`
+            const user_idx = useridResult[0].id;
+            const dataSql = `SELECT * FROM order_list WHERE user_idx = ? AND leftover > 0`
             const dataParams = [user_idx]
             const [result] = await connection.execute(dataSql, dataParams)
             console.log(result)

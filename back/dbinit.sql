@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `order_list` (
   `qty` int(11) NOT NULL,
   `order_type` int(11) NOT NULL,
   `leftover` int(11) NOT NULL,
-	-- `order_date` INT(11) DEFAULT current_timestamp(),
+	`order_date` INT(11) DEFAULT unix_timestamp(),
   `coin_id` int(11) DEFAULT 1,
   `del` TINYINT(4) NULL DEFAULT '0',
   PRIMARY KEY (`id`)
@@ -66,3 +66,24 @@ CREATE TABLE IF NOT EXISTS `user` (
   `user_pw` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=301 DEFAULT CHARSET=utf8mb4;
+
+-- INSERT INTO `user` ( `user_id`, `user_pw`) VALUES
+-- 	('111', '111'),
+-- 	('222', '222'),
+-- 	('333', '333'),
+-- 	('444', '444'),
+-- 	('555', '555');
+
+-- INSERT INTO `asset` (`user_idx`, `input`, `output`, `asset_date`) VALUES
+-- 	(1, 100000, 0, '2021-10-04 18:33:51'),
+-- 	(2, 100000, 0, '2021-10-04 18:33:51'),
+-- 	(3, 100000, 0, '2021-10-04 18:33:51'),
+-- 	(4, 100000, 0, '2021-10-04 18:33:51'),
+-- 	(5, 100000, 0, '2021-10-04 18:33:51');
+
+-- INSERT INTO `coin` (`user_idx`, `c_input`, `c_output`, `coin_date`, `coin_id`) VALUES
+-- 	(1, 10000, 0, '2021-10-04 18:34:45', 1),
+-- 	(2, 10000, 0, '2021-10-04 18:34:45', 1),
+-- 	(3, 10000, 0, '2021-10-04 18:34:45', 1),
+-- 	(4, 10000, 0, '2021-10-04 18:34:45', 1),
+-- 	(5, 10000, 0, '2021-10-04 18:34:45', 1);

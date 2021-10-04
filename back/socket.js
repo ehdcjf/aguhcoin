@@ -1,5 +1,5 @@
 const WebSocket = require("ws");
-const exchangeDate = require('./exchangeData')
+const exchangeDate = require('./exchangeData');
 const wsPORT = process.env.WS_PORT || 6005
 let clients = [];
 

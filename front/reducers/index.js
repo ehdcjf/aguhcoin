@@ -1,23 +1,21 @@
-import { HYDRATE } from "next-redux-wrapper"
-import { combineReducers } from "redux"
+import { HYDRATE } from 'next-redux-wrapper';
+import { combineReducers } from 'redux';
 
-import user from './user'
-import category from './category'
+import user from './user';
 
 const reducer = combineReducers({
-    index: (state={},action) => {
-        switch(action.type){
+    index: (state = {}, action) => {
+        switch (action.type) {
             case HYDRATE:
                 return {
                     ...state,
                     ...action.payload
                 }
             default:
-                return state
+                return state;
         }
     },
     user,
-    category,
 })
 
-export default reducer
+export default reducer;

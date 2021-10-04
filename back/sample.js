@@ -6,7 +6,7 @@ const jwtId = require('../../jwtId')
 const createUser = async (req, res) => {
 
     let connection;
-    
+
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
@@ -66,33 +66,33 @@ const showUser = async (req, res) => {
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
-// ///더미데이터 만들기
-// let x = Math.floor(Math.random()*10000000)
-//             for(let i = 500; i<1500;i++){
-//                 let rd=x+i
-//                 let kakao =rd%1000000;
-//                 let nickname = rd%100000
-//                 let hometown =rd%16;
-//                 let residence =rd%16;
-//                 let gender = rd%2;
-//                 let birth = rd%100+1930;
-//                 let image = null;
-//                 let vote19 = rd%10;
-//                 let vote_id = 6;
-//                 let vote20 = 21+rd%4;
+            // ///더미데이터 만들기
+            // let x = Math.floor(Math.random()*10000000)
+            //             for(let i = 500; i<1500;i++){
+            //                 let rd=x+i
+            //                 let kakao =rd%1000000;
+            //                 let nickname = rd%100000
+            //                 let hometown =rd%16;
+            //                 let residence =rd%16;
+            //                 let gender = rd%2;
+            //                 let birth = rd%100+1930;
+            //                 let image = null;
+            //                 let vote19 = rd%10;
+            //                 let vote_id = 6;
+            //                 let vote20 = 21+rd%4;
 
-//                 const sql = `INSERT INTO USER (kakao_code,nickname,hometown,residence,gender,birth,image,vote_19th) 
-//             values(?,?,?,?,?,?,?,?)`
-//             const params = [kakao, nickname, hometown, residence, gender, birth, image, vote19]
-//             const [result] = await connection.execute(sql, params)
-//             const user_id = result.insertId;
+            //                 const sql = `INSERT INTO USER (kakao_code,nickname,hometown,residence,gender,birth,image,vote_19th) 
+            //             values(?,?,?,?,?,?,?,?)`
+            //             const params = [kakao, nickname, hometown, residence, gender, birth, image, vote19]
+            //             const [result] = await connection.execute(sql, params)
+            //             const user_id = result.insertId;
 
-//             const voteSQL = `INSERT INTO vote_result (user_id,vote_id,politician_id) value (?,?,?)`;
-//             const voteParams = [user_id, vote_id, vote20]
-//             const [vote] = await connection.execute(voteSQL, voteParams)
+            //             const voteSQL = `INSERT INTO vote_result (user_id,vote_id,politician_id) value (?,?,?)`;
+            //             const voteParams = [user_id, vote_id, vote20]
+            //             const [vote] = await connection.execute(voteSQL, voteParams)
 
-//             }
-// //////
+            //             }
+            // //////
             const sql = `SELECT image,nickname,gender,birth,hometown,residence,vote_19th,user.show,user.state FROM user WHERE user_id = ?`
             const params = [id]
             const result = await connection.execute(sql, params)
@@ -112,7 +112,7 @@ const showUser = async (req, res) => {
                 const voteParams = [id];
                 const [voteResult] = await connection.execute(voteSQL, voteParams)
                 console.log(voteResult);
-                let data = { ...result[0][0], success: true,vote_list:voteResult }
+                let data = { ...result[0][0], success: true, vote_list: voteResult }
                 if (client == id) { //본인 정보를 조회할 경우
                     data.isMine = true;
                     res.json(data);
@@ -369,7 +369,7 @@ const hideInfo = (data) => {
                     temp.vote_19th = null;
                     temp.vote_list = null;
                     break;
-                
+
 
                 default:
                     break;
@@ -379,3 +379,55 @@ const hideInfo = (data) => {
 
     return temp
 }
+
+
+
+
+
+
+async function start5() {
+    const buylist = await client.query(
+        "select sellbuy,price,sum(amount) as sum from sellbuy where sellbuy = ? group by price order by price desc limit 5",
+        [0]
+    );
+    const selllist = await client.query(
+        "select sellbuy,price,sum(amount) as sum from sellbuy where sellbuy = ? group by price order by price asc limit 5",
+        [1]
+    );
+    let totalbuyamount = await client.query(
+        "SELECT sum(amount) as sum from sellbuy GROUP BY sellbuy HAVING sellbuy = 0"
+    );
+    let totalsellamount = await client.query(
+        "SELECT sum(amount) as sum from sellbuy GROUP BY sellbuy HAVING sellbuy = 1"
+    );
+    const conclusion = await client.query(
+        "SELECT * FROM conclusion order by num asc"
+    );
+    const mysell = await client.query("select* from sellbuy where sellbuy = 1");
+    const mybuy = await client.query("select* from sellbuy where sellbuy = 0");
+
+    if (totalbuyamount[0] == undefined) {
+        console.log("aa");
+        totalbuyamount = 0;
+    } else {
+        totalbuyamount = totalbuyamount[0].sum;
+    }
+    if (totalsellamount[0] == undefined) {
+        console.log("bb");
+        totalsellamount = 0;
+    } else {
+        totalsellamount = totalsellamount[0].sum;
+    }
+    socket.emit("yamadata", {
+        buylist: buylist,
+        selllist: selllist,
+        totalbuyamount: totalbuyamount,
+        totalsellamount: totalsellamount,
+        conclusion: conclusion,
+        mysell: mysell,
+        mybuy: mybuy,
+    });
+}
+
+
+

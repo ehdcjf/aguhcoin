@@ -5,6 +5,7 @@ const config = {
   user: 'root',
   password: '1234',
   database: 'exchange',
+  multipleStatements: true,
 }
 
 const pool = mysql.createPool(config);

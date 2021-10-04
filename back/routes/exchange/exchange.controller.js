@@ -72,11 +72,11 @@ const order = async(req,res) => {
         try{
             connection = await pool.getConnection(async conn => conn);
             try{
-                const sql = `SELECT * FROM \`order\` WHERE id NOT IN(?) AND type = 1 AND price = ? ORDER BY order_date ASC;`
+                const sql = `SELECT * FROM order_list WHERE id NOT IN(?) AND type = 1 AND price = ? ORDER BY order_date ASC;`
                 const params = [id, price]
                 const [result] = await connection.execute(sql, params)
                 if(result[0] == undefined){
-                    const orderSql = `INSERT INTO \`order\` (id, type, price, amount, sum, address) VALUES (?,?,?,?,?,?)`
+                    const orderSql = `INSERT INTO order_list (id, type, price, amount, sum, address) VALUES (?,?,?,?,?,?)`
                     const orderParams = [id, type, price, amount, sum, useraddress]
                     const orderResult = await connection.execute(orderSql, orderParams)
                     const leftpoint = userpoint - sum;
@@ -88,7 +88,7 @@ const order = async(req,res) => {
                 } else{ 
                     if(amount == result[0].amount){
                         const date = moment(result[0].date).format('YYYY-MM-DD HH:mm:ss')
-                        const dupResult = await connection.execute(`DELETE FROM \`order\` WHERE type = 1 AND id=? AND date=?`,[result[0].id, date])
+                        const dupResult = await connection.execute(`DELETE FROM order_list WHERE type = 1 AND id=? AND date=?`,[result[0].id, date])
                         const sellResult = await connection.execute(`SELECT * FROM user WHERE id=?`, [result[0].id])
                         let buyUserPoint = userpoint - sum
                         let buyUserCoin = usercoin + amount
@@ -118,7 +118,7 @@ const order = async(req,res) => {
                     } else if(amount<result[0].amount){
                         let leftover = result[0].amount - amount
                         const date = moment(result[0].date).format('YYYY-MM-DD HH:mm:ss')
-                        let leftResult = connection.execute(`UPDATE \`order\` SET amount=? WHERE type=1 AND id=? AND date=?`,[leftover, result[0].id, date])
+                        let leftResult = connection.execute(`UPDATE order_list SET amount=? WHERE type=1 AND id=? AND date=?`,[leftover, result[0].id, date])
                         const sellResult = await connection.execute(`SELECT * FROM user where id=?`, [result[0].id])
                         let buyUserPoint = userpoint - sum
                         let buyUserCoin = usercoin + amount
@@ -150,7 +150,7 @@ const order = async(req,res) => {
                         for(let i = 0; i< result.length; i++){
                             if(leftover>=result[i].amount){
                                 const date = moment(result[0].date).format('YYYY-MM-DD HH:mm:ss')
-                                const dupResult = await connection.execute(`DELETE FROM \`order\` WHERE type = 1 AND id=? AND date=?`,[result[i].id, date])
+                                const dupResult = await connection.execute(`DELETE FROM order_list WHERE type = 1 AND id=? AND date=?`,[result[i].id, date])
                                 const sellResult = await connection.execute(`SELECT * FROM user WHERE id=?`, [result[i].id])
                                 const newResult = await connection.execute(`SELECT * FROM user where id=?`, [id])
                                 let resultSum = result[i].amounmt * result[i].price
@@ -165,7 +165,7 @@ const order = async(req,res) => {
                                 await connection.execute('UPDATE user SET point=? where id=?', [sellUserPoint, result[i].id]); //point 부분?
                                 let sendAmount = 0
                                 if(result.length - 1 == i && leftover != 0){
-                                    await connection.execute('INSERT INTO \`order\` (id,type,price,amount,sum,address) values (?,?,?,?,?,?)', [
+                                    await connection.execute('INSERT INTO order_list (id,type,price,amount,sum,address) values (?,?,?,?,?,?)', [
                                         id,
                                         type,
                                         price,
@@ -218,7 +218,7 @@ const order = async(req,res) => {
                             } else{ 
                                 const date = moment(result[i].date).format('YYYY-MM-DD HH:mm:ss');
                                 let lastamount = result[i].amount - leftover;
-                                await connection.execute(`UPDATE \`order\` SET amount=?,sum=? WHERE type=1 and id=? and date=?`, [
+                                await connection.execute(`UPDATE order_list SET amount=?,sum=? WHERE type=1 and id=? and date=?`, [
                                     lastamount,
                                     lastamount * price,
                                     result[i].id,
@@ -269,11 +269,11 @@ const order = async(req,res) => {
         try{
             connection = await pool.getConnection(async conn => conn);
             try{
-                const sql = `SELECT * FROM \`order\` WHERE id NOT IN(?) AND type = 0 AND price = ? ORDER BY order_date ASC;`
+                const sql = `SELECT * FROM order_list WHERE id NOT IN(?) AND type = 0 AND price = ? ORDER BY order_date ASC;`
                 const params = [id, price]
                 const [result] = await connection.execute(sql, params)
                 if(result[0] == undefined){
-                    const orderSql = `INSERT INTO \`order\` (id, type, price, amount, sum, address) VALUES (?,?,?,?,?,?)`
+                    const orderSql = `INSERT INTO order_list (id, type, price, amount, sum, address) VALUES (?,?,?,?,?,?)`
                     const orderParams = [id, type, price, amount, sum, useraddress]
                     const orderResult = await connection.execute(orderSql, orderParams)
                     const leftcoin = usercoin - amount;
@@ -285,7 +285,7 @@ const order = async(req,res) => {
                 } else{ 
                     if(amount == result[0].amount){
                         const date = moment(result[0].date).format('YYYY-MM-DD HH:mm:ss')
-                        const dupResult = await connection.execute(`DELETE FROM \`order\` WHERE type = 0 AND id=? AND date=?`,[result[0].id, date])
+                        const dupResult = await connection.execute(`DELETE FROM order_list WHERE type = 0 AND id=? AND date=?`,[result[0].id, date])
                         const buyResult = await connection.execute(`SELECT * FROM user WHERE id=?`, [result[0].id])
                         let sellUserPoint = userpoint - sum
                         let sellUserCoin = usercoin + amount
@@ -315,7 +315,7 @@ const order = async(req,res) => {
                     } else if(amount<result[0].amount){
                         let leftover = result[0].amount - amount
                         const date = moment(result[0].date).format('YYYY-MM-DD HH:mm:ss')
-                        let leftResult = connection.execute(`UPDATE \`order\` SET amount=? WHERE type=0 AND id=? AND date=?`,[leftover, result[0].id, date])
+                        let leftResult = connection.execute(`UPDATE order_list SET amount=? WHERE type=0 AND id=? AND date=?`,[leftover, result[0].id, date])
                         const buyResult = await connection.execute(`SELECT * FROM user where id=?`, [result[0].id])
                         let sellUserPoint = userpoint + sum;
                         let sellUserCoin = usercoin - amount;
@@ -347,7 +347,7 @@ const order = async(req,res) => {
                         for(let i = 0; i< result.length; i++){
                             if(leftover>=result[i].amount){
                                 const date = moment(result[0].date).format('YYYY-MM-DD HH:mm:ss')
-                                const dupResult = await connection.execute(`DELETE FROM \`order\` WHERE type = 0 AND id=? AND date=?`,[result[i].id, date])
+                                const dupResult = await connection.execute(`DELETE FROM order_list WHERE type = 0 AND id=? AND date=?`,[result[i].id, date])
                                 const buyResult = await connection.execute(`SELECT * FROM user WHERE id=?`, [result[i].id])
                                 const newResult = await connection.execute(`SELECT * FROM user where id=?`, [id])
                                 let resultSum = result[i].amounmt * result[i].price
@@ -364,7 +364,7 @@ const order = async(req,res) => {
                                 leftover = leftover - result[i].amount
                                 let sendAmount = 0
                                 if(result.length - 1 == i  && leftover != 0){
-                                    await connection.execute(`INSERT INTO \`order\` (id,type,price,amount,sum,address) values (?,?,?,?,?,?)`, [
+                                    await connection.execute(`INSERT INTO order_list (id,type,price,amount,sum,address) values (?,?,?,?,?,?)`, [
                                         id,
                                         type,
                                         price,
@@ -417,7 +417,7 @@ const order = async(req,res) => {
                             } else{ 
                                 const date = moment(result[i].date).format('YYYY-MM-DD HH:mm:ss');
                                 let lastamount = result[i].amount - leftover;
-                                await connection.execute(`UPDATE \`order\` SET amount=?,sum=? WHERE type=0 and id=? and date=?`, [
+                                await connection.execute(`UPDATE order_list SET amount=?,sum=? WHERE type=0 and id=? and date=?`, [
                                     lastamount,
                                     lastamount * price,
                                     result[i].id,

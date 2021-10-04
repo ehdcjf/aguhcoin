@@ -6,8 +6,10 @@ const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const PORT = process.env.PORT || 3500 
 const dbsetting = require('./dbsetting')
+const socket = require('./socket')
 // const nunjucks = require('nunjucks');
 const mysql = require('mysql2')
+
 require('dotenv').config();
 
 const logger = require('./logger');
@@ -53,8 +55,9 @@ app.use((req,res,next)=>{
   res.render('404');
 })
 
+socket.wsInit();
 
-
-app.listen(PORT,()=>{
-  console.log(`Hello port ${PORT}`)
+app.listen(PORT, () => {
+  console.log(`server start port ${PORT}`)
 })
+

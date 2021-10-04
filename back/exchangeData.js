@@ -172,7 +172,6 @@ async function getResult(n) {  //return array
       ret.txList.success = true;
       ret.txList.list = txtemp[0];
 
-      const allTransaction = await connection.execute(transactionListSql, []);
     } catch (error) {
       console.log('Query Error');
       console.log(error)
@@ -189,6 +188,12 @@ async function getResult(n) {  //return array
 }
 
 
+async function clacMyAsset(conn,user_idx){
+  const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
+  const assetParams = [user_idx]
+  const [[myAsset]] = await conn.execute(assetSql, assetParams)
+  return myAsset.asset;
+}
 
 
 

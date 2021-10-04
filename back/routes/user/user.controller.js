@@ -45,7 +45,7 @@ const idCheck = async (req, res) => {
 
 //============회원가입
 const createUser = async (req, res) => { 
-  console.log(req.body)
+  console.log(req.body,'asd')
     let connection;
     try {
         connection = await pool.getConnection(async conn => conn);

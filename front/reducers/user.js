@@ -1,3 +1,4 @@
+import axios from "axios";
 const initialState = {
     loading:false,
     isLogin:false,
@@ -17,17 +18,31 @@ export const UserJoinAction = data => {
         dispatch(UserJoin_REQUEST());
 
         try {
-            let url = 'http://localhost:3500/user/join';
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-            const result = await response.json();
-            console.log('+++++++++++++++++++'+result)
 
+            let url = 'http://localhost:3500/user/join';
+            let options = {
+              method: "POST",
+              mode: "cors",
+              credentials: "include",
+              headers: {
+                "content-type": "application/json",
+              },
+              body: JSON.stringify({
+                ...data,
+              }),
+            //   withCredentials: true,
+            };
+            const response = await fetch(url, options);
+            const result = await response.json();
+            // const response = await axios(
+            //     {   
+            //         method: 'post',
+            //         url: url,
+            //         data:{...data}
+            //       });
+            console.log(result);
+            // const result =response;
+            
             dispatch(UserJoin_SUCCESS(result));
         } catch (e) {
             dispatch(UserJoin_ERROR());
@@ -107,7 +122,7 @@ const reducer = (state = initialState, action) => {
         case USER_JOIN_SUCCESS:
             return {
                 ...state,
-                loading: true,
+                loading: false,
             }
         case USER_JOIN_ERROR:
             return {

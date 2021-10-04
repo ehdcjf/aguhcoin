@@ -15,7 +15,6 @@ const Index = () => {
                         src="/croco1.png"
                         width="200%"
                         height="200%"
-                        
                     /> */}
                 </MainLayout>
             </div>

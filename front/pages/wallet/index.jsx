@@ -129,23 +129,39 @@ const TransactionHistory = styled.div`
         border: 1px solid steelblue;
     }
 
-    & > div:nth-child(2) > div {
+    & > div:nth-child(2) > table {
         height: 100%;
     }
-    & > div:nth-child(2) > div:nth-child(1) {
+    & > div:nth-child(2) > table {
         height: 10%;
     }
     & > div:nth-child(2) > div:nth-child(2) {
         height: 90%;
+    }
+
+    table {
+        
+        
+    }
+    table > thead > tr {
+        
+        /* line-height: 20px; */
+    }
+    table > thead > tr > th {
+        padding: 10px 0;
+        font-size: 14px;
+        font-weight: normal;
+        line-height: 20px;
+        background: #eee;
+        border-top: 1px solid lightgray;
+        border-bottom: 1px solid lightgray;
     }
 `
 
 const NoResult = styled.div`
     width: 100%;
     height: 100%;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+
 `
 
 const Wallet = () => {
@@ -239,7 +255,6 @@ const Wallet = () => {
                         </div>
                         <div>
                             <table>
-                                
                                 <colgroup>
                                     <col width="10%" />
                                     <col width="5%" />
@@ -263,9 +278,19 @@ const Wallet = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>2</td>
+                                        <td>3</td>
+                                        <td>4</td>
+                                        <td>5</td>
+                                        <td>6</td>
+                                        <td>7</td>
+                                        <td>8</td>
+                                    </tr>
                                     {
                                         // boolean false일 경우 '검색 결과 없음' 출력
-                                        <NoResult>검색 결과 없음</NoResult>
+                                        // <NoResult>검색 결과 없음</NoResult>
                                     }
                                 </tbody>
                             </table>

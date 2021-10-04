@@ -143,11 +143,6 @@ const loginUser = async (req, res) => {
     }
 }
 
-
-
-
-
-
 const logoutUser = (req, res) => {
     res.clearCookie('AccessToken', { path: '/' })
     const data = {
@@ -157,46 +152,95 @@ const logoutUser = (req, res) => {
 }
 
 
+const txHistory = async (req, res) => {
+    let connection; 
+    try {
+        connection = await pool.getConnection(async conn => conn);
+        try {
+            let data = {}
+            const { userid } = req.body; // order_list
+            const useridSql = `SELECT * FROM user WHERE user_id = ? `
+            const useridParams = [userid]
+            const [useridResult] = await connection.execute(useridSql, useridParams)
+            const user_idx = useridResult[0].id; //이 부분 수정해야 함
+            const dataSql = `SELECT * FROM order_list WHERE user_idx = ?`
+            const dataParams = [user_idx]
+            const [result] = await connection.execute(dataSql, dataParams)
+            data = {
+                success: true,
+                txList: result,
+            }
+            res.json(data);
+        } catch (error) {
+            console.log('Query Error');
+            console.log(error)
+                const data = {
+                    success: false,
+                    error: error.sqlMessage,
+                }
+            res.json(data)
+        }
+    } catch (error) {
+        console.log('DB Error')
+        console.log(error)
+        const data = {
+            success: false,
+            error: error.sqlMessage,
+        }
+        res.json(data)
+    } finally {
+        connection.release();
+    }
+}
+const outstandingLog = async (req, res) => {
+    let connection; 
+    try {
+        connection = await pool.getConnection(async conn => conn);
+        try {
+            let data = {}
+            const { userid } = req.body; // order_list
+         
+            const useridSql = `SELECT * FROM user WHERE user_id = ? `
+            const useridParams = [userid]
+            const [useridResult] = await connection.execute(useridSql, useridParams)
+          
+            const user_idx = useridResult[0].id; //이 부분 수정해야 함
+            const dataSql = `SELECT * FROM order_list WHERE user_idx = ? AND leftover != 0`
+            const dataParams = [user_idx]
+            const [result] = await connection.execute(dataSql, dataParams)
+            console.log(result)
+            data = {
+                success: true,
+                txList: result,
+            }
+            res.json(data);
+        } catch (error) {
+            console.log('Query Error');
+            console.log(error)
+                const data = {
+                    success: false,
+                    error: error.sqlMessage,
+                }
+            res.json(data)
+        }
+    } catch (error) {
+        console.log('DB Error')
+        console.log(error)
+        const data = {
+            success: false,
+            error: error.sqlMessage,
+        }
+        res.json(data)
+    } finally {
+        connection.release();
+    }
+}
 
 module.exports = {
     idCheck,
     createUser,
     loginUser,
     logoutUser,
-}
-
-
-
-
-const hideInfo = (data) => {
-    let temp = { ...data };
-    const show = data.show;
-    for (let i = 0; i < 5; i++) {
-        if (!(show & (1 << i))) {
-            switch (i) {
-                case 0:
-                    temp.gender = null;
-                    break;
-                case 1:
-                    temp.birth = null;
-                    break;
-                case 2:
-                    temp.hometown = null;
-                    break;
-                case 3:
-                    temp.residence = null;
-                    break;
-                case 4:
-                    temp.vote_19th = null;
-                    temp.vote_list = null;
-                    break;
-                
-
-                default:
-                    break;
-            }
-        }
-    }
-
-    return temp
+    txHistory,
+    outstandingLog
 }

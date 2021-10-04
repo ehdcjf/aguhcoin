@@ -1,25 +1,26 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing: border-box;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-body{
-    font-family: 'Noto Sans KR', sans-serif;
-    color: #fff;
-    background: #000;
+body {
+  font-family: "Noto Sans KR", sans-serif;
+  color: #fff;
+  background: #222;
 }
 
-ul,li{
-    list-style:none;
+ul,
+li {
+  list-style: none;
 }
 
-a{
-    color:#fff;
-    text-decoration:none;
+a {
+  color: #fff;
+  text-decoration: none;
 }
 
-.footer{
-    background:#000;
-    color:#fff;
+.footer {
+  background: #000;
+  color: #fff;
 }

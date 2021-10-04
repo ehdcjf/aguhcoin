@@ -9,9 +9,6 @@ import WebSocket from "../components/Websocket";
 
 
 const App = ({Component}) => {
-    // const globalContext = useContext(Store)
-    // const [state,dispatch] = useReducer(reducer,globalContext)
-
     return (
         <>
             <Head>
@@ -25,7 +22,7 @@ const App = ({Component}) => {
             </WebSocket>
             {/* </Store.Provider> */}
         </>
-    )
+    );
 }
 
-export default wrapper.withRedux(App)
+export default wrapper.withRedux(App);

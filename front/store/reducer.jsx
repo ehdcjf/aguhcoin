@@ -5,7 +5,7 @@ export const reducer = (state,action) => {
         case "LOGOUT":
             return {
                 ...state,
-                IsLogin:false,
+                isLogin:false,
             }
     }
 }

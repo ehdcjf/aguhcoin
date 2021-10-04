@@ -50,21 +50,18 @@ const createUser = async (req, res) => {
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
-            const { userid, userpw, username } = req.body;
-            const sql = `INSERT INTO USER (user_id, user_pw) 
-            values(?,?);
-            ` 
-            const params = [userid, userpw, username]
+            const { userid, userpw } = req.body;
+            const sql = `INSERT INTO USER (user_id, user_pw) values(?,?);` 
+            const params = [userid, userpw]
             const [result] = await connection.execute(sql, params)
 
         
             const user_idx = result.insertId;
-            const assetSql = `INSERT INTO ASSET (user_idx, input, output, regdate) 
-            values(?,?,?,now())`
-            const assetParams = [user_idx, input, output, regdate] //sql과 함께 바꿔야 함
-            const [assetResult] = await connection.execute(assetSql, params)
-
-            console.log(userid, userpw)
+            const assetSql = `INSERT INTO ASSET (user_idx, input, output) values(?,?,?)`
+            const assetParams = [user_idx, 1000000, 0] //sql과 함께 바꿔야 함
+            const [assetResult] = await connection.execute(assetSql, assetParams)
+            
+            console.log(assetResult)
             // const access_token = createToken(user_id)
             const data = {
                 success: true,

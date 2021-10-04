@@ -11,7 +11,7 @@ const ConnectionStatus = [
 
 async function wsInit() {
   const server = new WebSocket.Server({ port: wsPORT })
-  const result = await exchangeDate.getResult(10);
+  const result = await exchangeDate.getResult(0);
   console.log(`socket start!`)
   server.on('connection', (ws) => {
     clients.push(ws);   //연결되었을 때 연결된 소켓에게 최초 정보들 보내주기. 이후에는 각 트랜잭션/오더 테이블 조작할 때마다 send

@@ -156,19 +156,23 @@ async function getResult(n) {  //return array
       const selltemp = await connection.execute(sellListSql, []);
       ret.sellList.success = true;
       ret.sellList.list = selltemp[0].reverse();
-
-      const transactionListSql = `
+      
+      let transactionListSql = `
         SELECT  *
         FROM transaction
         ORDER BY id DESC
-        LIMIT ${n};
         `
+      if(n==0) transactionListSql+=';'   //전체 트랜잭션 조회
+      else transactionListSql+=` LIMIT ${n};` //최근 n개 트랜잭션 조회
+
       const txtemp = await connection.execute(transactionListSql, []);
       txtemp[0].forEach((v, i) => {
         txtemp[0][i].tx_date = txtemp[0][i].tx_date.toLocaleString();
       })
       ret.txList.success = true;
       ret.txList.list = txtemp[0];
+
+      const allTransaction = await connection.execute(transactionListSql, []);
     } catch (error) {
       console.log('Query Error');
       console.log(error)

@@ -30,10 +30,12 @@ dbsetting.dbinit();
 app.use(morgan('dev'));
 
 app.use(
-  cors({
-    origin: 'http://localhost:80',
-    credentials: true
-  })
+  cors(
+    {
+  origin: 'http://localhost:3001',
+  credentials: true
+}
+  )
 );
 
 app.use(bodyParser.json());

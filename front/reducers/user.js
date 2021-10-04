@@ -26,6 +26,7 @@ export const UserJoinAction = data => {
                 body: JSON.stringify(data),
             });
             const result = await response.json();
+            console.log('+++++++++++++++++++'+result)
 
             dispatch(UserJoin_SUCCESS(result));
         } catch (e) {

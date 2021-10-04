@@ -90,11 +90,10 @@ const Join = () => {
             return; 
         }
 
+        console.log('xxxxxxxxxxxxxxx')
         console.log({
             userid:userid.value,
-            username:username.value,
             userpw:userpassword.value,
-            userphone:userphone.value
         })
     }
 

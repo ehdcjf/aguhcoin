@@ -115,7 +115,6 @@ const createOrderBuy = async (req, res) => {
 
 
 const createOrderSell = async (req, res) => {
-  console.log('sell')
   const { user_idx, order_type, coin_id = 1 } = req.body;
   let { qty, price } = req.body;
   let connection;

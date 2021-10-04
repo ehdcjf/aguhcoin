@@ -172,7 +172,7 @@ async function getResult(n) {  //return array
       ret.txList.success = true;
       ret.txList.list = txtemp[0];
 
-      const allTransaction = await connection.execute(transactionListSql, []);
+      // const allTransaction = await connection.execute(transactionListSql, []);
     } catch (error) {
       console.log('Query Error');
       console.log(error)

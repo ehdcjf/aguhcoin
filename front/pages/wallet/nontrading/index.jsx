@@ -1,6 +1,6 @@
+import MainLayout from '../../../components/layout/MainLayout';
 import WalletLayout from '../../../components/layout/WalletLayout';
 import Head from 'next/head';
-import Router from 'next/router';
 import styled from 'styled-components';
 
 const NonTradingHistory = styled.div`
@@ -74,103 +74,105 @@ const NonTrading = () => {
             <Head>
                 <title>악어코인 | 내 지갑</title>
             </Head>
-            <WalletLayout>
-                <NonTradingHistory>
-                    <div>
-                        <select>
-                            <option>전체 주문</option>
-                            <option>일반 주문</option>
-                            <option>예약 주문</option>
-                        </select>
-                    </div>
-                    <table>
-                        <colgroup>
-                            <col width="10%" />
-                            <col width="5%" />
-                            <col width="18.75%" />
-                            <col width="18.75%" />
-                            <col width="18.75%" />
-                            <col width="18.75%" />
-                            <col width="10%" />
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th>시간</th>
-                                <th>거래종류</th>
-                                <th>주문가격</th>
-                                <th>주문수량</th>
-                                <th>체결수량</th>
-                                <th>미체결량</th>
-                                <th>주문취소</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <p>2021.10.04</p>
-                                    <p>13:00</p>
-                                </td>
-                                <td>
-                                    {
-                                        // 매수 빨간색, 매도 파란색
-                                    }
-                                    <div style={{ color: "red" }}>매수</div>
-                                </td>
-                                <td>
-                                    999
-                                    <span>KRW</span>
-                                </td>
-                                <td>
-                                    20.00000000
-                                    <span>AGU</span>
-                                </td>
-                                <td>
-                                    0.00000000
-                                    <span>AGU</span>
-                                </td>
-                                <td>
-                                    20.00000000
-                                    <span>AGU</span>
-                                </td>
-                                <td>
-                                    <button type="submit">주문취소</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <p>2021.10.04</p>
-                                    <p>13:00</p>
-                                </td>
-                                <td>
-                                    {
-                                        // 매수 빨간색, 매도 파란색
-                                    }
-                                    <div style={{ color: "blue" }}>매도</div>
-                                </td>
-                                <td>
-                                    999
-                                    <span>KRW</span>
-                                </td>
-                                <td>
-                                    20.00000000
-                                    <span>AGU</span>
-                                </td>
-                                <td>
-                                    0.00000000
-                                    <span>AGU</span>
-                                </td>
-                                <td>
-                                    20.00000000
-                                    <span>AGU</span>
-                                </td>
-                                <td>
-                                    <button type="submit">주문취소</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </NonTradingHistory>
-            </WalletLayout>
+            <MainLayout>
+                <WalletLayout>
+                    <NonTradingHistory>
+                        <div>
+                            <select>
+                                <option>전체 주문</option>
+                                <option>일반 주문</option>
+                                <option>예약 주문</option>
+                            </select>
+                        </div>
+                        <table>
+                            <colgroup>
+                                <col width="10%" />
+                                <col width="5%" />
+                                <col width="18.75%" />
+                                <col width="18.75%" />
+                                <col width="18.75%" />
+                                <col width="18.75%" />
+                                <col width="10%" />
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>시간</th>
+                                    <th>거래종류</th>
+                                    <th>주문가격</th>
+                                    <th>주문수량</th>
+                                    <th>체결수량</th>
+                                    <th>미체결량</th>
+                                    <th>주문취소</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <p>2021.10.04</p>
+                                        <p>13:00</p>
+                                    </td>
+                                    <td>
+                                        {
+                                            // 매수 빨간색, 매도 파란색
+                                        }
+                                        <div style={{ color: "red" }}>매수</div>
+                                    </td>
+                                    <td>
+                                        999
+                                        <span>KRW</span>
+                                    </td>
+                                    <td>
+                                        20.00000000
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        0.00000000
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        20.00000000
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        <button type="submit">주문취소</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p>2021.10.04</p>
+                                        <p>13:00</p>
+                                    </td>
+                                    <td>
+                                        {
+                                            // 매수 빨간색, 매도 파란색
+                                        }
+                                        <div style={{ color: "blue" }}>매도</div>
+                                    </td>
+                                    <td>
+                                        999
+                                        <span>KRW</span>
+                                    </td>
+                                    <td>
+                                        20.00000000
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        0.00000000
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        20.00000000
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        <button type="submit">주문취소</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </NonTradingHistory>
+                </WalletLayout>
+            </MainLayout>
         </>
     );
 }

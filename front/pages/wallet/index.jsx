@@ -2,7 +2,6 @@ import MainLayout from '../../components/layout/MainLayout';
 import WalletLayout from '../../components/layout/WalletLayout';
 import Head from 'next/head';
 import styled from 'styled-components';
-import { useRouter } from 'next/router';
 
 const MyCoins = styled.div`
     display: flex;
@@ -236,11 +235,7 @@ const NoResult = styled.div`
 `
 
 const Wallet = () => {
-    const router = useRouter();
-    const { pagename } = router.query;
-    console.log('aa',pagename);
-
-    return(
+    return (
         <>
             <Head>
                 <title>악어코인 | 내 지갑</title>

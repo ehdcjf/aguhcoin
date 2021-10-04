@@ -1,6 +1,6 @@
+import MainLayout from '../../../components/layout/MainLayout';
 import WalletLayout from '../../../components/layout/WalletLayout';
 import Head from 'next/head';
-import Router from 'next/router';
 import styled from 'styled-components';
 
 const MyCoins = styled.div`
@@ -132,139 +132,141 @@ const MyCoin = () => {
             <Head>
                 <title>악어코인 | 내 지갑</title>
             </Head>
-            <WalletLayout>
-                <MyCoins>
-                    <FirstRow>
-                        <div>
-                            <div>보유 KRW</div>
+            <MainLayout>
+                <WalletLayout>
+                    <MyCoins>
+                        <FirstRow>
                             <div>
-                                <p>999,999,999,999<span>KRW</span></p>
-                            </div>
-                        </div>
-                        <div>
-                            <div>총 보유자산</div>
-                            <div>
-                                <p>999,999,999,999<span>KRW</span></p>
-                            </div>
-                        </div>
-                    </FirstRow>
-                    <SecondRow>
-                        <div>
-                            <div>
-                                <div>총매수금액</div>
+                                <div>보유 KRW</div>
                                 <div>
                                     <p>999,999,999,999<span>KRW</span></p>
                                 </div>
                             </div>
                             <div>
-                                <div>총평가금액</div>
+                                <div>총 보유자산</div>
                                 <div>
-                                    <p>-<span>KRW</span></p>
+                                    <p>999,999,999,999<span>KRW</span></p>
                                 </div>
                             </div>
-                        </div>
-                        <div>
+                        </FirstRow>
+                        <SecondRow>
                             <div>
-                                <div>총평가손익</div>
                                 <div>
-                                    <p>-<span>KRW</span></p>
+                                    <div>총매수금액</div>
+                                    <div>
+                                        <p>999,999,999,999<span>KRW</span></p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div>총평가금액</div>
+                                    <div>
+                                        <p>-<span>KRW</span></p>
+                                    </div>
                                 </div>
                             </div>
                             <div>
-                                <div>총평가수익률</div>
                                 <div>
-                                    <p>-<span>%</span></p>
+                                    <div>총평가손익</div>
+                                    <div>
+                                        <p>-<span>KRW</span></p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div>총평가수익률</div>
+                                    <div>
+                                        <p>-<span>%</span></p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </SecondRow>
-                </MyCoins>
-                <CoinList>
-                    <h4>보유코인 목록</h4>
-                    <table>
-                        <colgroup>
-                            <col width="15%" />
-                            <col width="21.25%" />
-                            <col width="10%" />
-                            <col width="21.25%" />
-                            <col width="21.25%" />
-                            <col width="21.25%" />
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th>보유코인</th>
-                                <th>보유수량</th>
-                                <th>매수평균가</th>
-                                <th>매수금액</th>
-                                <th>평가금액</th>
-                                <th>평가손익(%)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <h5>악어</h5>
-                                    <p>AGU</p>
-                                </td>
-                                <td>
-                                    999,999,999
-                                    <span>AGU</span>
-                                </td>
-                                <td>
-                                    999
-                                    <span>KRW</span>
-                                </td>
-                                <td>
-                                    999,999
-                                    <span>KRW</span>
-                                </td>
-                                <td>
-                                    99,999
-                                    <span>KRW</span>
-                                </td>
-                                <td>
-                                    <p style={{color:"red"}}>
-                                        + 1.14<span>%</span>
-                                    </p>
-                                    <p style={{color:"red"}}>
-                                        + 99,999<span>KRW</span>
-                                    </p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <h5>악어</h5>
-                                    <p>AGU</p>
-                                </td>
-                                <td>
-                                    999,999,999
-                                    <span>AGU</span>
-                                </td>
-                                <td>
-                                    999
-                                    <span>KRW</span>
-                                </td>
-                                <td>
-                                    999,999
-                                    <span>KRW</span>
-                                </td>
-                                <td>
-                                    99,999
-                                    <span>KRW</span>
-                                </td>
-                                <td>
-                                    <p style={{color:"blue"}}>
-                                        - 9.99<span>%</span>
-                                    </p>
-                                    <p style={{color:"blue"}}>
-                                        - 999,999<span>KRW</span>
-                                    </p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </CoinList>
-            </WalletLayout>
+                        </SecondRow>
+                    </MyCoins>
+                    <CoinList>
+                        <h4>보유코인 목록</h4>
+                        <table>
+                            <colgroup>
+                                <col width="15%" />
+                                <col width="21.25%" />
+                                <col width="10%" />
+                                <col width="21.25%" />
+                                <col width="21.25%" />
+                                <col width="21.25%" />
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>보유코인</th>
+                                    <th>보유수량</th>
+                                    <th>매수평균가</th>
+                                    <th>매수금액</th>
+                                    <th>평가금액</th>
+                                    <th>평가손익(%)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <h5>악어</h5>
+                                        <p>AGU</p>
+                                    </td>
+                                    <td>
+                                        999,999,999
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        999
+                                        <span>KRW</span>
+                                    </td>
+                                    <td>
+                                        999,999
+                                        <span>KRW</span>
+                                    </td>
+                                    <td>
+                                        99,999
+                                        <span>KRW</span>
+                                    </td>
+                                    <td>
+                                        <p style={{ color: "red" }}>
+                                            + 1.14<span>%</span>
+                                        </p>
+                                        <p style={{ color: "red" }}>
+                                            + 99,999<span>KRW</span>
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <h5>악어</h5>
+                                        <p>AGU</p>
+                                    </td>
+                                    <td>
+                                        999,999,999
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        999
+                                        <span>KRW</span>
+                                    </td>
+                                    <td>
+                                        999,999
+                                        <span>KRW</span>
+                                    </td>
+                                    <td>
+                                        99,999
+                                        <span>KRW</span>
+                                    </td>
+                                    <td>
+                                        <p style={{ color: "blue" }}>
+                                            - 9.99<span>%</span>
+                                        </p>
+                                        <p style={{ color: "blue" }}>
+                                            - 999,999<span>KRW</span>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </CoinList>
+                </WalletLayout>
+            </MainLayout>
         </>
     );
 }

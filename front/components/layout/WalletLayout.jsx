@@ -50,13 +50,6 @@ const WalletLayout = ({children}) => {
         <>
             <WalletContainer>
                 <Content>
-                    {/* <Category>
-                        <div>보유코인</div>
-                        <div>거래내역</div>
-                        <div>미체결</div>
-                    </Category> */}
-
-                    {/* 이중 동적라라우터???? */}
                     <Category>
                         <div>
                             <Link href="/wallet/mycoins">

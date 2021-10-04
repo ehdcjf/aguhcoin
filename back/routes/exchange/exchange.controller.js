@@ -1,472 +1,255 @@
 const pool = require('../../config/dbconnection');
-
+const messageData = require('../../messageData')
+const ws = require('../../socket')
+const exchangeData = require('../../exchangeData')
 
 //우선 내가 100원에 10개 팔기로 했는데 동시에 내가 100원에 10개 사기로 했다면. 못하게 해야되고. 
 // 내가 100원에 10개 사기로 했는데, 내가 100원에 10개 팔고 있으면 그것도 막아줘야됨. 
 
 //내가 100원에 10개 팔려고 했다면 나한테 코인이 10개 있는지 확인. 
 //내가 100원에 10개 사려고 했다면 나한테 1000원이 있는지 확인. 
+//createOrderBuy createOrderSell 합칠 수 있을 듯.
 
-const ID_STRING = 'AguhCoin';
-const headers = {
-    'content-type': 'text/plain;',
-};
-
-
-const createOrder = async(req,res)=>{
-  const {userid,qty,price,type} =req.body;
-
+const createOrderBuy = async (req, res) => {
+  const { user_idx, order_type, coin_id = 1 } = req.body;
+  let { qty, price } = req.body;
   let connection;
-    
   try {
-      connection = await pool.getConnection(async conn => conn);
-      try {
-          const sql = `INSERT INTO USER (kakao_code,nickname,hometown,residence,gender,birth,image,vote_19th) 
-          values(?,?,?,?,?,?,?,?)`
-          const params = [kakao, nickname, hometown, residence, gender, birth, image, vote19]
-          const [result] = await connection.execute(sql, params)
-          const user_id = result.insertId;
+    connection = await pool.getConnection(async conn => conn);
+    try {
 
-          const voteSQL = `INSERT INTO vote_result (user_id,vote_id,politician_id) value (?,?,?)`;
-          const voteParams = [user_id, vote_id, vote20]
-          const [vote] = await connection.execute(voteSQL, voteParams)
+      // 나한테 살만큼의 돈이 있는지 확인한다. 
+      const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
+      const assetParams = [user_idx]
+      const [[myAsset]] = await connection.execute(assetSql, assetParams)
 
-          const access_token = createToken(user_id)
-          const data = {
-              success: true,
-              nickname: nickname,
-              image: image,
-              user_id: user_id,
+      //이전 주문 목록에서 내가 주문한 게 있는지? 있다면 그건 구매에 사용할 수 없는 자산.
+      const orderSql = `SELECT leftover,price FROM order_list WHERE user_idx = ? AND order_type = 0 AND del=0`;
+      const orderParams = [user_idx];
+      const [[preOrder]] = await connection.execute(orderSql, orderParams)
+
+      const myOrder = preOrder.leftover * preOrder.price;
+      const available = myAsset.asset - myOrder;
+
+      if ((qty * price) > available) {
+        // 구매 못할 때. db 고쳐줄 필요도 없고. ws랑  rpc도 필요없음. 
+        res.json(messageData.notEnoughAsset());
+      } else {
+        // 구매할 수 있다면
+
+        //이 트랜잭션이 진행되는 동안에 다른 트랜잭션이 진행되면 안되므로.. 
+        const LOCKSQL = `LOCK TABLES order_list WRITE;`
+        await connection.query(LOCKSQL)
+
+
+        //우선 빨리 DB에 넣어줘야할 것 같음.  주문은 시간이 매우 중요하니까. 
+        //그리고 주문이 있다는 거 ws로 쏴줘야함. 거래확인까지 하고 할지? 아님 지금할지 정해야됨.
+        const insertOrderSql = `
+        INSERT INTO order_list (user_idx, qty, price, leftover, order_type) VALUES (?,?,?,?,?);`;
+        const insertOrderParams = [user_idx, qty, price, qty, order_type];
+        const [orderResult] = await connection.execute(insertOrderSql, insertOrderParams)
+        const nowOrderIndex = orderResult.insertId;
+
+        //거래 가능한 주문의 목록을 가져온다. 가격 - 시간 - 물량 순으로 정렬. 
+        const availableOrderSql = `
+          SELECT *
+          FROM order_list
+          WHERE user_idx NOT IN(?) AND price<=? AND leftover>0 AND order_type=1 AND del=0
+          ORDER BY price ASC, order_date ASC, qty DESC;
+        `
+        const availableOrderParams = [user_idx, price];
+        const [availableOrder] = await connection.execute(availableOrderSql, availableOrderParams);
+        if (availableOrder.length == 0) {
+          //주문 완료에 대한 메시지
+          const UNLOCKSQL = `UNLOCK TABLES;`
+          await connection.query(UNLOCKSQL)
+          ws.broadcast(await exchangeData.getBuyList())
+          res.json(messageData.addOrder())
+        } else {
+          let updateSQL = ''
+          let insertSQL = ''
+          let cnt = 0;
+          for (let i = 0; i < availableOrder.length; i++) {
+            const order = availableOrder[i];
+            const sellerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0;
+            const buyerLeftover = qty - order.leftover > 0 ? qty - order.leftover : 0;
+            const calcAsset = sellerLeftover > 0 ? qty * order.price : order.leftover * order.price;
+            const calcCoin = sellerLeftover > 0 ? qty : order.leftover;
+            //트랜잭션 RPC 진행하고 txid 값을 가져와야함. 
+            //각 거래가 이루어질 때마다 ws로 계속 쏴주기? 아니면 마지막에 한번 쏴주기? 
+            updateSQL += `
+              UPDATE order_list SET leftover=${sellerLeftover} WHERE id=${order.id}; 
+              UPDATE order_list SET leftover=${buyerLeftover} WHERE id=${nowOrderIndex};\n`
+            insertSQL += `
+              INSERT INTO asset (user_idx,input,output) VALUES(${order.user_idx},${calcAsset},0);
+              INSERT INTO coin (user_idx,c_input,c_output) VALUES(${order.user_idx},0,${calcCoin});
+              INSERT INTO asset (user_idx,input,output) VALUES(${user_idx},0,${calcAsset});
+              INSERT INTO coin (user_idx,c_input,c_output) VALUES(${user_idx},${calcCoin},0);
+              INSERT INTO transaction (a_orderid,a_amount,a_commission,b_orderid,b_amount,b_commission,price) 
+              VALUES(${order.id},${order.leftover},${calcCoin},${nowOrderIndex},${qty},${calcCoin},${order.price});\n`
+            qty -= order.leftover;
+            cnt++;
+            if (qty <= 0) {
+              break;
+            }
           }
-          res.cookie('AccessToken', access_token, { httpOnly: true, secure: true })
-          res.json(data);
-      } catch (error) {
-          console.log('Query Error');
-          console.log(error)
-          const data = {
-              success: false,
-              error: error.sqlMessage,
-          }
-          res.json(data)
+          updateSQL += 'UNLOCK TABLES;'
+          const lastSQL = updateSQL + insertSQL
+          await connection.query(lastSQL);
+          ws.commission(cnt);
+          ////트랜잭션 완료에 대한 메시지.?? 그냥 주문이 완료됬다고만 알려줄까? 
+          res.json(messageData.transaction())
+        }
       }
+    } catch (error) {
+      console.log('Query Error\n' + error);
+      res.json(messageData.errorMessage(error))
+    }
   } catch (error) {
-      console.log('DB Error')
-      console.log(error)
+    console.log('DB Error\n' + error)
+    res.json(messageData.errorMessage(error))
+  } finally {
+    connection.release();
+  }
+}
+
+
+const createOrderSell = async (req, res) => {
+  const { user_idx, order_type, coin_id = 1 } = req.body;
+  let { qty, price } = req.body;
+  let connection;
+  try {
+    connection = await pool.getConnection(async conn => conn);
+    try {
+
+      // 나한테 팔만큼의 코인이 있는지 확인한다. 
+      const hasCoinSql = `SELECT SUM(c_input)-SUM(c_output) as coin from coin WHERE user_idx = ?`
+      const hasCoinParams = [user_idx];
+      const [[myCoin]] = await connection.execute(hasCoinSql, hasCoinParams)
+
+      //이전 주문 목록에서 내가 매도한 코인이 있는지? 있다면 그건 판매할 수 없는 코인.
+      const orderSql = `SELECT SUM(leftover) as leftover FROM order_list WHERE user_idx = ? AND order_type = 1 AND del=0`;
+      const orderParams = [user_idx];
+      const [[preOrder]] = await connection.execute(orderSql, orderParams)
+
+      const myOrder = preOrder.leftover;
+      const available = myCoin.coin - myOrder;
+
+      if (qty > available) {
+
+        // 판매 못할 때.
+        // db 고쳐줄 필요도 없고. ws나  rpc는 필요없음. 
+        res.json(messageData.notEnoughCoin());
+      } else {
+        // 판매할 수 있다면
+
+        //이 트랜잭션이 진행되는 동안에 다른 트랜잭션이 진행되면 안되므로.. 
+        // start transaction을 해줘야하는지? 그냥 lock 걸면되는지?,,. 이건 많이 생각해봐야함. 
+        const LOCKSQL = `LOCK TABLES order_list WRITE;`
+        await connection.query(LOCKSQL)
+
+
+        // 주문은 시간이 매우 중요하니까 우선 빨리 DB에 넣어줘야할 것 같음. 
+        //그리고 주문이 있다는 거 ws로 쏴줘야함. 거래확인까지 하고 할지? 아님 지금할지 정해야됨.
+        const insertOrderSql = `
+        INSERT INTO order_list (user_idx, qty, price, leftover, order_type) VALUES (?,?,?,?,?);`;
+        const insertOrderParams = [user_idx, qty, price, qty, order_type];
+        const [orderResult] = await connection.execute(insertOrderSql, insertOrderParams)
+        const nowOrderIndex = orderResult.insertId;
+
+        //거래 가능한 주문의 목록을 가져온다. 가격 - 시간 - 물량 순으로 정렬. 
+        const availableOrderSql = `
+          SELECT *
+          FROM order_list
+          WHERE user_idx NOT IN(?) AND price>=? AND leftover>0 AND order_type=0 AND del=0
+          ORDER BY price DESC, order_date ASC, qty DESC;
+        `
+        const availableOrderParams = [user_idx, price];
+        const [availableOrder] = await connection.execute(availableOrderSql, availableOrderParams);
+        if (availableOrder.length == 0) {
+          //가능한 거래가 없으므로 종료.
+          //주문 완료에 대한 메시지
+          const UNLOCKSQL = `UNLOCK TABLES;`
+          await connection.query(UNLOCKSQL)
+          ws.broadcast(await exchangeData.getSellList())
+          res.json(messageData.addOrder())
+        } else {
+          let updateSQL = ''  // leftover를 갱신하기 위한 sql;
+          let insertSQL = '' //  자산, 코인, 트랜잭션 정보를 갱신하기 위한 sql; 
+          let cnt = 0;
+          for (let i = 0; i < availableOrder.length; i++) {
+            const order = availableOrder[i];
+            const sellerLeftover = qty - order.leftover > 0 ? qty - order.leftover : 0;
+            const buyerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0;
+            const calcAsset = sellerLeftover > 0 ? order.leftover * price : qty * price;
+            const calcCoin = sellerLeftover > 0 ? order.leftover : qty;
+            //트랜잭션 RPC 진행하고 txid 값을 가져와야함. 
+            //각 거래가 이루어질 때마다 ws로 계속 쏴주기? 아니면 마지막에 한번 쏴주기? 
+            updateSQL += `
+              UPDATE order_list SET leftover=${buyerLeftover} WHERE id=${order.id}; 
+              UPDATE order_list SET leftover=${sellerLeftover} WHERE id=${nowOrderIndex};\n`
+            insertSQL += `
+              INSERT INTO asset (user_idx,input,output) VALUES(${order.user_idx},0,${calcAsset});
+              INSERT INTO coin (user_idx,c_input,c_output) VALUES(${order.user_idx},${calcCoin},0);
+              INSERT INTO asset (user_idx,input,output) VALUES(${user_idx},${calcAsset},0);
+              INSERT INTO coin (user_idx,c_input,c_output) VALUES(${user_idx},0,${calcCoin});
+              INSERT INTO transaction (a_orderid,a_amount,a_commission,b_orderid,b_amount,b_commission,price) 
+              VALUES(${nowOrderIndex},${qty},${calcCoin},${order.id},${order.leftover},${calcCoin},${price});\n`
+            qty -= order.leftover;
+            cnt++;
+            if (qty <= 0) break;
+          }
+          updateSQL += 'UNLOCK TABLES;'
+          const lastSQL = updateSQL + insertSQL
+          await connection.query(lastSQL);
+          ws.commission(cnt);
+          res.json(messageData.transaction())
+        }
+      }
+    } catch (error) {
+      console.log('Query Error\n' + error);
+      res.json(messageData.errorMessage(error))
+    }
+  } catch (error) {
+    console.log('DB Error\n' + error);
+    res.json(messageData.errorMessage(error))
+  } finally {
+    connection.release();
+  }
+}
+
+const deleteOrder = async (req, res) => {
+  const { order_id } = req.body;
+  //쿠키에서 아이디 확인도 해야됨.
+  let connection;
+  try {
+    connection = await pool.getConnection(async conn => conn);
+    try {
+      const transactionListSql = `UPDATE order_list SET del=1 WHERE id=?;`
+      await connection.execute(transactionListSql, [order_id]);
       const data = {
-          success: false,
-          error: error.sqlMessage,
+        success: true,
+        msg: ` 주문번호:${order_id}\n주문을 취소했습니다.`
       }
       res.json(data)
-  } finally {
-      connection.release();
-  }
-  
-}
-// order: sellbuy, transaction: conclusion
-/*
-const order = async(req,res) => {
-    //매수: 0 매도: 1
-    const {id, type, price, amount, sum, userpoint, usercoin, useraddress, coinid } = req.body.data
-    let connection;
-    if(type == 0) {
-        try{
-            connection = await pool.getConnection(async conn => conn);
-            try{
-                const sql = `SELECT * FROM order_list WHERE id NOT IN(?) AND type = 1 AND price = ? ORDER BY order_date ASC;`
-                const params = [id, price]
-                const [result] = await connection.execute(sql, params)
-                if(result[0] == undefined){
-                    const orderSql = `INSERT INTO order_list (id, type, price, amount, sum, address) VALUES (?,?,?,?,?,?)`
-                    const orderParams = [id, type, price, amount, sum, useraddress]
-                    const orderResult = await connection.execute(orderSql, orderParams)
-                    const leftpoint = userpoint - sum;
-                    const leftSql = `UPDATE user SET point = ? WHERE id = ?`
-                    const leftParams = [leftpoint, id]
-                    const [leftResult] = await connection.execute(leftSql, leftParams);
-                    const finalResult = await connection.execute(`SELECT * FROM user WHERE id = ?`, [id])
-                    res.send({success: true, user: finalResult[0]})
-                } else{ 
-                    if(amount == result[0].amount){
-                        const date = moment(result[0].date).format('YYYY-MM-DD HH:mm:ss')
-                        const dupResult = await connection.execute(`DELETE FROM order_list WHERE type = 1 AND id=? AND date=?`,[result[0].id, date])
-                        const sellResult = await connection.execute(`SELECT * FROM user WHERE id=?`, [result[0].id])
-                        let buyUserPoint = userpoint - sum
-                        let buyUserCoin = usercoin + amount
-                        let sellUserPoint = sellResult[0].point + sum
-                        const orderSql = `INSERT INTO transaction (a_orderid, b_orderid, price, amount, sum) VALUES (?,?,?,?,?)`
-                        const orderParams = [sellResult[0].id, id, price, amount, sum]
-                        const orderResult = await connection.execute(orderSql, orderParams)
-                        await connection.execute(`UPDATE user SET point=?, have_yama=? where id=?`, [buyUserPoint, buyUserCoin, id]) //have_yama에 해당하는 부분이?
-                        await connection.execute('UPDATE user SET point=? where id=?', [sellUserPoint, result[0].id]); //point 부분?
-                        const dataResult = await connection.execute('SELECT * FROM user WHERE id=?', [id]);
-                        await connection.execute('INSERT INTO yamacoin (price) value (?)',[price]); //yamacoin table=?
-                        let dataString = `{"jsonrpc":"1.0","id":"${ID_STRING}","method":"sendfrom","params":["${result[0].id}","${useraddress}","${amount}"]}`;
-                        let options = {
-                            url: `http://${USER}:${PASS}@127.0.0.1:${PORT}/`,
-                            method: 'POST',
-                            headers: headers,
-                            body: dataString,
-                        };
-                        callback = (error, response, body) => {
-                            if (!error && response.statusCode == 200) {
-                                const data = JSON.parse(body);
-                                console.log('options', options);
-                                res.send({ success: true, users: dataResult[0], data: data });
-                            }
-                        };
-                        request(options, callback);
-                    } else if(amount<result[0].amount){
-                        let leftover = result[0].amount - amount
-                        const date = moment(result[0].date).format('YYYY-MM-DD HH:mm:ss')
-                        let leftResult = connection.execute(`UPDATE order_list SET amount=? WHERE type=1 AND id=? AND date=?`,[leftover, result[0].id, date])
-                        const sellResult = await connection.execute(`SELECT * FROM user where id=?`, [result[0].id])
-                        let buyUserPoint = userpoint - sum
-                        let buyUserCoin = usercoin + amount
-                        let sellUserPoint = sellResult[0].point + sum
-                        const orderSql = `INSERT INTO transaction (a_orderid, b_orderid, price, amount, sum) VALUES (?,?,?,?,?)`
-                        const orderParams = [sellResult[0].id, id, price, amount, sum]
-                        const orderResult = await connection.execute(orderSql, orderParams)
-                        await connection.execute(`UPDATE user SET point=?, have_yama=? where id=?`, [buyUserPoint, buyUserCoin, id]) //have_yama에 해당하는 부분이?
-                        await connection.execute('UPDATE user SET point=? where id=?', [sellUserPoint, result[0].id]); //point 부분?
-                        const dataResult = await connection.execute('SELECT * FROM user WHERE id=?', [id]);
-                        await connection.execute('INSERT INTO yamacoin (price) value (?)',[price]); //yamacoin table=?
-                        let dataString = `{"jsonrpc":"1.0","id":"${ID_STRING}","method":"sendfrom","params":["${result[0].id}","${useraddress}","${amount}"]}`;
-                        let options = {
-                            url: `http://${USER}:${PASS}@127.0.0.1:${PORT}/`,
-                            method: 'POST',
-                            headers: headers,
-                            body: dataString,
-                        };
-                        callback = (error, response, body) => {
-                            if (!error && response.statusCode == 200) {
-                                const data = JSON.parse(body);
-                                console.log('options', options);
-                                res.send({ success: true, users: dataResult[0], data: data });
-                            }
-                        };
-                        request(options, callback);
-                    } else {
-                        let leftover = amount;
-                        for(let i = 0; i< result.length; i++){
-                            if(leftover>=result[i].amount){
-                                const date = moment(result[0].date).format('YYYY-MM-DD HH:mm:ss')
-                                const dupResult = await connection.execute(`DELETE FROM order_list WHERE type = 1 AND id=? AND date=?`,[result[i].id, date])
-                                const sellResult = await connection.execute(`SELECT * FROM user WHERE id=?`, [result[i].id])
-                                const newResult = await connection.execute(`SELECT * FROM user where id=?`, [id])
-                                let resultSum = result[i].amounmt * result[i].price
-                                let buyUserPoint = newResult[0].point - resultSum
-                                let buyUserCoin = newResult[0].have_yama + result[i].amount
-                                let sellUserPoint = sellResult[0].point + resultSum
-                                leftover -= result[i].amount
-                                const orderSql = `INSERT INTO transaction (a_orderid, b_orderid, price, amount, sum) VALUES (?,?,?,?,?)`
-                                const orderParams = [sellResult[0].id, id, price, amount, resultSum]
-                                const orderResult = await connection.execute(orderSql, orderParams)
-                                await connection.execute(`UPDATE user SET point=?, have_yama=? where id=?`, [buyUserPoint, buyUserCoin, id]) //have_yama에 해당하는 부분이?
-                                await connection.execute('UPDATE user SET point=? where id=?', [sellUserPoint, result[i].id]); //point 부분?
-                                let sendAmount = 0
-                                if(result.length - 1 == i && leftover != 0){
-                                    await connection.execute('INSERT INTO order_list (id,type,price,amount,sum,address) values (?,?,?,?,?,?)', [
-                                        id,
-                                        type,
-                                        price,
-                                        leftover,
-                                        price * leftover,
-                                        useraddress,
-                                    ]);
-                                    const leftPoint = buyUserPoint - sum
-                                    await connection.execute('UPDATE user SET point = ? WHERE id =?', [leftpoint, id]); //point🤔
-                                    sendAmount = amount - leftover;
-                                }
-                                const results = await connection.execute(`SELECT * FROM user where id=?`,[id])
-                                await connection.execute(`INSERT INTO yamacoin (price) value (?)`, [price])
-                                if(sendAmount == 0){
-                                    let dataString = `{"jsonrpc":"1.0","id":"${ID_STRING}","method":"sendfrom","params":["${result[i].id}","${useraddress}","${amount}"]}`;
-                                    let options = {
-                                        url: `http://${USER}:${PASS}@127.0.0.1:${PORT}/`,
-                                        method: 'POST',
-                                        headers: headers,
-                                        body: dataString,
-                                    };
-                                    callback = (error, response, body) => {
-                                        if (!error && response.statusCode == 200) {
-                                            const data = JSON.parse(body);
-        
-                                            if (leftover == 0 || (result.length - 1 == i && leftover != 0)) {
-                                                res.send({ success: true, users: results[0], data: data });
-                                            }
-                                        }
-                                    };
-                                    request(options, callback);
-                                }else{
-                                    let dataString = `{"jsonrpc":"1.0","id":"${ID_STRING}","method":"sendfrom","params":["${result[i].id}","${useraddress}","${sendamount}"]}`;
-                                    let options = {
-                                        url: `http://${USER}:${PASS}@127.0.0.1:${PORT}/`,
-                                        method: 'POST',
-                                        headers: headers,
-                                        body: dataString,
-                                    };
-                                    callback = (error, response, body) => {
-                                        if (!error && response.statusCode == 200) {
-                                            const data = JSON.parse(body);
-                                            if (leftover == 0 || (result.length - 1 == i && leftover != 0)) {
-                                                res.send({ success: true, users: results[0], data: data });
-                                            }
-                                        }
-                                    };
-                                    request(options, callback);
-                                }
-                            } else{ 
-                                const date = moment(result[i].date).format('YYYY-MM-DD HH:mm:ss');
-                                let lastamount = result[i].amount - leftover;
-                                await connection.execute(`UPDATE order_list SET amount=?,sum=? WHERE type=1 and id=? and date=?`, [
-                                    lastamount,
-                                    lastamount * price,
-                                    result[i].id,
-                                    date,
-                                ]);
-                                const sellResult = await connection.execute('SELECT * FROM user WHERE id=?', [result[i].id]);
-                                const newResult = await connection.execute('SELECT * FROM user WHERE id=?', [id]);
-                                let buyUserPoint = newResult[0].point - leftover * price;
-                                let buyUserCoin = newResult[0].have_yama + leftover;
-                                let sellUserPoint = sellResult[0].point + leftover * price;
-                                let sellUserCoin = sellResult[0].have_yama - leftover;
-                                let lastsum = leftover * price;
-                                await connection.execute('INSERT INTO transaction (a_orderid,b_orderid,price,amount,sum) VALUES (?,?,?,?,?)', [
-                                    sellResult[0].id,
-                                    id,
-                                    price,
-                                    leftover,
-                                    lastsum,
-                                ]);
-                                await connection.execute('UPDATE user SET point=?,have_yama=? where id=?', [buyUserPoint, buyUserCoin, id]);
-                                await connection.execute('UPDATE user SET point=? where id=?', [sellUserPoint, result[i].id]);
-                                const results = await connection.execute('select * from user WHERE id=?', [id]);
-                                await connection.execute('INSERT INTO yamacoin (price) value (?)',[price]);
-                                let dataString = `{"jsonrpc":"1.0","id":"${ID_STRING}","method":"sendfrom","params":["${result[i].id}","${useraddress}","${amount}"]}`;
-                                let options = {
-                                    url: `http://${USER}:${PASS}@127.0.0.1:${PORT}/`,
-                                    method: 'POST',
-                                    headers: headers,
-                                    body: dataString,
-                                };
-                                leftover = 0;
-                                callback = (error, response, body) => {
-                                    if (!error && response.statusCode == 200) {
-                                        const data = JSON.parse(body);
-                                        if (leftover == 0) {
-                                            res.send({ success: true, users: results[0], data: data });
-                                        }
-                                    }
-                                };
-                                request(options, callback);
-                            }
-                        }
-                    }
-                }
-            }catch(e){console.log(e)}
-        } catch(e){console.log(e)}
-    } else if (type == 1){
-        try{
-            connection = await pool.getConnection(async conn => conn);
-            try{
-                const sql = `SELECT * FROM order_list WHERE id NOT IN(?) AND type = 0 AND price = ? ORDER BY order_date ASC;`
-                const params = [id, price]
-                const [result] = await connection.execute(sql, params)
-                if(result[0] == undefined){
-                    const orderSql = `INSERT INTO order_list (id, type, price, amount, sum, address) VALUES (?,?,?,?,?,?)`
-                    const orderParams = [id, type, price, amount, sum, useraddress]
-                    const orderResult = await connection.execute(orderSql, orderParams)
-                    const leftcoin = usercoin - amount;
-                    const leftSql = `UPDATE user SET have_yama = ? WHERE id = ?`
-                    const leftParams = [leftcoin, id]
-                    const [leftResult] = await connection.execute(leftSql, leftParams);
-                    const finalResult = await connection.execute(`SELECT * FROM user WHERE id = ?`, [id])
-                    res.send({success: true, user: finalResult[0]})
-                } else{ 
-                    if(amount == result[0].amount){
-                        const date = moment(result[0].date).format('YYYY-MM-DD HH:mm:ss')
-                        const dupResult = await connection.execute(`DELETE FROM order_list WHERE type = 0 AND id=? AND date=?`,[result[0].id, date])
-                        const buyResult = await connection.execute(`SELECT * FROM user WHERE id=?`, [result[0].id])
-                        let sellUserPoint = userpoint - sum
-                        let sellUserCoin = usercoin + amount
-                        let buyUserCoin = buyResult[0].point + sum
-                        const orderSql = `INSERT INTO transaction (a_orderid, b_orderid, price, amount, sum) VALUES (?,?,?,?,?)`
-                        const orderParams = [id, buyResult[0].id, price, amount, sum]
-                        const orderResult = await connection.execute(orderSql, orderParams)
-                        await connection.execute(`UPDATE user SET point=?, have_yama=? where id=?`, [sellUserPoint, sellUserCoin, id]) //have_yama에 해당하는 부분이?
-                        await connection.execute('UPDATE user SET have_yama=? where id=?', [buyUserCoin, result[0].id]); //point 부분?
-                        await connection.execute('insert into yamacoin (price) value (?)',[price]);
-                        const dataResult = await connection.execute('SELECT * FROM user WHERE id=?', [id]);
-                        let dataString = `{"jsonrpc":"1.0","id":"${ID_STRING}","method":"sendfrom","params":["${id}","${result[0].address}","${amount}"]}`;
-                        let options = {
-                            url: `http://${USER}:${PASS}@127.0.0.1:${PORT}/`,
-                            method: 'POST',
-                            headers: headers,
-                            body: dataString,
-                        };
-                        callback = (error, response, body) => {
-                            if (!error && response.statusCode == 200) {
-                                const data = JSON.parse(body);
-                                console.log('options', options);
-                                res.send({ success: true, users: dataResult[0], data: data });
-                            }
-                        };
-                        request(options, callback);
-                    } else if(amount<result[0].amount){
-                        let leftover = result[0].amount - amount
-                        const date = moment(result[0].date).format('YYYY-MM-DD HH:mm:ss')
-                        let leftResult = connection.execute(`UPDATE order_list SET amount=? WHERE type=0 AND id=? AND date=?`,[leftover, result[0].id, date])
-                        const buyResult = await connection.execute(`SELECT * FROM user where id=?`, [result[0].id])
-                        let sellUserPoint = userpoint + sum;
-                        let sellUserCoin = usercoin - amount;
-                        let buyUserCoin = buyResult[0].have_yama + amount;
-                        const orderSql = `INSERT INTO transaction (a_orderid, b_orderid, price, amount, sum) VALUES (?,?,?,?,?)`
-                        const orderParams = [id, buyResult[0].id, price, amount, sum]
-                        const orderResult = await connection.execute(orderSql, orderParams)
-                        await connection.execute(`UPDATE user SET point=?, have_yama=? where id=?`, [userpoint + sum, usercoin - amount, id]) //have_yama에 해당하는 부분이?
-                        await connection.execute('UPDATE user SET point=? where id=?', [buyResult[0].have_yama + amount, result[0].id]); //point 부분?
-                        const dataResult = await connection.execute('SELECT * FROM user WHERE id=?', [id]);
-                        await connection.execute('INSERT INTO yamacoin (price) value (?)',[price]); //yamacoin table=?
-                        let dataString = `{"jsonrpc":"1.0","id":"${ID_STRING}","method":"sendfrom","params":["${result[0].id}","${useraddress}","${amount}"]}`;
-                        let options = {
-                            url: `http://${USER}:${PASS}@127.0.0.1:${PORT}/`,
-                            method: 'POST',
-                            headers: headers,
-                            body: dataString,
-                        };
-                        callback = (error, response, body) => {
-                            if (!error && response.statusCode == 200) {
-                                const data = JSON.parse(body);
-                                console.log('options', options);
-                                res.send({ success: true, users: dataResult[0], data: data });
-                            }
-                        };
-                        request(options, callback);
-                    } else {
-                        let leftover = amount;
-                        for(let i = 0; i< result.length; i++){
-                            if(leftover>=result[i].amount){
-                                const date = moment(result[0].date).format('YYYY-MM-DD HH:mm:ss')
-                                const dupResult = await connection.execute(`DELETE FROM order_list WHERE type = 0 AND id=? AND date=?`,[result[i].id, date])
-                                const buyResult = await connection.execute(`SELECT * FROM user WHERE id=?`, [result[i].id])
-                                const newResult = await connection.execute(`SELECT * FROM user where id=?`, [id])
-                                let resultSum = result[i].amounmt * result[i].price
-                                let sellUserPoint = newResult[0].point - resultSum
-                                let sellUserCoin = newResult[0].have_yama + result[i].amount
-                                let buyUserPoint = buyResult[0].point + resultSum
-                                let buyUserCoin = buyResult[0].have_yama + result[i].amount
-                                
-                                const orderSql = `INSERT INTO transaction (a_orderid, b_orderid, price, amount, sum) VALUES (?,?,?,?,?)`
-                                const orderParams = [id, buyResult[0].id, price, result[i].amount, resultSum]
-                                const orderResult = await connection.execute(orderSql, orderParams)
-                                await connection.execute(`UPDATE user SET point=?, have_yama=? where id=?`, [sellUserPoint, sellUserCoin, id]) //have_yama에 해당하는 부분이?
-                                await connection.execute('UPDATE user SET point=? where id=?', [buyResult[0].have_yama + result[i].amount, result[i].id]); //point 부분?
-                                leftover = leftover - result[i].amount
-                                let sendAmount = 0
-                                if(result.length - 1 == i  && leftover != 0){
-                                    await connection.execute(`INSERT INTO order_list (id,type,price,amount,sum,address) values (?,?,?,?,?,?)`, [
-                                        id,
-                                        type,
-                                        price,
-                                        leftover,
-                                        price * leftover,
-                                        useraddress,
-                                    ]);
-                                    const leftCoin = sellUserCoin - leftover
-                                    sendAmount = amount - leftover;
-                                    await connection.execute('UPDATE user SET have_yama = ? WHERE id =?', [leftCoin, id]); //point🤔
-                                }
-                                const results = await connection.execute(`SELECT * FROM user where id=?`,[id])
-                                await connection.execute(`INSERT INTO yamacoin (price) value (?)`, [price])
-                                if(sendAmount == 0){
-                                    let dataString = `{"jsonrpc":"1.0","id":"${ID_STRING}","method":"sendfrom","params":["${result[i].id}","${useraddress}","${amount}"]}`;
-                                    let options = {
-                                        url: `http://${USER}:${PASS}@127.0.0.1:${PORT}/`,
-                                        method: 'POST',
-                                        headers: headers,
-                                        body: dataString,
-                                    };
-                                    callback = (error, response, body) => {
-                                        if (!error && response.statusCode == 200) {
-                                            const data = JSON.parse(body);
-        
-                                            if (leftover == 0 || (result.length - 1 == i && leftover != 0)) {
-                                                res.send({ success: true, users: results[0], data: data });
-                                            }
-                                        }
-                                    };
-                                    request(options, callback);
-                                }else{
-                                    let dataString = `{"jsonrpc":"1.0","id":"${ID_STRING}","method":"sendfrom","params":["${result[i].id}","${useraddress}","${sendamount}"]}`;
-                                    let options = {
-                                        url: `http://${USER}:${PASS}@127.0.0.1:${PORT}/`,
-                                        method: 'POST',
-                                        headers: headers,
-                                        body: dataString,
-                                    };
-                                    callback = (error, response, body) => {
-                                        if (!error && response.statusCode == 200) {
-                                            const data = JSON.parse(body);
-                                            if (leftover == 0 || (result.length - 1 == i && leftover != 0)) {
-                                                res.send({ success: true, users: results[0], data: data });
-                                            }
-                                        }
-                                    };
-                                    request(options, callback);
-                                }
-                            } else{ 
-                                const date = moment(result[i].date).format('YYYY-MM-DD HH:mm:ss');
-                                let lastamount = result[i].amount - leftover;
-                                await connection.execute(`UPDATE order_list SET amount=?,sum=? WHERE type=0 and id=? and date=?`, [
-                                    lastamount,
-                                    lastamount * price,
-                                    result[i].id,
-                                    date,
-                                ]);
-                                const buyResult = await connection.execute('SELECT * FROM user WHERE id=?', [result[i].id]);
-                                const newResult = await connection.execute('SELECT * FROM user WHERE id=?', [id]);
-                                let sellUserPoint = newResult[0].point - leftover * price;
-                                let sellUserCoin = newResult[0].have_yama + leftover;
-                                let buyUserPoint = buyResult[0].point - leftover * price;
-                                let buyUserCoin = buyResult[0].have_yama + leftover;
-                                let lastsum = leftover * price;
-                                await connection.execute('INSERT INTO transaction (a_orderid,b_orderid,price,amount,sum) VALUES (?,?,?,?,?)', [
-                                    id,
-                                    buyResult[0].id,
-                                    price,
-                                    leftover,
-                                    lastsum,
-                                ]);
-                                await connection.execute('UPDATE user SET point=?,have_yama=? where id=?', [sellUserPoint, sellUserCoin, id]);
-                                await connection.execute('UPDATE user SET point=? where id=?', [buyResult[0].have_yama + leftover, result[i].id]);
-                                const results = await connection.execute('select * from user WHERE id=?', [id]);
-                                await connection.execute('INSERT INTO yamacoin (price) value (?)',[price]);
-                                let dataString = `{"jsonrpc":"1.0","id":"${ID_STRING}","method":"sendfrom","params":["${result[i].id}","${useraddress}","${amount}"]}`;
-                                let options = {
-                                    url: `http://${USER}:${PASS}@127.0.0.1:${PORT}/`,
-                                    method: 'POST',
-                                    headers: headers,
-                                    body: dataString,
-                                };
-                                leftover = 0;
-                                callback = (error, response, body) => {
-                                    if (!error && response.statusCode == 200) {
-                                        const data = JSON.parse(body);
-                                        if (leftover == 0) {
-                                            res.send({ success: true, users: results[0], data: data });
-                                        }
-                                    }
-                                };
-                                request(options, callback);
-                            }
-                        }
-                    }
-                }
-            }catch(e){console.log(e)}
-        } catch(e){console.log(e)}
+    } catch (error) {
+      console.log('Query Error\n' + error);
+      res.json(messageData.errorMessage(error))
     }
+  } catch (error) {
+    console.log('DB Error\n' + error)
+    res.json(messageData.errorMessage(error))
+  } finally {
+    connection.release();
+  }
 }
- */
-module.exports={
-  createOrder
+
+
+
+
+
+module.exports = {
+  createOrderBuy,
+  createOrderSell,
+  deleteOrder,
 }

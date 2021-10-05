@@ -264,6 +264,74 @@ const deleteOrder = async (req, res) => {
 }
 
 
+const garaInput = async (req, res) => {
+  let connection; 
+  try {
+      connection = await pool.getConnection(async conn => conn);
+      try {
+          //가라데이터 삽입//
+          let getNow = new Date().getTime()  // 현재시간
+          let newTime =  getNow - 1*1000*30
+          let newnewTime = new Date(newTime)
+          console.log(newnewTime.toUTCString())
+          function getRandomPrice(){
+              let output
+              while(true){
+                  output = Math.floor(Math.random()*500)
+                  if(output>1){
+                      return output
+                  } 
+              }
+          }
+          
+          function getRandomAmount(){
+              let output
+              while(true){
+                  output = Math.floor(Math.random()*10)
+                  if(output>1){
+                      return output
+                  }
+              }
+          }
+          async function everyThirtySec(){
+              for(let i = 0; i<1000; i++){
+                  let newTime =  getNow - i*1000*30
+                  let newnewTime = new Date(newTime)
+                  let convertedTime = newnewTime
+                  let amount = getRandomAmount()
+                  let sql = `INSERT INTO transaction 
+                             (a_orderid,a_amount,a_commission,b_orderid,b_amount,b_commission,price,txid, tx_date, coin_id)
+                             VALUES (?,?, 10, ?, ?, 10, ?, ?, ?, 1);`
+                  await connection.execute(sql, [i+1, amount, i+1001, amount, getRandomPrice(), i+1, convertedTime])
+              }
+          }
+          everyThirtySec()
+          //가라데이터 삽입//
+          data = {
+              success: true,
+          }
+          res.json(data);
+      } catch (error) {
+          console.log('Query Error');
+          console.log(error)
+              const data = {
+                  success: false,
+                  error: error.sqlMessage,
+              }
+          res.json(data)
+      }
+  } catch (error) {
+      console.log('DB Error')
+      console.log(error)
+      const data = {
+          success: false,
+          error: error.sqlMessage,
+      }
+      res.json(data)
+  } finally {
+      connection.release();
+  }
+}
 
 
 
@@ -272,4 +340,5 @@ module.exports = {
   createOrderBuy,
   createOrderSell,
   deleteOrder,
+  garaInput
 }

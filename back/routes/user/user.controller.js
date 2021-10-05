@@ -161,10 +161,14 @@ const txHistory = async (req, res) => {
             const useridSql = `SELECT * FROM user WHERE user_id = ? `
             const useridParams = [userid]
             const [useridResult] = await connection.execute(useridSql, useridParams)
-            const user_idx = useridResult[0].id; //이 부분 수정해야 함
+            console.log(useridResult)
+            let user_idx 
+            useridResult.length == 0 ? user_idx = 0 : user_idx = useridResult[0].id; 
+            // userid가 없으면 임의 로 user_idx 0으로 설정.
             const dataSql = `SELECT * FROM order_list WHERE user_idx = ?` // del=1 취소된 거래에 대한 내용.
             const dataParams = [user_idx]
             const [result] = await connection.execute(dataSql, dataParams)
+
             data = {
                 success: true,
                 txList: result,
@@ -235,11 +239,12 @@ const outstandingLog = async (req, res) => {
     }
 }
 
+
 module.exports = {
     idCheck,
     createUser,
     loginUser,
     logoutUser,
     txHistory,
-    outstandingLog
+    outstandingLog,
 }

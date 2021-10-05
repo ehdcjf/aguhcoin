@@ -13,21 +13,22 @@ const initialState = {
     type: "string",
     id: "Date"
   },
+  
   {
     type: "number",
-    label: "Something"
+    label: "low"
   },
   {
     type: "number",
-    label: "Something"
+    label: "open"
   },
   {
     type: "number",
-    label: "Something"
+    label: "close"
   },
   {
     type: "number",
-    label: "Something"
+    label: "high"
   }
 ]
   

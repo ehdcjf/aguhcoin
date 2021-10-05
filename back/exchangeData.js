@@ -159,7 +159,7 @@ async function getResult(n) {  //return array
       ret.sellList.list = selltemp[0].reverse();
       
       // //가짜 트랜잭션 데이터 
-      // await makeTxTemp(connection);
+      await makeTxTemp(connection);
       ret.chartdata = await oneMinuteInterval(connection);
 
 
@@ -204,6 +204,7 @@ async function clacMyAsset(conn,user_idx){
 
 
 async function oneMinuteInterval(conn){
+  console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxx')
 
   const allTxSql = `
   SELECT price,tx_date 
@@ -217,12 +218,21 @@ async function oneMinuteInterval(conn){
   let result = [{time:temp[0].tx_date, low:temp[0].price,start:temp[0].price,end:temp[0].price,high:temp[0].price}];
   let cnt = 1;
 
+  console.log(temp)
+
+
   while(cnt<temp.length){
-    const now = new Date();
     let preData = result[result.length-1];
+    const now = new Date(temp[cnt].tx_date);
     preTime = new Date(preData.time)
     if(compareTime(preTime,now)==true){
       preData.end = temp[cnt].price;
+      if(preData.high==null){
+        preData.high = temp[cnt].price;
+      }
+      if(preData.low==null){
+        preData.low = temp[cnt].price;
+      }
       if(preData.high<temp[cnt].price){
         preData.low = temp[cnt].price;
       }
@@ -232,13 +242,11 @@ async function oneMinuteInterval(conn){
       cnt++;
     }else{
       const newDate = new Date(preTime).setMinutes(preTime.getMinutes()+1);
-      result.push({time:new Date(newDate),low:preData.end,start:preData.end,end:preData.end,high:preData.end })
+      result.push({time:new Date(newDate),low:null,start:preData.end,end:preData.end,high:null })
     }
    }
+   console.log(result)
    const arrResult = result.map(v=>Object.entries(v).map(x=>x[1]));
-
-   const temstR = Object.entries(result[0]).map(v=>v[0])
-
    return arrResult;
 
 }
@@ -247,32 +255,36 @@ async function oneMinuteInterval(conn){
 function compareTime(pre,now){
   const preDate = new Date(pre);
   const nowDate = new Date(now);
+
+  // console.log('==='+preDate+'     '+nowDate+'===')
   
+
   if(preDate.getFullYear()==nowDate.getFullYear()
     &&preDate.getMonth()==nowDate.getMonth()
     &&preDate.getDate()==nowDate.getDate()
     &&preDate.getHours()==nowDate.getHours()
     &&preDate.getMinutes()==nowDate.getMinutes()
   ){
+    
     return true;
   }
   return false;
 }
 
 
-// async function makeTxTemp(conn){
+async function makeTxTemp(conn){
 
-//   const sql = `INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,tx_date) VALUES(1,100,100,2,200,100,?,?)`
-//   for(let i = 0; i<100; i++){
-//     let random = Math.random()*1000;
-//     let now  = new Date();
-//     let newDate = (new Date().setMinutes(now.getMinutes()-50+i));
-//     let finalDate = new Date(newDate);
-//     let params = [random,finalDate];
+  const sql = `INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,tx_date) VALUES(1,100,100,2,200,100,?,?)`
+  let now  = new Date();
+  for(let i = 0; i<100; i++){
+    let random = Math.random()*1000;
+    let newDate = (new Date().setMinutes(now.getMinutes()-50+i));
+    let finalDate = new Date(newDate);
+    let params = [random,finalDate];
 
-//     const [temp] = await conn.execute(sql, params);
-//   }
-// }
+    const [temp] = await conn.execute(sql, params);
+  }
+}
 
 
 

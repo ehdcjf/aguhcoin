@@ -17,7 +17,7 @@ const WebSocketWrap = ({ children }) => {
   useEffect(() => {
     if (lastJsonMessage != null) {
       console.log(lastJsonMessage); // 여기서 객체로 받아옴. 이걸처리해주면됨. 받아서 리덕스나? 뭐 컨텍스트 업데이트해주면됨.
-      console.log(lastJsonMessage.chartdata)
+      
       dispatch(ChartData_SUCCESS(lastJsonMessage.chartdata))   
     }
   

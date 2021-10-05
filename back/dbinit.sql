@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `order_list` (
   `qty` int(11) NOT NULL,
   `order_type` int(11) NOT NULL,
   `leftover` int(11) NOT NULL,
-	`order_date` INT(11) DEFAULT unix_timestamp(),
+	`order_date` INT(11) DEFAULT current_timestamp(2),
   `coin_id` int(11) DEFAULT 1,
   `del` TINYINT(4) NULL DEFAULT '0',
   PRIMARY KEY (`id`)

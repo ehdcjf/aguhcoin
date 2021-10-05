@@ -20,8 +20,7 @@ function everyThirtySec(){
         let amount = getRandomAmount()
         let sql = `INSERT INTO transaction (a_orderid,a_amount,a_commission,b_orderid,b_amount,b_commission,price,txid, tx_date, coin_id)
                    VALUES (${i+1},${amount}, 10, ${i+1001}, ${amount}, 10, ${getRandomPrice()}, ${i+1}, ${convertedTime}, 1);`
-        console.log(sql)
     }
 }
 
-everyThirtySec()
+export default asd

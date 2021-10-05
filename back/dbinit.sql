@@ -57,7 +57,6 @@ CREATE TABLE IF NOT EXISTS `coininfo` (
 
 
 
-
 CREATE TABLE IF NOT EXISTS `transaction` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`sell_orderid` INT(11) NOT NULL,

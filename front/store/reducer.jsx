@@ -1,11 +1,11 @@
-export const reducer = (state,action) => {
-    switch(action.type){
+export const reducer = (state, action) => {
+    switch (action.type) {
         case "LOGIN":
             return state
         case "LOGOUT":
             return {
                 ...state,
-                isLogin:false,
+                isLogin: false,
             }
     }
 }

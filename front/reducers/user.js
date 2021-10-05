@@ -1,4 +1,5 @@
-import axios from "axios";
+import axios from 'axios';
+
 const initialState = {
     loading:false,
     isLogin:false,
@@ -48,6 +49,22 @@ export const UserJoinAction = data => {
     }
 }
 
+export const UserJoin_REQUEST = data => {
+    return {
+        type:USER_JOIN_REQUEST,
+    }
+}
+export const UserJoin_SUCCESS = () => {
+    return {
+        type:USER_JOIN_SUCCESS,
+    }
+}
+export const UserJoin_ERROR = () => {
+    return {
+        type:USER_JOIN_ERROR,
+    }
+}
+
 // Login
 export const UserLoginAction = data => {
     return async (dispatch) => {
@@ -71,24 +88,6 @@ export const UserLoginAction = data => {
     }
 }
 
-// Join
-export const UserJoin_REQUEST = data => {
-    return {
-        type:USER_JOIN_REQUEST,
-    }
-}
-export const UserJoin_SUCCESS = () => {
-    return {
-        type:USER_JOIN_SUCCESS,
-    }
-}
-export const UserJoin_ERROR = () => {
-    return {
-        type:USER_JOIN_ERROR,
-    }
-}
-
-// Login
 export const UserLogin_REQUEST = data => {
     return {
         type:USER_LOGIN_REQUEST,

@@ -1,11 +1,11 @@
 import MainLayout from '../../components/layout/MainLayout';
-import Head from 'next/head';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { UserJoinAction } from '../../reducers/user';
-import useInput from '../../hooks/useInput';
-import styled from 'styled-components';
+import Head from 'next/head';
 import Router from 'next/router';
+import styled from 'styled-components';
+import useInput from '../../hooks/useInput';
 
 const JoinContainer = styled.div`
     display: block;

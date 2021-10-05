@@ -18,8 +18,29 @@ export const UserJoinAction = data => {
         dispatch(UserJoin_REQUEST());
 
         try {
-            const response = await axios.post('http://localhost:3500/user/join',data)
-            const result = response.data
+
+            let url = 'http://localhost:3500/user/join';
+            let options = {
+              method: "POST",
+              mode: "cors",
+              credentials: "include",
+              headers: {
+                "content-type": "application/json",
+              },
+              body: JSON.stringify({
+                ...data,
+              }),
+            //   withCredentials: true,
+            };
+            const response = await axios(
+                {   
+                    method: 'post',
+                    url: url,
+                    data:{...data}
+                  });
+            console.log(response.data);
+            const result =response.data;
+            
             dispatch(UserJoin_SUCCESS(result));
         } catch (e) {
             dispatch(UserJoin_ERROR());

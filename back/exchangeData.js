@@ -132,6 +132,8 @@ async function getResult(n) {  //return array
     connection = await pool.getConnection(async conn => conn);
     try {
 
+      oneMinuteInterval(connection);
+
       const buyListSql = `
       SELECT price,sum(leftover) AS leftover 
       FROM order_list 
@@ -172,7 +174,6 @@ async function getResult(n) {  //return array
       ret.txList.success = true;
       ret.txList.list = txtemp[0];
 
-      // const allTransaction = await connection.execute(transactionListSql, []);
     } catch (error) {
       console.log('Query Error');
       console.log(error)
@@ -189,8 +190,63 @@ async function getResult(n) {  //return array
 }
 
 
+async function clacMyAsset(conn,user_idx){
+  const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
+  const assetParams = [user_idx]
+  const [[myAsset]] = await conn.execute(assetSql, assetParams)
+  return myAsset.asset;
+}
 
 
+async function oneMinuteInterval(conn){
+
+  const allTxSql = `
+  SELECT price,tx_date 
+  FROM transaction 
+  ORDER BY tx_date ASC;
+  `
+
+  const [temp] = await conn.execute(allTxSql, []);
+
+  let cnt = 1;
+  let result = [{time:temp[0].tx_date,start:temp[0].price,end:temp[0].price,high:temp[0].price, low:temp[0].price}];
+  while(cnt<temp.length){
+    const now = new Date(temp[cnt].tx_date);
+    let preData = result[result.length-1];
+    preTime = new Date(preData.time)
+    if(compareTime(preTime,now)==true){
+      preData.end = temp[cnt].price;
+      if(preData.high<temp[cnt].price){
+        preData.low = temp[cnt].price;
+      }
+      if(preData.low>temp[cnt].price){
+        preData.low = temp[cnt].price;
+      }
+      cnt++;
+    }else{
+      const newDate = new Date(preTime).setMinutes(preTime.getMinutes()+1);
+      result.push({time:new Date(newDate),start:result[result.length-1].end,end:result[result.length-1].end,high:result[result.length-1].end, low:result[result.length-1].end})
+    }
+  }
+
+console.log(result)
+}
+
+
+function compareTime(pre,now){
+  const preDate = new Date(pre);
+  const nowDate = new Date(now);
+  
+  if(preDate.getFullYear()==nowDate.getFullYear()
+    &&preDate.getMonth()==nowDate.getMonth()
+    &&preDate.getDate()==nowDate.getDate()
+    &&preDate.getHours()==nowDate.getHours()
+    &&preDate.getMinutes()==nowDate.getMinutes()
+  ){
+    return true;
+  }
+  return false;
+}
 
 
 

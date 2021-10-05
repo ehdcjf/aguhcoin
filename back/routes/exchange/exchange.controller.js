@@ -10,6 +10,15 @@ const exchangeData = require('../../exchangeData')
 //내가 100원에 10개 사려고 했다면 나한테 1000원이 있는지 확인. 
 //createOrderBuy createOrderSell 합칠 수 있을 듯.
 
+async function clacMyAsset(conn,user_idx){
+  const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
+  const assetParams = [user_idx]
+  const [[myAsset]] = await conn.execute(assetSql, assetParams)
+  return myAsset.asset;
+}
+
+
+
 const createOrderBuy = async (req, res) => {
   const { user_idx, order_type, coin_id = 1 } = req.body;
   let { qty, price } = req.body;
@@ -27,9 +36,10 @@ const createOrderBuy = async (req, res) => {
       const orderSql = `SELECT leftover,price FROM order_list WHERE user_idx = ? AND order_type = 0 AND del=0`;
       const orderParams = [user_idx];
       const [[preOrder]] = await connection.execute(orderSql, orderParams)
-
-      const myOrder = preOrder.leftover * preOrder.price;
+      const myOrder = preOrder!=undefined ? preOrder.leftover * preOrder.price : 0;
       const available = myAsset.asset - myOrder;
+      console.log(available)
+      console.log(qty*price)
 
       if ((qty * price) > available) {
         // 구매 못할 때. db 고쳐줄 필요도 없고. ws랑  rpc도 필요없음. 
@@ -102,11 +112,13 @@ const createOrderBuy = async (req, res) => {
         }
       }
     } catch (error) {
-      console.log('Query Error\n' + error);
+      console.log('Query Error');
+      console.log(error);
       res.json(messageData.errorMessage(error))
     }
   } catch (error) {
-    console.log('DB Error\n' + error)
+    console.log('DB Error')
+    console.log(error);
     res.json(messageData.errorMessage(error))
   } finally {
     connection.release();
@@ -115,6 +127,7 @@ const createOrderBuy = async (req, res) => {
 
 
 const createOrderSell = async (req, res) => {
+  console.log('sell')
   const { user_idx, order_type, coin_id = 1 } = req.body;
   let { qty, price } = req.body;
   let connection;
@@ -134,7 +147,12 @@ const createOrderSell = async (req, res) => {
 
       const myOrder = preOrder.leftover;
       const available = myCoin.coin - myOrder;
+      console.log(myCoin+'마이코인')
+      console.log(myCoin.coin+'마이코인의 코인')
+      console.log(myOrder+'내가 한 주문')
 
+      console.log(qty)
+      console.log(available)
       if (qty > available) {
 
         // 판매 못할 때.
@@ -207,7 +225,8 @@ const createOrderSell = async (req, res) => {
         }
       }
     } catch (error) {
-      console.log('Query Error\n' + error);
+      console.log('Query Error');
+      console.log(error);
       res.json(messageData.errorMessage(error))
     }
   } catch (error) {
@@ -313,6 +332,7 @@ const garaInput = async (req, res) => {
       connection.release();
   }
 }
+
 
 
 

@@ -13,9 +13,10 @@ const dbinit=()=>{
   con.connect(function(err) {
     if (err) throw err;
     
-    con.query(sql, function (err, result) {
+    const result = con.query(sql, function (err, result) {
       if (err) throw err;
       console.log("Database created");
+      // console.log(result)
     });
   });
 }

@@ -33,23 +33,25 @@ const createOrderBuy = async (req, res) => {
       const [[myAsset]] = await connection.execute(assetSql, assetParams)
 
       //이전 주문 목록에서 내가 주문한 게 있는지? 있다면 그건 구매에 사용할 수 없는 자산.
-      const orderSql = `SELECT leftover,price FROM order_list WHERE user_idx = ? AND order_type = 0 AND del=0`;
+      const orderSql = `SELECT leftover,price FROM order_list WHERE user_idx = ?  AND order_type = 0 AND del=0 AND leftover>0;`;
       const orderParams = [user_idx];
-      const [[preOrder]] = await connection.execute(orderSql, orderParams)
-      const myOrder = preOrder!=undefined ? preOrder.leftover * preOrder.price : 0;
-      const available = myAsset.asset - myOrder;
-      console.log(available)
-      console.log(qty*price)
+      const [preOrder] = await connection.execute(orderSql, orderParams)
+      console.log(preOrder)
+      
+
+      const preSum = preOrder.length>0 ? preOrder.reduce((r,v)=>{return r+(v.leftover*v.price)},0) : 0
+      const available = myAsset.asset - preSum;
 
       if ((qty * price) > available) {
+
         // 구매 못할 때. db 고쳐줄 필요도 없고. ws랑  rpc도 필요없음. 
         res.json(messageData.notEnoughAsset());
       } else {
         // 구매할 수 있다면
 
         //이 트랜잭션이 진행되는 동안에 다른 트랜잭션이 진행되면 안되므로.. 
-        const LOCKSQL = `LOCK TABLES order_list WRITE;`
-        await connection.query(LOCKSQL)
+        // const LOCKSQL = `LOCK TABLES order_list WRITE;`
+        // await connection.query(LOCKSQL)
 
 
         //우선 빨리 DB에 넣어줘야할 것 같음.  주문은 시간이 매우 중요하니까. 
@@ -95,7 +97,7 @@ const createOrderBuy = async (req, res) => {
               INSERT INTO coin (user_idx,c_input,c_output) VALUES(${order.user_idx},0,${calcCoin});
               INSERT INTO asset (user_idx,input,output) VALUES(${user_idx},0,${calcAsset});
               INSERT INTO coin (user_idx,c_input,c_output) VALUES(${user_idx},${calcCoin},0);
-              INSERT INTO transaction (a_orderid,a_amount,a_commission,b_orderid,b_amount,b_commission,price) 
+              INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price) 
               VALUES(${order.id},${order.leftover},${calcCoin},${nowOrderIndex},${qty},${calcCoin},${order.price});\n`
             qty -= order.leftover;
             cnt++;
@@ -103,7 +105,7 @@ const createOrderBuy = async (req, res) => {
               break;
             }
           }
-          updateSQL += 'UNLOCK TABLES;'
+          // updateSQL += 'UNLOCK TABLES;'
           const lastSQL = updateSQL + insertSQL
           await connection.query(lastSQL);
           ws.commission(cnt);
@@ -163,8 +165,8 @@ const createOrderSell = async (req, res) => {
 
         //이 트랜잭션이 진행되는 동안에 다른 트랜잭션이 진행되면 안되므로.. 
         // start transaction을 해줘야하는지? 그냥 lock 걸면되는지?,,. 이건 많이 생각해봐야함. 
-        const LOCKSQL = `LOCK TABLES order_list WRITE;`
-        await connection.query(LOCKSQL)
+        // const LOCKSQL = `LOCK TABLES order_list WRITE;`
+        // await connection.query(LOCKSQL)
 
 
         // 주문은 시간이 매우 중요하니까 우선 빨리 DB에 넣어줘야할 것 같음. 
@@ -211,13 +213,13 @@ const createOrderSell = async (req, res) => {
               INSERT INTO coin (user_idx,c_input,c_output) VALUES(${order.user_idx},${calcCoin},0);
               INSERT INTO asset (user_idx,input,output) VALUES(${user_idx},${calcAsset},0);
               INSERT INTO coin (user_idx,c_input,c_output) VALUES(${user_idx},0,${calcCoin});
-              INSERT INTO transaction (a_orderid,a_amount,a_commission,b_orderid,b_amount,b_commission,price) 
+              INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price) 
               VALUES(${nowOrderIndex},${qty},${calcCoin},${order.id},${order.leftover},${calcCoin},${price});\n`
             qty -= order.leftover;
             cnt++;
             if (qty <= 0) break;
           }
-          updateSQL += 'UNLOCK TABLES;'
+          // updateSQL += 'UNLOCK TABLES;'
           const lastSQL = updateSQL + insertSQL
           await connection.query(lastSQL);
           ws.commission(cnt);
@@ -300,7 +302,7 @@ const garaInput = async (req, res) => {
                   let convertedTime = newnewTime
                   let amount = getRandomAmount()
                   let sql = `INSERT INTO transaction 
-                             (a_orderid,a_amount,a_commission,b_orderid,b_amount,b_commission,price,txid, tx_date, coin_id)
+                             (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,txid, tx_date, coin_id)
                              VALUES (?,?, 10, ?, ?, 10, ?, ?, ?, 1);`
                   await connection.execute(sql, [i+1, amount, i+1001, amount, getRandomPrice(), i+1, convertedTime])
               }

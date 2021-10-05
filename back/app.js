@@ -26,7 +26,8 @@ const router = require('./routes');
 // })
 
 //DB 만들기.
-dbsetting.dbinit();
+dbsetting.dbinit()
+
 app.use(morgan('dev'));
 
 app.use(

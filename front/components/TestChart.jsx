@@ -9,7 +9,7 @@ const TestChart = () => {
   
   return (
     <Chart
-  width={'100%'}
+  width={'100'}
   height={350}
   chartType="CandlestickChart"
   loader={<div>Loading Chart</div>}

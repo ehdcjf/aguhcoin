@@ -21,7 +21,7 @@ const addOrder = () => {
 const transaction = () => {
   return {
     success: true,
-    msg: "자산이 충분하지 않음을 알려주는 메세지."
+    msg: "일부 혹은 전체 주문이 체결 됨을 알려주는 메세지."
   }
 }
 

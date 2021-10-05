@@ -18,7 +18,7 @@ function everyThirtySec(){
         let newnewTime = new Date(newTime)
         let convertedTime = newnewTime.getTime()
         let amount = getRandomAmount()
-        let sql = `INSERT INTO transaction (a_orderid,a_amount,a_commission,b_orderid,b_amount,b_commission,price,txid, tx_date, coin_id)
+        let sql = `INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,txid, tx_date, coin_id)
                    VALUES (${i+1},${amount}, 10, ${i+1001}, ${amount}, 10, ${getRandomPrice()}, ${i+1}, ${convertedTime}, 1);`
     }
 }

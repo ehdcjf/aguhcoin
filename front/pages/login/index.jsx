@@ -1,11 +1,11 @@
 import MainLayout from '../../components/layout/MainLayout';
-import Head from 'next/head';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { UserLoginAction } from '../../reducers/user';
-import useInput from '../../hooks/useInput';
-import styled from 'styled-components';
+import Head from 'next/head';
 import Router from 'next/router';
+import styled from 'styled-components';
+import useInput from '../../hooks/useInput';
 
 const LoginContainer = styled.div`
     display: block;

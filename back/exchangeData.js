@@ -5,6 +5,7 @@ const defaultRet = {
   sellList: { success: null, list: null },
   txList: { success: null, list: null },
   success: true,
+  chartdata:[],
 }
 
 
@@ -132,8 +133,6 @@ async function getResult(n) {  //return array
     connection = await pool.getConnection(async conn => conn);
     try {
 
-      oneMinuteInterval(connection);
-
       const buyListSql = `
       SELECT price,sum(leftover) AS leftover 
       FROM order_list 
@@ -159,6 +158,12 @@ async function getResult(n) {  //return array
       ret.sellList.success = true;
       ret.sellList.list = selltemp[0].reverse();
       
+      // //가짜 트랜잭션 데이터 
+      // await makeTxTemp(connection);
+      ret.chartdata = await oneMinuteInterval(connection);
+
+
+
       let transactionListSql = `
         SELECT  *
         FROM transaction
@@ -203,15 +208,17 @@ async function oneMinuteInterval(conn){
   const allTxSql = `
   SELECT price,tx_date 
   FROM transaction 
-  ORDER BY tx_date ASC;
+  ORDER BY tx_date ;
   `
 
   const [temp] = await conn.execute(allTxSql, []);
+  if(temp.length==0) return [];
 
+  let result = [{time:temp[0].tx_date, low:temp[0].price,start:temp[0].price,end:temp[0].price,high:temp[0].price}];
   let cnt = 1;
-  let result = [{time:temp[0].tx_date,start:temp[0].price,end:temp[0].price,high:temp[0].price, low:temp[0].price}];
+
   while(cnt<temp.length){
-    const now = new Date(temp[cnt].tx_date);
+    const now = new Date();
     let preData = result[result.length-1];
     preTime = new Date(preData.time)
     if(compareTime(preTime,now)==true){
@@ -225,11 +232,15 @@ async function oneMinuteInterval(conn){
       cnt++;
     }else{
       const newDate = new Date(preTime).setMinutes(preTime.getMinutes()+1);
-      result.push({time:new Date(newDate),start:result[result.length-1].end,end:result[result.length-1].end,high:result[result.length-1].end, low:result[result.length-1].end})
+      result.push({time:new Date(newDate),low:preData.end,start:preData.end,end:preData.end,high:preData.end })
     }
-  }
+   }
+   const arrResult = result.map(v=>Object.entries(v).map(x=>x[1]));
 
-console.log(result)
+   const temstR = Object.entries(result[0]).map(v=>v[0])
+
+   return arrResult;
+
 }
 
 
@@ -248,6 +259,20 @@ function compareTime(pre,now){
   return false;
 }
 
+
+// async function makeTxTemp(conn){
+
+//   const sql = `INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,tx_date) VALUES(1,100,100,2,200,100,?,?)`
+//   for(let i = 0; i<100; i++){
+//     let random = Math.random()*1000;
+//     let now  = new Date();
+//     let newDate = (new Date().setMinutes(now.getMinutes()-50+i));
+//     let finalDate = new Date(newDate);
+//     let params = [random,finalDate];
+
+//     const [temp] = await conn.execute(sql, params);
+//   }
+// }
 
 
 

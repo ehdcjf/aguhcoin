@@ -2,6 +2,8 @@ import { HYDRATE } from 'next-redux-wrapper';
 import { combineReducers } from 'redux';
 
 import user from './user';
+import wallet from './wallet';
+import test from './test';
 
 const reducer = combineReducers({
     index: (state = {}, action) => {
@@ -15,7 +17,7 @@ const reducer = combineReducers({
                 return state;
         }
     },
-    user,
+    user, wallet, test,
 })
 
 export default reducer;

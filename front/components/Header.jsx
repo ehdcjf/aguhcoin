@@ -1,8 +1,9 @@
-import Link from 'next/link';
-import styled from 'styled-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { UserLogoutAction } from '../reducers/user';
+import Link from 'next/link';
 import Router from 'next/router';
+import styled from 'styled-components';
+import { UserLogoutAction } from '../reducers/user';
+
 
 const HeaderContainer = styled.div`
     display: flex;
@@ -101,6 +102,7 @@ const Header = () => {
 
     return (
         <HeaderContainer>
+            
             <Logo>
                 <div>
                     <Link href="/">

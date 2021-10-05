@@ -101,6 +101,7 @@ const Header = () => {
 
     return (
         <HeaderContainer>
+            
             <Logo>
                 <div>
                     <Link href="/">

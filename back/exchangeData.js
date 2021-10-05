@@ -5,6 +5,7 @@ const defaultRet = {
   sellList: { success: null, list: null },
   txList: { success: null, list: null },
   success: true,
+  chartdata:[],
 }
 
 
@@ -131,9 +132,8 @@ async function getResult(n) {  //return array
   try {
     connection = await pool.getConnection(async conn => conn);
     try {
-
-      oneMinuteInterval(connection);
-
+      // makeTxTemp(connection);
+      ret.chartdata = await oneMinuteInterval(connection);
       const buyListSql = `
       SELECT price,sum(leftover) AS leftover 
       FROM order_list 
@@ -203,13 +203,14 @@ async function oneMinuteInterval(conn){
   const allTxSql = `
   SELECT price,tx_date 
   FROM transaction 
-  ORDER BY tx_date ASC;
+  ORDER BY tx_date ;
   `
 
   const [temp] = await conn.execute(allTxSql, []);
 
-  let cnt = 1;
   let result = [{time:temp[0].tx_date,start:temp[0].price,end:temp[0].price,high:temp[0].price, low:temp[0].price}];
+  let cnt = 1;
+
   while(cnt<temp.length){
     const now = new Date(temp[cnt].tx_date);
     let preData = result[result.length-1];
@@ -225,11 +226,13 @@ async function oneMinuteInterval(conn){
       cnt++;
     }else{
       const newDate = new Date(preTime).setMinutes(preTime.getMinutes()+1);
-      result.push({time:new Date(newDate),start:result[result.length-1].end,end:result[result.length-1].end,high:result[result.length-1].end, low:result[result.length-1].end})
+      result.push({time:new Date(newDate),start:preData.end,end:preData.end,high:preData.end, low:preData.end})
     }
-  }
+   }
+   const arrResult = result.map(v=>Object.entries(v).map(x=>x[1]));
 
-console.log(result)
+   return arrResult;
+
 }
 
 
@@ -248,6 +251,20 @@ function compareTime(pre,now){
   return false;
 }
 
+
+async function makeTxTemp(conn){
+
+  const sql = `INSERT INTO transaction (a_orderid,a_amount,a_commission,b_orderid,b_amount,b_commission,price,tx_date) VALUES(1,100,100,2,200,100,?,?)`
+  for(let i = 0; i<100; i++){
+    let random = Math.random()*1000;
+    let now  = new Date();
+    let newDate = (new Date().setMinutes(now.getMinutes()-50+i));
+    let latestDate = new Date(newDate)
+    let params = [random,latestDate];
+
+    const [temp] = await conn.execute(sql, params);
+  }
+}
 
 
 

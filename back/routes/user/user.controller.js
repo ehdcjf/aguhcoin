@@ -1,4 +1,3 @@
-
 const pool = require('../../config/dbconnection');
 const {createToken,jwtId}  = require('../../jwt')
 const exchangeData = require('../../exchangeData')
@@ -128,8 +127,6 @@ const loginUser = async (req, res) => {
                         user_idx
                     }
                 // 쿠키 관련
-                // res.cookie('AccessToken', token2, { httpOnly: true, secure: true })
-                // req.session.isLogin = true;
                 const access_token = createToken(user_idx)
                 res.cookie('aguhToken', access_token, { httpOnly: true, secure: true })
                 res.json(data)
@@ -157,6 +154,7 @@ const loginUser = async (req, res) => {
 }
 
 const logoutUser = (req, res) => {
+    console.log('logout')
     res.clearCookie('aguhToken', { path: '/' })
     const data = {
         isLogin: false,
@@ -172,22 +170,51 @@ const txHistory = async (req, res) => {
         try {
             let data = {}
             const { userid } = req.body; // order_list
+            let { searchType } = req.body
+
             const useridSql = `SELECT * FROM user WHERE user_id = ? `
             const useridParams = [userid]
             const [useridResult] = await connection.execute(useridSql, useridParams)
-            console.log(useridResult)
-            let user_idx 
-            useridResult.length == 0 ? user_idx = 0 : user_idx = useridResult[0].id; 
-            // userid가 없으면 임의 로 user_idx 0으로 설정.
-            const dataSql = `SELECT * FROM order_list WHERE user_idx = ?` // del=1 취소된 거래에 대한 내용.
-            const dataParams = [user_idx]
-            const [result] = await connection.execute(dataSql, dataParams)
+            if(useridResult.length == 0){
+                data = {
+                    success:false,
+                    msg: '잘못된 접근입니다.',
+                    quote: '로그인 상태인데 db에서 해당 id를 못가져옴'
+                }
+                res.json(data)
+            } else{
+                let srcInterval
+                switch(searchType){
+                    case '1day':
+                    srcInterval = '1 day'
+                    break;
+                    case '7day':
+                    srcInterval = '7 day'
+                    break;
+                    case '1month':
+                    srcInterval = '1 month'
+                    break;
+                    case '3month':
+                    srcInterval = '3 month'
+                    break;
+                    case '6month':
+                    srcInterval = '6 month'
+                    break;
+                }
 
-            data = {
-                success: true,
-                txList: result,
+                const user_idx = useridResult[0].id; 
+                // userid가 없으면 임의 로 user_idx 0으로 설정.
+                const dataSql = `SELECT * FROM order_list 
+                                 WHERE user_idx = ? AND
+                                 order_Date>date_add(now(),interval - ${srcInterval});` // del=1 취소된 거래에 대한 내용.
+                const dataParams = [user_idx]
+                const [result] = await connection.execute(dataSql, dataParams)
+                data = {
+                    success: true,
+                    txList: result[0],
+                }
+                res.json(data);
             }
-            res.json(data);
         } catch (error) {
             console.log('Query Error');
             console.log(error)

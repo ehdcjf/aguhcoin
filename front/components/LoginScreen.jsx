@@ -101,26 +101,41 @@ const ButtonBox = styled.div`
 
 const LoginScreen = () => {
     const dispatch = useDispatch();
-    const { loading, isLogin } = useSelector((state) => state.user);
-
+    const { isLogin, success } = useSelector((state) => state.user);
+    
     const userid = useInput('');
     const userpw = useInput('');
 
+    // 로그인 유효성 검사
     const handleSubmit = e => {
         e.preventDefault();
-        
-        const data = {
-            userid:userid.value,
-            userpw:userpw.value
-        }
 
-        dispatch(UserLoginAction(data));
-        Router.push('/');
+        let inputID = document.getElementById('userid');
+        let inputPW = document.getElementById('userpw');
+        if (inputID.value == '' || inputPW.value == ''){
+            alert('아이디와 비밀번호를 입력해주세요.');
+            return;
+        } else {
+            const data = {
+                userid: userid.value,
+                userpw: userpw.value
+            }
+            dispatch(UserLoginAction(data));
+
+            if (success == false) {
+                alert('존재하지 않는 회원 정보입니다.');
+                return;
+            } else {
+                if (isLogin == true) {
+                    Router.push('/');
+                }
+            }
+        }
     }
 
     useEffect(()=>{
-        isLogin === true && Router.push('/');
-    }, [loading]);
+        isLogin == true && Router.push('/');
+    }, []);
 
     return (
         <>
@@ -129,18 +144,18 @@ const LoginScreen = () => {
                     <h4>로그인</h4>
                     <form onSubmit={handleSubmit}>
                         <InputContainer>
-                            <div className="inputBox">
+                            <div>
                                 <h5>아이디</h5>
-                                <input type="text" {...userid} />
+                                <input id="userid" type="text" {...userid} />
                             </div>
-                            <div className="inputBox">
+                            <div>
                                 <h5>비밀번호</h5>
-                                <input type="password"  {...userpw} />
+                                <input id="userpw" type="password"  {...userpw} />
                             </div>
                         </InputContainer>
                         <ButtonBox>
                             <button type="submit">로그인</button>
-                            <div onClick={() => Router.push('/joins/join')}>
+                            <div onClick={() => Router.push('/join')}>
                                 아직 계정이 없으십니까? <a>클릭!</a>
                             </div>
                         </ButtonBox>

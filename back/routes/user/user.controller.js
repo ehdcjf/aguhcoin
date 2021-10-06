@@ -105,29 +105,34 @@ const loginUser = async (req, res) => {
             console.log(req.body)
             const sql = `SELECT * FROM user WHERE user_id = ? AND user_pw = ?`
             const params = [userid, userpw]
-            const result = await connection.execute(sql, params)
-            const myAsset = calcAsset(connection,user_idx);
+            const [result] = await connection.execute(sql, params)
+            // const myAsset = calcAsset(connection,user_idx);
             console.log('zzz',result)
-            const userid = result[0].userid
-            const user_idx = result[0].id  
-            if(result[0].length==0){
-                console.log('djqtdma')
-                data = { isLogin: false }
-            } else{
-                console.log('dlTdma')
+            if(result.length == 0){ //회원정보 없으면
+                console.log('회원정보 없음')
                 data = { 
-                    isLogin: true, 
-                    userid, 
-                    user_idx
+                    success: false,
+                    isLogin: false, 
                 }
+                res.json(data)
+            } else{ // 있으면
+                console.log('회원정보 있음')
+                const user_id = result[0].user_id
+                const user_idx = result[0].id  
+                    console.log('dlTdma')
+                    data = { 
+                        success: true,
+                        isLogin: true, 
+                        userid: user_id, 
+                        user_idx
+                    }
+                // 쿠키 관련
+                // res.cookie('AccessToken', token2, { httpOnly: true, secure: true })
+                // req.session.isLogin = true;
+                const access_token = createToken(user_idx)
+                res.cookie('aguhToken', access_token, { httpOnly: true, secure: true })
+                res.json(data)
             }
-            // 쿠키 관련
-            // res.cookie('AccessToken', token2, { httpOnly: true, secure: true })
-            // req.session.isLogin = true;
-            res.json(data)
-
-            const access_token = createToken(user_idx)
-            res.cookie('aguhToken', access_token, { httpOnly: true, secure: true })
         } catch (error) {
             console.log('Query Error');
             console.log(error)

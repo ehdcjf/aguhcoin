@@ -221,50 +221,49 @@ const outstandingLog = async (req, res) => {
             }
         res.json(data)
         }
-    }
-
-
-
-    let connection; 
-    try {
-        connection = await pool.getConnection(async conn => conn);
-        try {
-            let data = {}
-            const { userid } = req.body; // order_list
-         
-            const useridSql = `SELECT * FROM user WHERE user_id = ? `
-            const useridParams = [userid]
-            const [useridResult] = await connection.execute(useridSql, useridParams)
-          
-            const user_idx = useridResult[0].id;
-            const dataSql = `SELECT * FROM order_list WHERE user_idx = ? AND leftover > 0`
-            const dataParams = [user_idx]
-            const [result] = await connection.execute(dataSql, dataParams)
-            console.log(result)
-            data = {
-                success: true,
-                txList: result,
-            }
-            res.json(data);
-        } catch (error) {
-            console.log('Query Error');
-            console.log(error)
+        else{
+            let connection; 
+            try {
+                connection = await pool.getConnection(async conn => conn);
+                try {
+                    let data = {}
+                    const { userid } = req.body; // order_list
+                 
+                    const useridSql = `SELECT * FROM user WHERE user_id = ? `
+                    const useridParams = [userid]
+                    const [useridResult] = await connection.execute(useridSql, useridParams)
+                  
+                    const user_idx = useridResult[0].id;
+                    const dataSql = `SELECT * FROM order_list WHERE user_idx = ? AND leftover > 0`
+                    const dataParams = [user_idx]
+                    const [result] = await connection.execute(dataSql, dataParams)
+                    console.log(result)
+                    data = {
+                        success: true,
+                        txList: result,
+                    }
+                    res.json(data);
+                } catch (error) {
+                    console.log('Query Error');
+                    console.log(error)
+                        const data = {
+                            success: false,
+                            error: error.sqlMessage,
+                        }
+                    res.json(data)
+                }
+            } catch (error) {
+                console.log('DB Error')
+                console.log(error)
                 const data = {
                     success: false,
                     error: error.sqlMessage,
                 }
-            res.json(data)
-        }
-    } catch (error) {
-        console.log('DB Error')
-        console.log(error)
-        const data = {
-            success: false,
-            error: error.sqlMessage,
-        }
-        res.json(data)
-    } finally {
-        connection.release();
+                res.json(data)
+            } finally {
+                connection.release();
+            }
+        } 
     }
 }
 

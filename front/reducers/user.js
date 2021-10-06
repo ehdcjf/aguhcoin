@@ -1,10 +1,13 @@
 const initialState = {
     isLogin: false,
-    success: '',
-    userid: '',
-    useridx: '',
+    success: null,
+    userid: null,
+    useridx: null,
 }
 
+const DUPLICATECHECK_REQUEST = "DUPLICATECHECK_REQUEST";
+const DUPLICATECHECK_SUCCESS = "DUPLICATECHECK_SUCCESS";
+const DUPLICATECHECK_ERROR = "DUPLICATECHECK_ERROR";
 const USER_JOIN_REQUEST = "USER_JOIN_REQUEST";
 const USER_JOIN_SUCCESS = "USER_JOIN_SUCCESS";
 const USER_JOIN_ERROR = "USER_JOIN_ERROR";
@@ -14,6 +17,46 @@ const USER_LOGIN_ERROR = "USER_LOGIN_ERROR";
 const USER_LOGOUT_REQUEST = "USER_LOGOUT_REQUEST";
 const USER_LOGOUT_SUCCESS = "USER_LOGOUT_SUCCESS";
 const USER_LOGOUT_ERROR = "USER_LOGOUT_ERROR";
+
+// Join -> DuplicateCheck(), 회원가입 아이디 유효성 검사
+export const DuplicateCheckAction = data => {
+    return async (dispatch) => {
+        dispatch(DuplicateCheck_REQUEST());
+
+        try {
+            let url = `http://localhost:3500/user/idcheck`;
+            const response = await fetch(url, {
+                method: "POST",
+                mode: "cors",
+                credentials: "include",
+                headers: { "content-type": "application/json", },
+                body: JSON.stringify({ ...data }),
+            });
+            const result = await response.json();
+
+            dispatch(DuplicateCheck_SUCCESS(result));
+        } catch (e) {
+            dispatch(DuplicateCheck_ERROR());
+        }
+    }
+}
+
+export const DuplicateCheck_REQUEST = () => {
+    return {
+        type: DUPLICATECHECK_REQUEST,
+    }
+}
+export const DuplicateCheck_SUCCESS = data => {
+    return {
+        type: DUPLICATECHECK_SUCCESS,
+        data: data,
+    }
+}
+export const DuplicateCheck_ERROR = () => {
+    return {
+        type: DUPLICATECHECK_ERROR,
+    }
+}
 
 // join, 회원가입
 export const UserJoinAction = data => {
@@ -139,10 +182,24 @@ export const UserLogout_ERROR = () => {
 
 const reducer = (state = initialState, action) => {
     switch (action.type) {
+        case DUPLICATECHECK_REQUEST:
+            return {
+                ...state,
+                success: null,
+            }
+        case DUPLICATECHECK_SUCCESS:
+            return {
+                ...state,
+                success: action.data.success,
+            }
+        case DUPLICATECHECK_ERROR:
+            return {
+                ...state,
+            }
         case USER_JOIN_REQUEST:
             return {
                 ...state,
-                userid: '',
+                userid: null,
             }
         case USER_JOIN_SUCCESS:
             return {
@@ -156,9 +213,9 @@ const reducer = (state = initialState, action) => {
         case USER_LOGIN_REQUEST:
             return {
                 ...state,
-                success: '',
-                userid: '',
-                useridx: '',
+                success: null,
+                userid: null,
+                useridx: null,
             }
         case USER_LOGIN_SUCCESS:
             return {
@@ -181,7 +238,7 @@ const reducer = (state = initialState, action) => {
                 ...state,
                 isLogin: action.data.isLogin,
                 uesrid: '',
-                useridx: '',
+                useridx: null,
             }
         case USER_LOGOUT_ERROR:
             return {

@@ -54,7 +54,7 @@ const ORDERCANCLE_ERROR = "ORDERCANCLE_ERROR";
 //     }
 // }
 
-// NonTrading. 미체결
+// NonTrading, 미체결
 export const NonTradingAction = data => {
     return async (dispatch) => {
         dispatch(NonTrading_REQUEST());

@@ -2,7 +2,7 @@ const initialState = {
     isLogin: false,
     success: '',
     userid: '',
-    useridx: 'aa',
+    useridx: '',
 }
 
 const USER_JOIN_REQUEST = "USER_JOIN_REQUEST";
@@ -30,6 +30,7 @@ export const UserJoinAction = data => {
                 body: JSON.stringify({ ...data }),
             });
             const result = await response.json();
+            console.log('ㅈ인데이터', result);
 
             dispatch(UserJoin_SUCCESS(result));
         } catch (e) {
@@ -43,9 +44,10 @@ export const UserJoin_REQUEST = () => {
         type: USER_JOIN_REQUEST,
     }
 }
-export const UserJoin_SUCCESS = () => {
+export const UserJoin_SUCCESS = data => {
     return {
         type: USER_JOIN_SUCCESS,
+        data: data,
     }
 }
 export const UserJoin_ERROR = () => {
@@ -140,10 +142,12 @@ const reducer = (state = initialState, action) => {
         case USER_JOIN_REQUEST:
             return {
                 ...state,
+                userid: '',
             }
         case USER_JOIN_SUCCESS:
             return {
                 ...state,
+                userid: action.data.userid,
             }
         case USER_JOIN_ERROR:
             return {
@@ -153,6 +157,8 @@ const reducer = (state = initialState, action) => {
             return {
                 ...state,
                 success: '',
+                userid: '',
+                useridx: '',
             }
         case USER_LOGIN_SUCCESS:
             return {
@@ -174,6 +180,8 @@ const reducer = (state = initialState, action) => {
             return {
                 ...state,
                 isLogin: action.data.isLogin,
+                uesrid: '',
+                useridx: '',
             }
         case USER_LOGOUT_ERROR:
             return {

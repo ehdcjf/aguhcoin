@@ -106,9 +106,9 @@ const loginUser = async (req, res) => {
             const sql = `SELECT * FROM user WHERE user_id = ? AND user_pw = ?`
             const params = [userid, userpw]
             const result = await connection.execute(sql, params)
-            const myAsset = calcAsset(connection,user_idx);
+            // const myAsset = calcAsset(connection,user_idx);
             console.log('zzz',result)
-            const userid = result[0].userid
+            const user_id = result[0].userid
             const user_idx = result[0].id  
             if(result[0].length==0){
                 console.log('djqtdma')
@@ -117,7 +117,7 @@ const loginUser = async (req, res) => {
                 console.log('dlTdma')
                 data = { 
                     isLogin: true, 
-                    userid, 
+                    userid: user_id, 
                     user_idx
                 }
             }

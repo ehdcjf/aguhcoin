@@ -159,7 +159,7 @@ async function getResult(n) {  //return array
       ret.sellList.list = selltemp[0].reverse();
       
       // //가짜 트랜잭션 데이터 
-      await makeTxTemp(connection);
+      // await makeTxTemp(connection);
       ret.chartdata = await oneMinuteInterval(connection);
 
 
@@ -167,7 +167,7 @@ async function getResult(n) {  //return array
       let transactionListSql = `
         SELECT  *
         FROM transaction
-        ORDER BY id DESC
+        ORDER BY tx_date DESC
         `
       if(n==0) transactionListSql+=';'   //전체 트랜잭션 조회
       else transactionListSql+=` LIMIT ${n};` //최근 n개 트랜잭션 조회

@@ -107,23 +107,33 @@ const loginUser = async (req, res) => {
             const sql = `SELECT * FROM user WHERE user_id = ? AND user_pw = ?`
             const params = [userid, userpw]
             const [result] = await connection.execute(sql, params)
+            // const myAsset = calcAsset(connection,user_idx);
             console.log('zzz',result)
-            if(result.length==0){
-                console.log('djqtdma')
-                data = { login: false }
-            } else{
-                console.log('dlTdma')
-                data = { login: true }
+            if(result.length == 0){ //회원정보 없으면
+                console.log('회원정보 없음')
+                data = { 
+                    success: false,
+                    isLogin: false, 
+                }
+                res.json(data)
+            } else{ // 있으면
+                console.log('회원정보 있음')
+                const user_id = result[0].user_id
+                const user_idx = result[0].id  
+                    console.log('dlTdma')
+                    data = { 
+                        success: true,
+                        isLogin: true, 
+                        userid: user_id, 
+                        user_idx
+                    }
+                // 쿠키 관련
+                // res.cookie('AccessToken', token2, { httpOnly: true, secure: true })
+                // req.session.isLogin = true;
+                const access_token = createToken(user_idx)
+                res.cookie('aguhToken', access_token, { httpOnly: true, secure: true })
+                res.json(data)
             }
-            console.log(result)
-            const user_idx = result[0].id; 
-
-            const myAsset =await exchangeData.clacMyAsset(connection,user_idx);
-            console.log(myAsset);
-            const access_token = createToken(user_idx)
-            console.log(access_token);
-            res.cookie('aguhToken', access_token, { httpOnly: true,  })
-            res.json(data);
         } catch (error) {
             console.log('Query Error');
             console.log(error)
@@ -147,9 +157,9 @@ const loginUser = async (req, res) => {
 }
 
 const logoutUser = (req, res) => {
-    res.clearCookie('AccessToken', { path: '/' })
+    res.clearCookie('aguhToken', { path: '/' })
     const data = {
-        isLogout: true,
+        isLogin: false,
     }
     res.json(data)
 }
@@ -201,8 +211,6 @@ const txHistory = async (req, res) => {
 }
 
 const outstandingLog = async (req, res) => {
-
-
     const Token = req.cookies.aguhToken;
     if (Token == undefined) {
         const data = {
@@ -217,20 +225,20 @@ const outstandingLog = async (req, res) => {
                 success: false,
                 error: '접근권한이 없습니다'
             }
-            res.json(data)
-        } else {
-
-            let connection;
+        res.json(data)
+        }
+        else{
+            let connection; 
             try {
                 connection = await pool.getConnection(async conn => conn);
                 try {
                     let data = {}
                     const { userid } = req.body; // order_list
-
+                 
                     const useridSql = `SELECT * FROM user WHERE user_id = ? `
                     const useridParams = [userid]
                     const [useridResult] = await connection.execute(useridSql, useridParams)
-
+                  
                     const user_idx = useridResult[0].id;
                     const dataSql = `SELECT * FROM order_list WHERE user_idx = ? AND leftover > 0`
                     const dataParams = [user_idx]
@@ -244,10 +252,10 @@ const outstandingLog = async (req, res) => {
                 } catch (error) {
                     console.log('Query Error');
                     console.log(error)
-                    const data = {
-                        success: false,
-                        error: error.sqlMessage,
-                    }
+                        const data = {
+                            success: false,
+                            error: error.sqlMessage,
+                        }
                     res.json(data)
                 }
             } catch (error) {
@@ -261,7 +269,7 @@ const outstandingLog = async (req, res) => {
             } finally {
                 connection.release();
             }
-        }
+        } 
     }
 }
 

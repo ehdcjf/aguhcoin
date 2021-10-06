@@ -29,6 +29,7 @@ const Category = styled.div`
         text-align: center;
         line-height: 38px;
     }
+
     & > div > a {
         display: inline-block;
         width: 100%;
@@ -42,7 +43,7 @@ const Category = styled.div`
     }
 `
 
-const WalletContent = () => {
+const WalletScreen = () => {
     const List = ["보유코인", "거래내역", "미체결"];
 
     const [currentClick, setCurrentClick] = useState(0);
@@ -98,4 +99,4 @@ const WalletContent = () => {
     );
 }
 
-export default WalletContent;
+export default WalletScreen;

@@ -1,7 +1,4 @@
 import styled from 'styled-components';
-import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { TransactionAction } from '../reducers/wallet';
 
 const TransactionTable = styled.div`
     & > table {
@@ -43,11 +40,18 @@ const TransactionTable = styled.div`
 `
 
 const TransactionList = () => {
-    const dispatch = useDispatch();
+    // const dispatch = useDispatch();
+    // const { userid, useridx } = useSelector((state) => state.user);
+    // const { txList } = useSelector((state) => state.wallet);
 
-    useEffect(() => {
-        dispatch(TransactionAction());
-    }, []);
+    // useEffect(() => {
+    //     const data = {
+    //         userid: userid,
+    //         useridx: useridx,
+    //     }
+    
+    //     dispatch(TransactionAction(data));
+    // }, []);
 
     return (
         <TransactionTable>
@@ -75,7 +79,55 @@ const TransactionList = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {/* 검색 결과 양에 따라 <tr> 갯수 결정 */}
+                    {
+                        // txList.map((e, k) => {
+                        //     return (
+                        //         <tr>
+                        //             <td>
+                        //                 {/* 체결시간 */}
+                        //                 <p></p>
+                        //             </td>
+                        //             <td>
+                        //                 {/* 주문유형 */}
+                        //                 {
+                        //                     e.order_type == 0
+                        //                     ? <div style={{ color: "red" }}>매수</div>
+                        //                     : <div style={{ color: "blue" }}>매도</div>
+                        //                 }
+                        //             </td>
+                        //             <td>
+                        //                 {/* 거래수량 */}
+                                        
+                        //                 <span>AGU</span>
+                        //             </td>
+                        //             <td>
+                        //                 {/* 거래단가 */}
+                                        
+                        //                 <span>KRW</span>
+                        //             </td>
+                        //             <td>
+                        //                 {/* 거래금액 */}
+                                        
+                        //                 <span>KRW</span>
+                        //             </td>
+                        //             <td>
+                        //                 {/* 수수료 */}
+                                        
+                        //                 <span>KRW</span>
+                        //             </td>
+                        //             <td>
+                        //                 {/* 정산금액(수수료반영) */}
+                                        
+                        //                 <span>KRW</span>
+                        //             </td>
+                        //             <td>
+                        //                 {/* 주문시간 */}
+                        //                 <p>{e.order_date}</p>
+                        //             </td>
+                        //         </tr>
+                        //     );
+                        // })
+                    }
                     <tr>
                         <td>
                             <p>2021.10.04</p>

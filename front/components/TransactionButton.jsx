@@ -150,6 +150,7 @@ const Buttons = () => {
                                     <button
                                         id={v.id}
                                         onClick={handleClick1}
+                                        key={k}
                                     >
                                         {v.subejct}
                                     </button>
@@ -171,6 +172,7 @@ const Buttons = () => {
                                     <button
                                         id={v.id}
                                         onClick={handleClick2}
+                                        key={k}
                                     >
                                         {v.subejct}
                                     </button>

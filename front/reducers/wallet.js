@@ -1,63 +1,91 @@
 import axios from 'axios';
 
 const initialState = {
-    exist: false,
+    success: false,
+    txList: [],
 }
 
 const TRANSACTION_REQUEST = "TRANSACTION_REQUEST";
 const TRANSACTION_SUCCESS = "TRANSACTION_SUCCESS";
 const TRANSACTION_ERROR = "TRANSACTION_ERROR";
+const NONTRADING_REQUEST = "NONTRADING_REQUEST";
+const NONTRADING_SUCCESS = "NONTRADING_SUCCESS";
+const NONTRADING_ERROR = "NONTRADING_ERROR";
 
-export const TransactionAction = () => {
+// Transaction, 거래내역
+// export const TransactionAction = data => {
+//     return async (dispatch) => {
+//         dispatch(Transaction_REQUEST());
+
+//         try {
+//             let url = 'http://localhost:3500/user/txlog';
+//             const response = await axios({
+//                 method: "POST",
+//                 url: url,
+//                 data: { ...data },
+//             });
+//             console.log(response.data);
+//             const result = response.data;
+
+//             dispatch(Transaction_SUCCESS(result));
+//         } catch (e) {
+//             dispatch(Transaction_ERROR());
+//         }
+//     }
+// }
+
+// export const Transaction_REQUEST = () => {
+//     return {
+//         type: TRANSACTION_REQUEST,
+//     }
+// }
+// export const Transaction_SUCCESS = data => {
+//     return {
+//         type: TRANSACTION_SUCCESS,
+//         data: data,
+//     }
+// }
+// export const Transaction_ERROR = () => {
+//     return {
+//         type: TRANSACTION_ERROR,
+//     }
+// }
+
+// NonTrading. 미체결
+export const NonTradingAction = data => {
     return async (dispatch) => {
-        dispatch(Transaction_REQUEST());
+        dispatch(NonTrading_REQUEST());
 
         try {
-            console.log('11');
             let url = 'http://localhost:3500/user/txlog';
-            let options = {
-                method: "GET",
-                mode: "cors",
-                credentials: "include",
-                headers: {
-                    "content-type": "application/json",
-                },
-                body: JSON.stringify({
-                    ...data,
-                }),
-            };
-            console.log('22');
             const response = await axios({
-                method: 'get',
+                method: "POST",
                 url: url,
                 data: { ...data },
             });
-            console.log('33');
-            console.log(response.data);
             const result = response.data;
-            console.log('44');
 
-            dispatch(Transaction_SUCCESS(result));
+            dispatch(NonTrading_SUCCESS(result));
         } catch (e) {
-            dispatch(Transaction_ERROR());
+            dispatch(NonTrading_ERROR());
         }
     }
 }
 
-// Transaction
-export const Transaction_REQUEST = () => {
+export const NonTrading_REQUEST = () => {
     return {
-        type: TRANSACTION_REQUEST,
+        type: NONTRADING_REQUEST,
     }
 }
-export const Transaction_SUCCESS = () => {
+export const NonTrading_SUCCESS = data => {
     return {
-        type: TRANSACTION_SUCCESS,
+        type: NONTRADING_SUCCESS,
+        data: data,
     }
 }
-export const Transaction_ERROR = () => {
+export const NonTrading_ERROR = () => {
     return {
-        type: TRANSACTION_ERROR,
+        type: NONTRADING_ERROR,
     }
 }
 
@@ -70,9 +98,24 @@ const reducer = (state = initialState, action) => {
         case TRANSACTION_SUCCESS:
             return {
                 ...state,
-                exist: true,
+                success: true,
+                // txList: action.data.txList,
             }
         case TRANSACTION_ERROR:
+            return {
+                ...state,
+            }
+        case NONTRADING_REQUEST:
+            return {
+                ...state,
+            }
+        case NONTRADING_SUCCESS:
+            return {
+                ...state,
+                success: true,
+                txList: action.data.txList,
+            }
+        case NONTRADING_ERROR:
             return {
                 ...state,
             }

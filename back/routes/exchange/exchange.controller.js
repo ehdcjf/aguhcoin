@@ -10,13 +10,6 @@ const exchangeData = require('../../exchangeData')
 //내가 100원에 10개 사려고 했다면 나한테 1000원이 있는지 확인. 
 //createOrderBuy createOrderSell 합칠 수 있을 듯.
 
-async function clacMyAsset(conn,user_idx){
-  const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
-  const assetParams = [user_idx]
-  const [[myAsset]] = await conn.execute(assetSql, assetParams)
-  return myAsset.asset;
-}
-
 
 
 const createOrderBuy = async (req, res) => {

@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 	`user_id` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`user_pw` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
   `user_wallet` VARCHAR(255) NULL COLLATE 'utf8mb4_general_ci',
-	PRIMARY KEY (`id`) USING BTREE,
+	PRIMARY KEY (`id`) USING BTREE
 )
 COLLATE='utf8mb4_general_ci' ENGINE=InnoDB AUTO_INCREMENT=1;
 

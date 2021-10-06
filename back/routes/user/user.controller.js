@@ -127,8 +127,6 @@ const loginUser = async (req, res) => {
                         user_idx
                     }
                 // 쿠키 관련
-                // res.cookie('AccessToken', token2, { httpOnly: true, secure: true })
-                // req.session.isLogin = true;
                 const access_token = createToken(user_idx)
                 res.cookie('aguhToken', access_token, { httpOnly: true, secure: true })
                 res.json(data)
@@ -156,7 +154,8 @@ const loginUser = async (req, res) => {
 }
 
 const logoutUser = (req, res) => {
-    res.clearCookie('AccessToken', { path: '/' })
+    console.log('logout')
+    res.clearCookie('aguhToken', { path: '/' })
     const data = {
         isLogin: false,
     }

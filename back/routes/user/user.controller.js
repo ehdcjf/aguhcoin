@@ -110,15 +110,19 @@ const loginUser = async (req, res) => {
             console.log('zzz',result)
             if(result[0].length==0){
                 console.log('djqtdma')
-                data = { login: false }
+                data = { isLogin: false }
             } else{
                 console.log('dlTdma')
-                data = { login: true }
+                data = { 
+                    isLogin: true, 
+                    userid: result[0].userid, 
+                    user_idx: result[0].id  
+                }
             }
             // 쿠키 관련
             // res.cookie('AccessToken', token2, { httpOnly: true, secure: true })
             // req.session.isLogin = true;
-
+            res.json(data)
 
         } catch (error) {
             console.log('Query Error');

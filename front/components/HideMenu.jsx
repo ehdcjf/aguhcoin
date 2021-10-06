@@ -10,7 +10,7 @@ const Menu3 = styled.div`
     right: 0;
 
     & > ul {
-        width: 14%;
+        width: 15%;
         float: right;
         background: #0a0e13;
         

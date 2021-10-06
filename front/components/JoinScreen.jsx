@@ -202,7 +202,6 @@ const JoinScreen = () => {
         }
     }
 
-
     // Step 2 정보 입력
     // 회원가입 유효성 검사
     const duplicateCheck = () => {

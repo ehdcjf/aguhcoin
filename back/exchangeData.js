@@ -204,7 +204,6 @@ async function clacMyAsset(conn,user_idx){
 
 
 async function oneMinuteInterval(conn){
-  console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxx')
 
   const allTxSql = `
   SELECT price,tx_date 
@@ -218,7 +217,6 @@ async function oneMinuteInterval(conn){
   let result = [{time:temp[0].tx_date, low:temp[0].price,start:temp[0].price,end:temp[0].price,high:temp[0].price}];
   let cnt = 1;
 
-  console.log(temp)
 
 
   while(cnt<temp.length){
@@ -245,7 +243,6 @@ async function oneMinuteInterval(conn){
       result.push({time:new Date(newDate),low:null,start:preData.end,end:preData.end,high:null })
     }
    }
-   console.log(result)
    const arrResult = result.map(v=>Object.entries(v).map(x=>x[1]));
    return arrResult;
 
@@ -294,4 +291,5 @@ module.exports = {
   getBuyList,
   getSellList,
   getTransactionList,
+  clacMyAsset,
 }

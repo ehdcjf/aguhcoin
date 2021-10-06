@@ -1,6 +1,7 @@
+
 const pool = require('../../config/dbconnection');
 const {createToken,jwtId}  = require('../../jwt')
-
+const exchangeData = require('../../exchangeData')
 
 // 아이디 중복 검사
 const idCheck = async (req, res) => { 
@@ -105,18 +106,24 @@ const loginUser = async (req, res) => {
             console.log(req.body)
             const sql = `SELECT * FROM user WHERE user_id = ? AND user_pw = ?`
             const params = [userid, userpw]
-            const result = await connection.execute(sql, params)
-            const myAsset = calcAsset(connection,user_idx);
+            const [result] = await connection.execute(sql, params)
             console.log('zzz',result)
-            if(result[0].length==0){
+            if(result.length==0){
                 console.log('djqtdma')
                 data = { login: false }
             } else{
                 console.log('dlTdma')
                 data = { login: true }
             }
-            const access_token = createToken(user_id)
-            res.cookie('aguhToken', access_token, { httpOnly: true, secure: true })
+            console.log(result)
+            const user_idx = result[0].id; 
+
+            const myAsset =await exchangeData.clacMyAsset(connection,user_idx);
+            console.log(myAsset);
+            const access_token = createToken(user_idx)
+            console.log(access_token);
+            res.cookie('aguhToken', access_token, { httpOnly: true,  })
+            res.json(data);
         } catch (error) {
             console.log('Query Error');
             console.log(error)
@@ -192,6 +199,7 @@ const txHistory = async (req, res) => {
         connection.release();
     }
 }
+
 const outstandingLog = async (req, res) => {
 
 
@@ -210,50 +218,50 @@ const outstandingLog = async (req, res) => {
                 error: '접근권한이 없습니다'
             }
             res.json(data)
+        } else {
 
+            let connection;
+            try {
+                connection = await pool.getConnection(async conn => conn);
+                try {
+                    let data = {}
+                    const { userid } = req.body; // order_list
 
+                    const useridSql = `SELECT * FROM user WHERE user_id = ? `
+                    const useridParams = [userid]
+                    const [useridResult] = await connection.execute(useridSql, useridParams)
 
-
-    let connection; 
-    try {
-        connection = await pool.getConnection(async conn => conn);
-        try {
-            let data = {}
-            const { userid } = req.body; // order_list
-         
-            const useridSql = `SELECT * FROM user WHERE user_id = ? `
-            const useridParams = [userid]
-            const [useridResult] = await connection.execute(useridSql, useridParams)
-          
-            const user_idx = useridResult[0].id;
-            const dataSql = `SELECT * FROM order_list WHERE user_idx = ? AND leftover > 0`
-            const dataParams = [user_idx]
-            const [result] = await connection.execute(dataSql, dataParams)
-            console.log(result)
-            data = {
-                success: true,
-                txList: result,
-            }
-            res.json(data);
-        } catch (error) {
-            console.log('Query Error');
-            console.log(error)
+                    const user_idx = useridResult[0].id;
+                    const dataSql = `SELECT * FROM order_list WHERE user_idx = ? AND leftover > 0`
+                    const dataParams = [user_idx]
+                    const [result] = await connection.execute(dataSql, dataParams)
+                    console.log(result)
+                    data = {
+                        success: true,
+                        txList: result,
+                    }
+                    res.json(data);
+                } catch (error) {
+                    console.log('Query Error');
+                    console.log(error)
+                    const data = {
+                        success: false,
+                        error: error.sqlMessage,
+                    }
+                    res.json(data)
+                }
+            } catch (error) {
+                console.log('DB Error')
+                console.log(error)
                 const data = {
                     success: false,
                     error: error.sqlMessage,
                 }
-            res.json(data)
+                res.json(data)
+            } finally {
+                connection.release();
+            }
         }
-    } catch (error) {
-        console.log('DB Error')
-        console.log(error)
-        const data = {
-            success: false,
-            error: error.sqlMessage,
-        }
-        res.json(data)
-    } finally {
-        connection.release();
     }
 }
 

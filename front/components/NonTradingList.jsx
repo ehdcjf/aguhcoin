@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { NonTradingAction } from '../reducers/wallet';
+import { NonTradingAction, NonTrading_REQUEST, OrderCancleAction } from '../reducers/wallet';
 import styled from 'styled-components';
 
 const NonTradingHistory = styled.div`
@@ -20,10 +20,10 @@ const NonTradingHistory = styled.div`
 
     table {
         width: 100%;
-        /* margin-top: 40px; */
         border-collapse: collapse;
         border-spacing: 0;
     }
+
     table > thead > tr > th {
         padding: 10px;
         font-size: 14px;
@@ -36,6 +36,7 @@ const NonTradingHistory = styled.div`
     table > thead > tr > th:nth-last-child() {
         border-right: none;
     }
+
     table > tbody > tr > td {
         padding: 10px;
         font-size: 14px;
@@ -50,15 +51,18 @@ const NonTradingHistory = styled.div`
         font-size: 12px;
         font-weight: lighter;
     }
+
     table > tbody > tr > td > span {
         margin-left: 5px;
         color: #999;
         font-size: 12px;
     }
+
     table > tbody > tr > td > ul {
         padding: 5px 20px;
         text-decoration: line-through;
     }
+    
     table > tbody > tr > td > button {
         padding: 5px 20px;
         color: #fff;
@@ -77,6 +81,7 @@ const NonTradingList = () => {
     const { userid, useridx } = useSelector((state) => state.user);
     const { txList } = useSelector((state) => state.wallet);
 
+    // 미체결 내역 불러오기
     useEffect(() => {
         const data = {
             userid: userid,
@@ -85,6 +90,23 @@ const NonTradingList = () => {
     
         dispatch(NonTradingAction(data));
     }, []);
+
+    // 주문취소
+    const handleCancle = e => {
+        const order_id = e.target.id;
+
+        const data = {
+            order_id: order_id,
+        }
+        const data2 = {
+            userid: userid,
+            useridx: useridx,
+        }
+
+        dispatch(OrderCancleAction(data));
+        alert(`[주문번호 ${order_id}] 정상 취소 되었습니다.`);
+        dispatch(NonTradingAction(data2));
+    }
 
     return (
         <NonTradingHistory>
@@ -157,7 +179,13 @@ const NonTradingList = () => {
                                         {/* 주문취소 */}
                                         {
                                             e.del == 0
-                                            ? <button type="submit">주문취소</button>
+                                            ? <button
+                                                id={e.id}
+                                                type="submit"
+                                                onClick={handleCancle}
+                                            >
+                                                주문취소
+                                            </button>
                                             : <div>취소완료</div>
                                         }
                                     </td>
@@ -165,68 +193,6 @@ const NonTradingList = () => {
                             );
                         })
                     }
-                    {/* <tr>
-                        <td>
-                            <p>2021.10.04</p>
-                            <p>13:00</p>
-                        </td>
-                        <td>
-                            {
-                                // 매수 빨간색, 매도 파란색
-                            }
-                            <div style={{ color: "red" }}>매수</div>
-                        </td>
-                        <td>
-                            999
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            20.00000000
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            0.00000000
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            20.00000000
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            <button type="submit">주문취소</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>2021.10.04</p>
-                            <p>13:00</p>
-                        </td>
-                        <td>
-                            {
-                                // 매수 빨간색, 매도 파란색
-                            }
-                            <div style={{ color: "blue" }}>매도</div>
-                        </td>
-                        <td>
-                            999
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            20.00000000
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            0.00000000
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            20.00000000
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            <button type="submit">주문취소</button>
-                        </td>
-                    </tr> */}
                 </tbody>
             </table>
         </NonTradingHistory>

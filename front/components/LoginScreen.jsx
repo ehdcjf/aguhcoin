@@ -140,7 +140,7 @@ const LoginScreen = () => {
                         </InputContainer>
                         <ButtonBox>
                             <button type="submit">로그인</button>
-                            <div onClick={() => Router.push('/joins/join')}>
+                            <div onClick={() => Router.push('/join')}>
                                 아직 계정이 없으십니까? <a>클릭!</a>
                             </div>
                         </ButtonBox>

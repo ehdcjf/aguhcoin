@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 import Link from 'next/link';
 import styled from 'styled-components';
-import { BsCaretDownFill } from 'react-icons/bs';
+import { BsCaretUpFill, BsCaretDownFill } from 'react-icons/bs';
 import MenuLogin from './MenuLogin';
 import { useState } from 'react';
 import HideMenu from './HideMenu';
@@ -64,10 +64,22 @@ const UserMenu = () => {
                                 <a onClick={handleClick}>
                                     {userid} 님
                                     <span>
-                                        <BsCaretDownFill
-                                            color="steelblue"
-                                            size="10"
-                                        />
+                                        {
+                                            hide
+                                            ? (
+                                                <BsCaretDownFill
+                                                    color="steelblue"
+                                                    size="10"
+                                                />
+                                            )
+                                            : (
+                                                <BsCaretUpFill
+                                                    color="steelblue"
+                                                    size="10"
+                                                />
+                                            )
+                                        }
+                                        
                                     </span>
                                 </a>
                             )

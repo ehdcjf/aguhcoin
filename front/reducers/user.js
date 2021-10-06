@@ -10,15 +10,16 @@ const USER_JOIN_ERROR = "USER_JOIN_ERROR";
 const USER_LOGIN_REQUEST = "USER_LOGIN_REQUEST";
 const USER_LOGIN_SUCCESS = "USER_LOGIN_SUCCESS";
 const USER_LOGIN_ERROR = "USER_LOGIN_ERROR";
-const USER_LOGOUT = "USER_LOGOUT";
+const USER_LOGOUT_REQUEST = "USER_LOGIN_REQUEST";
+const USER_LOGOUT_SUCCESS = "USER_LOGIN_SUCCESS";
+const USER_LOGOUT_ERROR = "USER_LOGIN_ERROR";
 
-// Join
+// join, 회원가입
 export const UserJoinAction = data => {
     return async (dispatch) => {
         dispatch(UserJoin_REQUEST());
 
         try {
-
             let url = `http://localhost:3500/user/join`;
             const response = await fetch(url, {
                 method: "POST",
@@ -29,7 +30,7 @@ export const UserJoinAction = data => {
             });
             const result = await response.json();
 
-            dispatch(UserJoin_SUCCESS());
+            dispatch(UserJoin_SUCCESS(result));
         } catch (e) {
             dispatch(UserJoin_ERROR());
         }
@@ -52,7 +53,7 @@ export const UserJoin_ERROR = () => {
     }
 }
 
-// Login
+// Login, 로그인
 export const UserLoginAction = data => {
     return async (dispatch) => {
         dispatch(UserLogin_REQUEST());
@@ -91,10 +92,44 @@ export const UserLogin_ERROR = () => {
         type: USER_LOGIN_ERROR,
     }
 }
+
+// Logout, 로그아웃
 export const UserLogoutAction = data => {
+    return async (dispatch) => {
+        dispatch(UserLogout_REQUEST());
+
+        try {
+            let url = 'http://localhost:3500/user/logout';
+            const response = await fetch(url, {
+                method: "POST",
+                mode: "cors",
+                credentials: "include",
+                headers: { "content-type": "application/json", },
+                body: JSON.stringify({ ...data }),
+            });
+            const result = await response.json();
+
+            dispatch(UserLogout_SUCCESS(result));
+        } catch (e) {
+            dispatch(UserLogout_ERROR());
+        }
+    }
+}
+
+export const UserLogout_REQUEST = () => {
     return {
-        type: USER_LOGOUT,
+        type: USER_LOGOUT_REQUEST,
+    }
+}
+export const UserLogout_SUCCESS = data => {
+    return {
+        type: USER_LOGOUT_SUCCESS,
         data: data,
+    }
+}
+export const UserLogout_ERROR = () => {
+    return {
+        type: USER_LOGOUT_ERROR,
     }
 }
 
@@ -119,7 +154,7 @@ const reducer = (state = initialState, action) => {
         case USER_LOGIN_SUCCESS:
             return {
                 ...state,
-                isLogin: true,
+                isLogin: action.data.isLogin,
                 userid: action.data.userid,
                 useridx: action.data.useridx,
             }
@@ -127,10 +162,18 @@ const reducer = (state = initialState, action) => {
             return {
                 ...state,
             }
-        case USER_LOGOUT:
+        case USER_LOGOUT_REQUEST:
             return {
                 ...state,
-                isLogin: false,
+            }
+        case USER_LOGOUT_SUCCESS:
+            return {
+                ...state,
+                isLogin: action.data.isLogin,
+            }
+        case USER_LOGOUT_ERROR:
+            return {
+                ...state,
             }
         default:
             return state;

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { NonTradingAction } from '../reducers/wallet';
+import { NonTradingAction, NonTrading_REQUEST, OrderCancleAction } from '../reducers/wallet';
 import styled from 'styled-components';
 
 const NonTradingHistory = styled.div`
@@ -20,7 +20,6 @@ const NonTradingHistory = styled.div`
 
     table {
         width: 100%;
-        /* margin-top: 40px; */
         border-collapse: collapse;
         border-spacing: 0;
     }
@@ -77,6 +76,7 @@ const NonTradingList = () => {
     const { userid, useridx } = useSelector((state) => state.user);
     const { txList } = useSelector((state) => state.wallet);
 
+    // 미체결 내역 불러오기
     useEffect(() => {
         const data = {
             userid: userid,
@@ -85,6 +85,23 @@ const NonTradingList = () => {
     
         dispatch(NonTradingAction(data));
     }, []);
+
+    // 주문취소
+    const handleCancle = e => {
+        const order_id = e.target.id;
+
+        const data = {
+            order_id: order_id,
+        }
+        const data2 = {
+            userid: userid,
+            useridx: useridx,
+        }
+
+        dispatch(OrderCancleAction(data));
+        alert(`[주문번호 ${order_id}] 정상 취소 되었습니다.`);
+        dispatch(NonTradingAction(data2));
+    }
 
     return (
         <NonTradingHistory>
@@ -157,7 +174,13 @@ const NonTradingList = () => {
                                         {/* 주문취소 */}
                                         {
                                             e.del == 0
-                                            ? <button type="submit">주문취소</button>
+                                            ? <button
+                                                id={e.id}
+                                                type="submit"
+                                                onClick={handleCancle}
+                                            >
+                                                주문취소
+                                            </button>
                                             : <div>취소완료</div>
                                         }
                                     </td>

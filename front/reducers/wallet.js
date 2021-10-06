@@ -11,6 +11,9 @@ const TRANSACTION_ERROR = "TRANSACTION_ERROR";
 const NONTRADING_REQUEST = "NONTRADING_REQUEST";
 const NONTRADING_SUCCESS = "NONTRADING_SUCCESS";
 const NONTRADING_ERROR = "NONTRADING_ERROR";
+const ORDERCANCLE_REQUEST = "ORDERCANCLE_REQUEST";
+const ORDERCANCLE_SUCCESS = "ORDERCANCLE_SUCCESS";
+const ORDERCANCLE_ERROR = "ORDERCANCLE_ERROR";
 
 // Transaction, 거래내역
 // export const TransactionAction = data => {
@@ -89,6 +92,44 @@ export const NonTrading_ERROR = () => {
     }
 }
 
+// NonTrading -> handleOrderCancle(), 주문취소
+export const OrderCancleAction = data => {
+    return async (dispatch) => {
+        dispatch(OrderCancle_REQUEST());
+
+        try {
+            let url = 'http://localhost:3500/exchange/cancle';
+            const response = await axios({
+                method: "POST",
+                url: url,
+                data: { ...data },
+            });
+            const result = response.data;
+
+            dispatch(OrderCancle_SUCCESS(result));
+        } catch (e) {
+            dispatch(OrderCancle_ERROR());
+        }
+    }
+}
+
+export const OrderCancle_REQUEST = () => {
+    return {
+        type: ORDERCANCLE_REQUEST,
+    }
+}
+export const OrderCancle_SUCCESS = data => {
+    return {
+        type: ORDERCANCLE_SUCCESS,
+        data: data,
+    }
+}
+export const OrderCancle_ERROR = () => {
+    return {
+        type: ORDERCANCLE_ERROR,
+    }
+}
+
 const reducer = (state = initialState, action) => {
     switch (action.type) {
         case TRANSACTION_REQUEST:
@@ -98,7 +139,7 @@ const reducer = (state = initialState, action) => {
         case TRANSACTION_SUCCESS:
             return {
                 ...state,
-                success: true,
+                success: action.data.success,
                 // txList: action.data.txList,
             }
         case TRANSACTION_ERROR:
@@ -108,14 +149,29 @@ const reducer = (state = initialState, action) => {
         case NONTRADING_REQUEST:
             return {
                 ...state,
+                txList: [],
             }
         case NONTRADING_SUCCESS:
             return {
                 ...state,
-                success: true,
+                success: action.data.success,
                 txList: action.data.txList,
             }
         case NONTRADING_ERROR:
+            return {
+                ...state,
+            }
+        case ORDERCANCLE_REQUEST:
+            return {
+                ...state,
+                txList: [],
+            }
+        case ORDERCANCLE_SUCCESS:
+            return {
+                ...state,
+                success: action.data.success,
+            }
+        case ORDERCANCLE_ERROR:
             return {
                 ...state,
             }

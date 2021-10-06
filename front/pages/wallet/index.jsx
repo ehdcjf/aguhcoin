@@ -1,7 +1,7 @@
 import MainLayout from '../../components/layout/MainLayout';
 import WalletLayout from '../../components/layout/WalletLayout';
 import Head from 'next/head';
-import WalletContent from '../../components/Wallet';
+import WalletScreen from '../../components/Wallet';
 
 const Wallet = () => {
     return (
@@ -11,7 +11,7 @@ const Wallet = () => {
             </Head>
             <MainLayout>
                 <WalletLayout>
-                    <WalletContent />
+                    <WalletScreen />
                 </WalletLayout>
             </MainLayout>
         </>

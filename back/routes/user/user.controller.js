@@ -1,6 +1,6 @@
 const pool = require('../../config/dbconnection');
-// const createToken = require('../../jwt');
-// const jwtId = require('../../jwtId')
+const {createToken,jwtId}  = require('../../jwt')
+
 
 // 아이디 중복 검사
 const idCheck = async (req, res) => { 
@@ -62,14 +62,14 @@ const createUser = async (req, res) => {
             const [assetResult] = await connection.execute(assetSql, assetParams)
             
             console.log(assetResult)
-            // const access_token = createToken(user_id)
+
             const data = {
                 success: true,
                 userid: userid,
                 userpw: userpw,
             }
             console.log(data,'data')
-            // res.cookie('AccessToken', access_token, { httpOnly: true, secure: true })
+
             res.json(data);
         } catch (error) {
             console.log('Query Error');
@@ -108,6 +108,8 @@ const loginUser = async (req, res) => {
             const result = await connection.execute(sql, params)
             const myAsset = calcAsset(connection,user_idx);
             console.log('zzz',result)
+            const userid = result[0].userid
+            const user_idx = result[0].id  
             if(result[0].length==0){
                 console.log('djqtdma')
                 data = { isLogin: false }
@@ -115,8 +117,8 @@ const loginUser = async (req, res) => {
                 console.log('dlTdma')
                 data = { 
                     isLogin: true, 
-                    userid: result[0].userid, 
-                    user_idx: result[0].id  
+                    userid, 
+                    user_idx
                 }
             }
             // 쿠키 관련
@@ -124,6 +126,8 @@ const loginUser = async (req, res) => {
             // req.session.isLogin = true;
             res.json(data)
 
+            const access_token = createToken(user_idx)
+            res.cookie('aguhToken', access_token, { httpOnly: true, secure: true })
         } catch (error) {
             console.log('Query Error');
             console.log(error)
@@ -199,7 +203,28 @@ const txHistory = async (req, res) => {
         connection.release();
     }
 }
+
 const outstandingLog = async (req, res) => {
+    const Token = req.cookies.aguhToken;
+    if (Token == undefined) {
+        const data = {
+            success: false,
+            error: '접근권한이 없습니다'
+        }
+        res.json(data)
+    } else {
+        const client = jwtId(Token)
+        if (id != client) {
+            const data = {
+                success: false,
+                error: '접근권한이 없습니다'
+            }
+        res.json(data)
+        }
+    }
+
+
+
     let connection; 
     try {
         connection = await pool.getConnection(async conn => conn);

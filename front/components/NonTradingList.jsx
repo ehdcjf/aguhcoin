@@ -1,3 +1,6 @@
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { NonTradingAction } from '../reducers/wallet';
 import styled from 'styled-components';
 
 const NonTradingHistory = styled.div`
@@ -52,6 +55,10 @@ const NonTradingHistory = styled.div`
         color: #999;
         font-size: 12px;
     }
+    table > tbody > tr > td > ul {
+        padding: 5px 20px;
+        text-decoration: line-through;
+    }
     table > tbody > tr > td > button {
         padding: 5px 20px;
         color: #fff;
@@ -66,6 +73,19 @@ const NonTradingHistory = styled.div`
 `
 
 const NonTradingList = () => {
+    const dispatch = useDispatch();
+    const { userid, useridx } = useSelector((state) => state.user);
+    const { txList } = useSelector((state) => state.wallet);
+
+    useEffect(() => {
+        const data = {
+            userid: userid,
+            useridx: useridx,
+        }
+    
+        dispatch(NonTradingAction(data));
+    }, []);
+
     return (
         <NonTradingHistory>
             <div>
@@ -87,7 +107,7 @@ const NonTradingList = () => {
                 </colgroup>
                 <thead>
                     <tr>
-                        <th>시간</th>
+                        <th>주문시간</th>
                         <th>거래종류</th>
                         <th>주문가격</th>
                         <th>주문수량</th>
@@ -97,8 +117,55 @@ const NonTradingList = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {/* 백에서 넘어오는 값의 양에 따라 <tr>의 갯수 결정 */}
-                    <tr>
+                    {
+                        txList.map((e, k) => {
+                            return (
+                                <tr>
+                                    <td>
+                                        {/* 주문시간 */}
+                                        <p>{e.order_date}</p>
+                                    </td>
+                                    <td>
+                                        {/* 거래종류 */}
+                                        {
+                                            e.order_type == 0
+                                            ? <div style={{ color: "red" }}>매수</div>
+                                            : <div style={{ color: "blue" }}>매도</div>
+                                        }
+                                    </td>
+                                    <td>
+                                        {/* 주문가격 */}
+                                        {e.price}
+                                        <span>KRW</span>
+                                    </td>
+                                    <td>
+                                        {/* 주문수량 */}
+                                        {e.qty}
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        {/* 체결수량 */}
+                                        
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        {/* 미체결량 */}
+                                        {e.leftover}
+                                        <span>AGU</span>
+                                    </td>
+                                    <td>
+                                        {/* 주문취소 */}
+                                        {
+                                            e.del == 0
+                                            ? <button type="submit">주문취소</button>
+                                            : <div>취소완료</div>
+                                        }
+                                    </td>
+                                </tr>
+                            );
+                        })
+                    }
+                    {/* <tr>
                         <td>
                             <p>2021.10.04</p>
                             <p>13:00</p>
@@ -159,7 +226,7 @@ const NonTradingList = () => {
                         <td>
                             <button type="submit">주문취소</button>
                         </td>
-                    </tr>
+                    </tr> */}
                 </tbody>
             </table>
         </NonTradingHistory>

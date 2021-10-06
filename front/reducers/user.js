@@ -1,8 +1,7 @@
-import axios from 'axios';
-
 const initialState = {
-    loading:false,
-    isLogin:false,
+    isLogin: false,
+    userid: '',
+    useridx: '',
 }
 
 const USER_JOIN_REQUEST = "USER_JOIN_REQUEST";
@@ -20,48 +19,36 @@ export const UserJoinAction = data => {
 
         try {
 
-            let url = 'http://localhost:3500/user/join';
-            let options = {
-              method: "POST",
-              mode: "cors",
-              credentials: "include",
-              headers: {
-                "content-type": "application/json",
-              },
-              body: JSON.stringify({
-                ...data,
-              }),
-            //   withCredentials: true,
-            };
-            const response = await axios(
-                {   
-                    method: 'post',
-                    url: url,
-                    data:{...data}
-                  });
-            console.log(response.data);
-            const result =response.data;
-            
-            dispatch(UserJoin_SUCCESS(result));
+            let url = `http://localhost:3500/user/join`;
+            const response = await fetch(url, {
+                method: "POST",
+                mode: "cors",
+                credentials: "include",
+                headers: { "content-type": "application/json", },
+                body: JSON.stringify({ ...data }),
+            });
+            const result = await response.json();
+
+            dispatch(UserJoin_SUCCESS());
         } catch (e) {
             dispatch(UserJoin_ERROR());
         }
     }
 }
 
-export const UserJoin_REQUEST = data => {
+export const UserJoin_REQUEST = () => {
     return {
-        type:USER_JOIN_REQUEST,
+        type: USER_JOIN_REQUEST,
     }
 }
 export const UserJoin_SUCCESS = () => {
     return {
-        type:USER_JOIN_SUCCESS,
+        type: USER_JOIN_SUCCESS,
     }
 }
 export const UserJoin_ERROR = () => {
     return {
-        type:USER_JOIN_ERROR,
+        type: USER_JOIN_ERROR,
     }
 }
 
@@ -73,10 +60,10 @@ export const UserLoginAction = data => {
         try {
             let url = 'http://localhost:3500/user/login';
             const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                method: "POST",
+                mode: "cors",
+                credentials: "include",
+                headers: { "content-type": "application/json", },
                 body: JSON.stringify({ ...data }),
             });
             const result = await response.json();
@@ -88,24 +75,26 @@ export const UserLoginAction = data => {
     }
 }
 
-export const UserLogin_REQUEST = data => {
+export const UserLogin_REQUEST = () => {
     return {
-        type:USER_LOGIN_REQUEST,
+        type: USER_LOGIN_REQUEST,
     }
 }
-export const UserLogin_SUCCESS = () => {
+export const UserLogin_SUCCESS = data => {
     return {
-        type:USER_LOGIN_SUCCESS,
+        type: USER_LOGIN_SUCCESS,
+        data: data,
     }
 }
 export const UserLogin_ERROR = () => {
     return {
-        type:USER_LOGIN_ERROR,
+        type: USER_LOGIN_ERROR,
     }
 }
-export const UserLogoutAction = () => {
+export const UserLogoutAction = data => {
     return {
-        type:USER_LOGOUT
+        type: USER_LOGOUT,
+        data: data,
     }
 }
 
@@ -114,33 +103,29 @@ const reducer = (state = initialState, action) => {
         case USER_JOIN_REQUEST:
             return {
                 ...state,
-                loading: true,
             }
         case USER_JOIN_SUCCESS:
             return {
                 ...state,
-                loading: false,
             }
         case USER_JOIN_ERROR:
             return {
                 ...state,
-                loading: true,
             }
         case USER_LOGIN_REQUEST:
             return {
                 ...state,
-                loading: true,
             }
         case USER_LOGIN_SUCCESS:
             return {
                 ...state,
                 isLogin: true,
-                loading: false,
+                userid: action.data.userid,
+                useridx: action.data.useridx,
             }
         case USER_LOGIN_ERROR:
             return {
                 ...state,
-                loading: false,
             }
         case USER_LOGOUT:
             return {

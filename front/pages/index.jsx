@@ -10,7 +10,7 @@ const Index = () => {
                 <title>악어코인</title>
             </Head>
             <div>
-                <TestChart />
+                {/* <TestChart /> */}
                 <MainLayout>
                     메인화면
                     {/* <Image

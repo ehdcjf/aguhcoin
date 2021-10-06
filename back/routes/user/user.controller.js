@@ -153,7 +153,7 @@ const loginUser = async (req, res) => {
 const logoutUser = (req, res) => {
     res.clearCookie('AccessToken', { path: '/' })
     const data = {
-        isLogout: true,
+        isLogin: false,
     }
     res.json(data)
 }

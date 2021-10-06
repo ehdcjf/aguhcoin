@@ -1,9 +1,9 @@
-import { createContext } from 'react';
+// import { createContext } from 'react';
 
-export const initalState = {
-    isLogin: true,
-}
+// export const initalState = {
+//     isLogin: true,
+// }
 
-const Store = createContext(initalState);
+// const Store = createContext(initalState);
 
-export default Store;
+// export default Store;

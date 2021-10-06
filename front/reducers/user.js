@@ -1,7 +1,8 @@
 const initialState = {
     isLogin: false,
+    success: '',
     userid: '',
-    useridx: '',
+    useridx: 'aa',
 }
 
 const USER_JOIN_REQUEST = "USER_JOIN_REQUEST";
@@ -10,9 +11,9 @@ const USER_JOIN_ERROR = "USER_JOIN_ERROR";
 const USER_LOGIN_REQUEST = "USER_LOGIN_REQUEST";
 const USER_LOGIN_SUCCESS = "USER_LOGIN_SUCCESS";
 const USER_LOGIN_ERROR = "USER_LOGIN_ERROR";
-const USER_LOGOUT_REQUEST = "USER_LOGIN_REQUEST";
-const USER_LOGOUT_SUCCESS = "USER_LOGIN_SUCCESS";
-const USER_LOGOUT_ERROR = "USER_LOGIN_ERROR";
+const USER_LOGOUT_REQUEST = "USER_LOGOUT_REQUEST";
+const USER_LOGOUT_SUCCESS = "USER_LOGOUT_SUCCESS";
+const USER_LOGOUT_ERROR = "USER_LOGOUT_ERROR";
 
 // join, 회원가입
 export const UserJoinAction = data => {
@@ -68,6 +69,7 @@ export const UserLoginAction = data => {
                 body: JSON.stringify({ ...data }),
             });
             const result = await response.json();
+            console.log('프론트 result', result);
 
             dispatch(UserLogin_SUCCESS(result));
         } catch (e) {
@@ -150,11 +152,13 @@ const reducer = (state = initialState, action) => {
         case USER_LOGIN_REQUEST:
             return {
                 ...state,
+                success: '',
             }
         case USER_LOGIN_SUCCESS:
             return {
                 ...state,
                 isLogin: action.data.isLogin,
+                success: action.data.success,
                 userid: action.data.userid,
                 useridx: action.data.useridx,
             }

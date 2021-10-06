@@ -120,19 +120,17 @@ const LoginScreen = () => {
                 userid: userid.value,
                 userpw: userpw.value
             }
-    
             dispatch(UserLoginAction(data));
 
             if (success == false) {
                 alert('존재하지 않는 회원 정보입니다.');
+                return;
             } else {
                 if (isLogin == true) {
                     Router.push('/');
                 }
             }
         }
-
-        
     }
 
     useEffect(()=>{

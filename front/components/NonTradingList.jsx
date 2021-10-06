@@ -23,6 +23,7 @@ const NonTradingHistory = styled.div`
         border-collapse: collapse;
         border-spacing: 0;
     }
+
     table > thead > tr > th {
         padding: 10px;
         font-size: 14px;
@@ -35,6 +36,7 @@ const NonTradingHistory = styled.div`
     table > thead > tr > th:nth-last-child() {
         border-right: none;
     }
+
     table > tbody > tr > td {
         padding: 10px;
         font-size: 14px;
@@ -49,15 +51,18 @@ const NonTradingHistory = styled.div`
         font-size: 12px;
         font-weight: lighter;
     }
+
     table > tbody > tr > td > span {
         margin-left: 5px;
         color: #999;
         font-size: 12px;
     }
+
     table > tbody > tr > td > ul {
         padding: 5px 20px;
         text-decoration: line-through;
     }
+    
     table > tbody > tr > td > button {
         padding: 5px 20px;
         color: #fff;
@@ -188,68 +193,6 @@ const NonTradingList = () => {
                             );
                         })
                     }
-                    {/* <tr>
-                        <td>
-                            <p>2021.10.04</p>
-                            <p>13:00</p>
-                        </td>
-                        <td>
-                            {
-                                // 매수 빨간색, 매도 파란색
-                            }
-                            <div style={{ color: "red" }}>매수</div>
-                        </td>
-                        <td>
-                            999
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            20.00000000
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            0.00000000
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            20.00000000
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            <button type="submit">주문취소</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>2021.10.04</p>
-                            <p>13:00</p>
-                        </td>
-                        <td>
-                            {
-                                // 매수 빨간색, 매도 파란색
-                            }
-                            <div style={{ color: "blue" }}>매도</div>
-                        </td>
-                        <td>
-                            999
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            20.00000000
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            0.00000000
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            20.00000000
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            <button type="submit">주문취소</button>
-                        </td>
-                    </tr> */}
                 </tbody>
             </table>
         </NonTradingHistory>

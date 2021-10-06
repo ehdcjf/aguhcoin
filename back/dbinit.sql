@@ -1,6 +1,15 @@
 CREATE DATABASE IF NOT EXISTS `exchange`;
 USE `exchange`;
 
+CREATE TABLE IF NOT EXISTS `user` (
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`user_id` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`user_pw` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
+  `user_wallet` VARCHAR(255) NULL COLLATE 'utf8mb4_general_ci',
+	PRIMARY KEY (`id`) USING BTREE,
+)
+COLLATE='utf8mb4_general_ci' ENGINE=InnoDB AUTO_INCREMENT=1;
+
 CREATE TABLE IF NOT EXISTS `order_list` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`user_idx` INT(11) NOT NULL,

@@ -6,7 +6,7 @@ const dbinit=()=>{
   let con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "76oayaca",
+    password: "1234",
     multipleStatements: true // this allow you to run multiple queries at once.
   });
   

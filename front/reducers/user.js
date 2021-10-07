@@ -1,10 +1,13 @@
 const initialState = {
     isLogin: false,
-    success: '',
-    userid: '',
-    useridx: 'aa',
+    success: null,
+    userid: null,
+    useridx: null,
 }
 
+const DUPLICATECHECK_REQUEST = "DUPLICATECHECK_REQUEST";
+const DUPLICATECHECK_SUCCESS = "DUPLICATECHECK_SUCCESS";
+const DUPLICATECHECK_ERROR = "DUPLICATECHECK_ERROR";
 const USER_JOIN_REQUEST = "USER_JOIN_REQUEST";
 const USER_JOIN_SUCCESS = "USER_JOIN_SUCCESS";
 const USER_JOIN_ERROR = "USER_JOIN_ERROR";
@@ -14,6 +17,46 @@ const USER_LOGIN_ERROR = "USER_LOGIN_ERROR";
 const USER_LOGOUT_REQUEST = "USER_LOGOUT_REQUEST";
 const USER_LOGOUT_SUCCESS = "USER_LOGOUT_SUCCESS";
 const USER_LOGOUT_ERROR = "USER_LOGOUT_ERROR";
+
+// Join -> DuplicateCheck(), 회원가입 아이디 유효성 검사
+export const DuplicateCheckAction = data => {
+    return async (dispatch) => {
+        dispatch(DuplicateCheck_REQUEST());
+
+        try {
+            let url = `http://localhost:3500/user/idcheck`;
+            const response = await fetch(url, {
+                method: "POST",
+                mode: "cors",
+                credentials: "include",
+                headers: { "content-type": "application/json", },
+                body: JSON.stringify({ ...data }),
+            });
+            const result = await response.json();
+
+            dispatch(DuplicateCheck_SUCCESS(result));
+        } catch (e) {
+            dispatch(DuplicateCheck_ERROR());
+        }
+    }
+}
+
+export const DuplicateCheck_REQUEST = () => {
+    return {
+        type: DUPLICATECHECK_REQUEST,
+    }
+}
+export const DuplicateCheck_SUCCESS = data => {
+    return {
+        type: DUPLICATECHECK_SUCCESS,
+        data: data,
+    }
+}
+export const DuplicateCheck_ERROR = () => {
+    return {
+        type: DUPLICATECHECK_ERROR,
+    }
+}
 
 // join, 회원가입
 export const UserJoinAction = data => {
@@ -30,6 +73,7 @@ export const UserJoinAction = data => {
                 body: JSON.stringify({ ...data }),
             });
             const result = await response.json();
+            console.log('ㅈ인데이터', result);
 
             dispatch(UserJoin_SUCCESS(result));
         } catch (e) {
@@ -43,9 +87,10 @@ export const UserJoin_REQUEST = () => {
         type: USER_JOIN_REQUEST,
     }
 }
-export const UserJoin_SUCCESS = () => {
+export const UserJoin_SUCCESS = data => {
     return {
         type: USER_JOIN_SUCCESS,
+        data: data,
     }
 }
 export const UserJoin_ERROR = () => {
@@ -137,13 +182,29 @@ export const UserLogout_ERROR = () => {
 
 const reducer = (state = initialState, action) => {
     switch (action.type) {
+        case DUPLICATECHECK_REQUEST:
+            return {
+                ...state,
+                success: null,
+            }
+        case DUPLICATECHECK_SUCCESS:
+            return {
+                ...state,
+                success: action.data.success,
+            }
+        case DUPLICATECHECK_ERROR:
+            return {
+                ...state,
+            }
         case USER_JOIN_REQUEST:
             return {
                 ...state,
+                userid: null,
             }
         case USER_JOIN_SUCCESS:
             return {
                 ...state,
+                userid: action.data.userid,
             }
         case USER_JOIN_ERROR:
             return {
@@ -152,7 +213,9 @@ const reducer = (state = initialState, action) => {
         case USER_LOGIN_REQUEST:
             return {
                 ...state,
-                success: '',
+                success: null,
+                userid: null,
+                useridx: null,
             }
         case USER_LOGIN_SUCCESS:
             return {
@@ -174,6 +237,8 @@ const reducer = (state = initialState, action) => {
             return {
                 ...state,
                 isLogin: action.data.isLogin,
+                uesrid: '',
+                useridx: null,
             }
         case USER_LOGOUT_ERROR:
             return {

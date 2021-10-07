@@ -48,10 +48,6 @@ const Category = styled.div`
 const WalletScreen = () => {
     const { isLogin } = useSelector((state) => state.user);
 
-    if (isLogin == false) {
-        Router.push('/login');
-    }
-
     const List = ["보유코인", "거래내역", "미체결내역"];
 
     const [currentClick, setCurrentClick] = useState(0);
@@ -79,7 +75,11 @@ const WalletScreen = () => {
             setPrevClick(currentClick);
         }
     }, [currentClick]);
-    
+
+    useEffect(() => {
+        isLogin == false && Router.push('/login');
+    });
+
     return (
         <>
             {

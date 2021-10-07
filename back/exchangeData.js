@@ -84,6 +84,20 @@ async function totalAsset(data){
 
 
 
+async function getBuyList(conn){
+  const buyListSql = `
+  SELECT price,sum(leftover) AS leftover 
+  FROM order_list 
+  WHERE order_type=0 AND leftover>0
+  GROUP BY price
+  ORDER BY price DESC
+  LIMIT 5;
+  `
+  
+const temp = await conn.execute(buyListSql, []);
+ return temp[0]
+
+}
 
 
 async function getBuyList() {
@@ -232,10 +246,12 @@ async function getResult(n) {  //return array
 
 
 
+
       let transactionListSql = `
         SELECT  *
         FROM transaction
         ORDER BY tx_date DESC
+        LIMIT 100;
         `
       if(n==0) transactionListSql+=';'   //전체 트랜잭션 조회
       else transactionListSql+=` LIMIT ${n};` //최근 n개 트랜잭션 조회
@@ -276,43 +292,39 @@ async function oneMinuteInterval(conn){
   const allTxSql = `
   SELECT price,tx_date 
   FROM transaction 
-  ORDER BY tx_date ;
+  ORDER BY tx_date;
   `
 
   const [temp] = await conn.execute(allTxSql, []);
+
   if(temp.length==0) return [];
-
-  let result = [{time:temp[0].tx_date, low:temp[0].price,start:temp[0].price,end:temp[0].price,high:temp[0].price}];
+  
+  //y: [open, high,low,close]
+  let result = [{x:temp[0].tx_date, y: [temp[0].price,temp[0].price,temp[0].price,temp[0].price]}];
   let cnt = 1;
-
 
 
   while(cnt<temp.length){
     let preData = result[result.length-1];
+    console.log(preData.x)
     const now = new Date(temp[cnt].tx_date);
-    preTime = new Date(preData.time)
+    preTime = new Date(preData.x)
     if(compareTime(preTime,now)==true){
-      preData.end = temp[cnt].price;
-      if(preData.high==null){
-        preData.high = temp[cnt].price;
+      preData.y[3] = temp[cnt].price;
+      if(preData.y[1]==null || preData.y[1]<temp[cnt].price){
+        preData.y[1] = temp[cnt].price;
       }
-      if(preData.low==null){
-        preData.low = temp[cnt].price;
-      }
-      if(preData.high<temp[cnt].price){
-        preData.low = temp[cnt].price;
-      }
-      if(preData.low>temp[cnt].price){
-        preData.low = temp[cnt].price;
+      if(preData.y[2]==null || preData.y[2]>temp[cnt].price){
+        preData.y[2] = temp[cnt].price;
       }
       cnt++;
     }else{
       const newDate = new Date(preTime).setMinutes(preTime.getMinutes()+1);
-      result.push({time:new Date(newDate),low:null,start:preData.end,end:preData.end,high:null })
+      result.push({x:new Date(newDate), y: [preData.y[3],null,null,null] })
     }
    }
-   const arrResult = result.map(v=>Object.entries(v).map(x=>x[1]));
-   return arrResult;
+   console.log(result)
+   return result;
 
 }
 

@@ -59,11 +59,12 @@
 }
 
 .table_main{
-    
-    display: inline-block;
+    float: right;
+    display: flex;
+    flex-direction: column;
     /* border: 1px solid #ededed; */
     box-sizing: border-box;
-    width: 70%;
+    width: 66%;
     text-align: center;
 }
 .table_main>tr>td{

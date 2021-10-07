@@ -2,7 +2,10 @@ const initialState = {
     buyList:[],
     sellList:[],
     txList:[],
-    chartData:[]
+    series : [{
+        name: 'candle',
+        data: []
+    }]
 }
 
 // 1. success인지 확인 -> 서버에서 이미 한번 거르므로 필요없음
@@ -31,9 +34,10 @@ export const GetExchange = (data) => {
     if(exchange.txList.success){
         dispatch(GetTxList(exchange.txList.list))
     }
-    // if(exchange.chartdata.success){
-    //     dispatch(GetChartData(exchange.chartData.list))
-    // }
+    if(exchange.chartdata.length>0){
+
+        dispatch(GetChartData(exchange.chartdata))
+    }
 }
 }
 
@@ -55,6 +59,14 @@ export const GetTxList = (data) => {
         data: data,
     }
 }
+export const GetChartData = (data) => {
+    return {
+        type: GET_CHARTDATA,
+        data: data,
+    }
+}
+
+
 
 const reducer = (state = initialState,action)=> {
     switch(action.type) {
@@ -72,6 +84,17 @@ const reducer = (state = initialState,action)=> {
             return {
                 ...state,
                 txList:[...action.data]
+            }   
+      
+        case GET_CHARTDATA:
+            console.log('xxxxxxxxxxxxxxx')
+            console.log(action.data)
+            return {
+                ...state,
+                series: [{
+                    name: 'candle',
+                    data: [...action.data]
+                }]
             }   
       
         default:

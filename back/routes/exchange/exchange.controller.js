@@ -69,9 +69,8 @@ const createOrderBuy = async (req, res) => {
         const availableOrderParams = [user_idx, price];
         const [availableOrder] = await connection.execute(availableOrderSql, availableOrderParams);
         if (availableOrder.length == 0) {
-          //주문 완료에 대한 메시지
-          const UNLOCKSQL = `UNLOCK TABLES;`
-          await connection.query(UNLOCKSQL)
+          // const UNLOCKSQL = `UNLOCK TABLES;`
+          // await connection.query(UNLOCKSQL)
           ws.broadcast(await exchangeData.getBuyList())
           res.json(messageData.addOrder())
         } else {
@@ -80,12 +79,10 @@ const createOrderBuy = async (req, res) => {
           let cnt = 0;
           for (let i = 0; i < availableOrder.length; i++) {
             const order = availableOrder[i];
-            const sellerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0;
+            const sellerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0; 
             const buyerLeftover = qty - order.leftover > 0 ? qty - order.leftover : 0;
             const calcAsset = sellerLeftover > 0 ? qty * order.price : order.leftover * order.price;
             const calcCoin = sellerLeftover > 0 ? qty : order.leftover;
-            //트랜잭션 RPC 진행하고 txid 값을 가져와야함. 
-            //각 거래가 이루어질 때마다 ws로 계속 쏴주기? 아니면 마지막에 한번 쏴주기? 
             updateSQL += `
               UPDATE order_list SET leftover=${sellerLeftover} WHERE id=${order.id}; 
               UPDATE order_list SET leftover=${buyerLeftover} WHERE id=${nowOrderIndex};\n`

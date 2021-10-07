@@ -1,5 +1,4 @@
 import Head from 'next/head';
-import Image from 'next/image';
 import MainLayout from '../components/layout/MainLayout';
 
 const Index = () => {
@@ -12,11 +11,6 @@ const Index = () => {
                 {/* <TestChart /> */}
                 <MainLayout>
                     메인화면
-                    {/* <Image
-                        src="/croco1.png"
-                        width="200%"
-                        height="200%"
-                    /> */}
                 </MainLayout>
             </div>
         </>

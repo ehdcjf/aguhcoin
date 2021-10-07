@@ -103,17 +103,17 @@ const TransactionList = () => {
                                     </td>
                                     <td>
                                         {/* 거래수량 */}
-                                        
+                                        {e.qty}
                                         <span>AGU</span>
                                     </td>
                                     <td>
                                         {/* 거래단가 */}
-                                        
+                                        {e.price}
                                         <span>KRW</span>
                                     </td>
                                     <td>
                                         {/* 거래금액 */}
-                                        
+                                        {e.price}
                                         <span>KRW</span>
                                     </td>
                                     <td>
@@ -147,78 +147,6 @@ const TransactionList = () => {
                             );
                         })
                     }
-                    <tr>
-                        <td>
-                            <p>2021.10.04</p>
-                            <p>13:00</p>
-                        </td>
-                        <td>
-                            {
-                                // 매수 빨간색, 매도 파란색
-                            }
-                            <div style={{ color: "red" }}>매수</div>
-                        </td>
-                        <td>
-                            999,999,999
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            99,999
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            99,999
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            99.99
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            100,098.99
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            <p>2021.10.04</p>
-                            <p>12:50</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>2021.10.04</p>
-                            <p>13:00</p>
-                        </td>
-                        <td>
-                            {
-                                // 매수 빨간색, 매도 파란색
-                            }
-                            <div style={{ color: "blue" }}>매도</div>
-                        </td>
-                        <td>
-                            999,999,999
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            99,999
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            99,999
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            99.99
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            100,098.99
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            <p>2021.10.04</p>
-                            <p>12:50</p>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </TransactionTable>

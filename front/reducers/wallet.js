@@ -17,6 +17,10 @@ const ORDERCANCLE_REQUEST = "ORDERCANCLE_REQUEST";
 const ORDERCANCLE_SUCCESS = "ORDERCANCLE_SUCCESS";
 const ORDERCANCLE_ERROR = "ORDERCANCLE_ERROR";
 
+const TRANSACTION_CTG_REQUEST = "TRANSACTION_CTG_REQUEST";
+const TRANSACTION_CTG_SUCCESS = "TRANSACTION_CTG_SUCCESS";
+const TRANSACTION_CTG_ERROR = "TRANSACTION_CTG_ERROR";
+
 // Transaction, 거래내역
 export const TransactionAction = data => {
     return async (dispatch) => {
@@ -29,7 +33,6 @@ export const TransactionAction = data => {
                 url: url,
                 data: { ...data },
             });
-            console.log('리듀서 거래내역', response.data);
             const result = response.data;
 
             dispatch(Transaction_SUCCESS(result));
@@ -53,6 +56,45 @@ export const Transaction_SUCCESS = data => {
 export const Transaction_ERROR = () => {
     return {
         type: TRANSACTION_ERROR,
+    }
+}
+
+// TransactionCtgAction, 거래내역 카테고리 버튼
+export const TransactionCtgAction = data => {
+    return async (dispatch) => {
+        dispatch(TransactionCtg_REQUEST());
+
+        try {
+            let url = 'http://localhost:3500/user/txlog';
+            const response = await axios({
+                method: "POST",
+                url: url,
+                data: { ...data },
+            });
+            console.log('리듀서 카테고리별 거래내역', response.data);
+            const result = response.data;
+
+            dispatch(TransactionCtg_SUCCESS(result));
+        } catch (e) {
+            dispatch(TransactionCtg_ERROR());
+        }
+    }
+}
+
+export const TransactionCtg_REQUEST = () => {
+    return {
+        type: TRANSACTION_CTG_REQUEST,
+    }
+}
+export const TransactionCtg_SUCCESS = data => {
+    return {
+        type: TRANSACTION_CTG_SUCCESS,
+        data: data,
+    }
+}
+export const TransactionCtg_ERROR = () => {
+    return {
+        type: TRANSACTION_CTG_ERROR,
     }
 }
 
@@ -146,6 +188,21 @@ const reducer = (state = initialState, action) => {
                 txList: action.data.txList,
             }
         case TRANSACTION_ERROR:
+            return {
+                ...state,
+            }
+        case TRANSACTION_CTG_REQUEST:
+            return {
+                ...state,
+                txList: [],
+            }
+        case TRANSACTION_CTG_SUCCESS:
+            return {
+                ...state,
+                success: action.data.success,
+                txList: action.data.txList,
+            }
+        case TRANSACTION_CTG_ERROR:
             return {
                 ...state,
             }

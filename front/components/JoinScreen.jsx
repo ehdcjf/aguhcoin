@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { UserJoinAction } from '../reducers/user';
+import { DuplicateCheckAction, UserJoinAction } from '../reducers/user';
 import Router from 'next/router';
 import styled from 'styled-components';
 import useInput from '../hooks/useInput';
@@ -54,6 +54,10 @@ const Content = styled.div`
     & > form {
         padding: 30px;
     }
+
+    & > form > div:nth-child(2) {
+        margin-top: 50px;
+    }
 `
 
 const InputContainer = styled.div`
@@ -84,6 +88,7 @@ const InputContainer = styled.div`
         width: 100%;
         padding: 10px;
     }
+
     & > div > label {
         width: 90%;
         float: left;
@@ -97,8 +102,7 @@ const InputContainer = styled.div`
     }
 
     & > span {
-        color: #000;
-        font-size: 18px;
+        font-size: 15px;
     }
 `
 
@@ -135,7 +139,7 @@ const ButtonBox = styled.div`
 
 const JoinScreen = () => {
     const dispatch = useDispatch();
-    const { userid } = useSelector((state) => state.user);
+    const { userid, success } = useSelector((state) => state.user);
 
     const useridInput = useInput('');
     const userpw = useInput('');
@@ -143,13 +147,9 @@ const JoinScreen = () => {
     const [termCheck, setTermCheck] = useState(false);
     const [termCheck2, setTermCheck2] = useState(false);
     const [termCheckAll, setTermCheckAll] = useState(false);
-    const [userpwCheck, setUserpwCheck] = useState('');
-    const [userpwError, setUserpwError] = useState(false);
+    const [userpwCheck, setUserpwCheck] = useState(null);
+    const [userpwError, setUserpwError] = useState(null);
     const [step, setStep] = useState(1);
-
-    const duplicateCheck = () => {
-        
-    }
 
     // 이전 Step으로 이동
     const prevStep = e => {
@@ -202,8 +202,18 @@ const JoinScreen = () => {
         }
     }
 
-
     // Step 2 정보 입력
+    // 회원가입 유효성 검사
+    const duplicateCheck = () => {
+        if (useridInput.value != '') {
+            const data = {
+                userid: useridInput.value,
+            }
+    
+            dispatch(DuplicateCheckAction(data));
+        }
+    }
+
     // 비밀번호 재입력 오류 메시지
     const pwdCheckMsg = e => {
         const { value } = { ...e.target };
@@ -226,7 +236,6 @@ const JoinScreen = () => {
         const idInput = document.getElementById('idInput');
         const pwInput = document.getElementById('pwInput');
         const pwcInput = document.getElementById('pwcInput');
-        console.log('lklllll', idInput.value, pwInput.value, pwcInput.value);
 
         if (idInput.value == '' || pwInput.value == '' || pwcInput.value == ''){
             alert('아이디와 비밀번호는 필수 입력 사항입니다.');
@@ -320,10 +329,15 @@ const JoinScreen = () => {
                                         <input
                                             id="idInput"
                                             type="text"
-                                            onMouseOut={duplicateCheck}
+                                            onBlur={duplicateCheck}
                                             placeholder="아이디 입력"
                                             {...useridInput}
                                         />
+                                        {
+                                            success == false
+                                            ? <span style={{ color: "red" }}>이미 등록 되어있는 아이디입니다.</span>
+                                            : null
+                                        }
                                     </InputContainer>
                                     <InputContainer>
                                         <h5>비밀번호</h5>
@@ -341,9 +355,9 @@ const JoinScreen = () => {
                                             onBlur={pwdFocusout}
                                             placeholder="비밀번호 재입력" />
                                         {
-                                            userpwError
-                                                ? <div style={{ color: "red" }}>비밀번호가 일치하지 않습니다.</div>
-                                                : null
+                                            userpwError == true
+                                            ? <span style={{ color: "red" }}>비밀번호가 일치하지 않습니다.</span>
+                                            : null
                                         }
                                     </InputContainer>
                                     <ButtonBox>

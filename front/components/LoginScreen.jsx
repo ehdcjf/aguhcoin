@@ -103,7 +103,7 @@ const LoginScreen = () => {
     const dispatch = useDispatch();
     const { isLogin, success } = useSelector((state) => state.user);
     
-    const userid = useInput('');
+    const useridInput = useInput('');
     const userpw = useInput('');
 
     // 로그인 유효성 검사
@@ -112,30 +112,27 @@ const LoginScreen = () => {
 
         let inputID = document.getElementById('userid');
         let inputPW = document.getElementById('userpw');
+
         if (inputID.value == '' || inputPW.value == ''){
             alert('아이디와 비밀번호를 입력해주세요.');
             return;
         } else {
             const data = {
-                userid: userid.value,
+                userid: useridInput.value,
                 userpw: userpw.value
             }
             dispatch(UserLoginAction(data));
-
-            if (success == false) {
-                alert('존재하지 않는 회원 정보입니다.');
-                return;
-            } else {
-                if (isLogin == true) {
-                    Router.push('/');
-                }
-            }
+        }
+        
+        if (success == false) {
+            alert('존재하지 않는 회원 정보입니다.');
+            return;
         }
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         isLogin == true && Router.push('/');
-    }, []);
+    });
 
     return (
         <>
@@ -146,7 +143,7 @@ const LoginScreen = () => {
                         <InputContainer>
                             <div>
                                 <h5>아이디</h5>
-                                <input id="userid" type="text" {...userid} />
+                                <input id="userid" type="text" {...useridInput} />
                             </div>
                             <div>
                                 <h5>비밀번호</h5>

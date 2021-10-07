@@ -246,10 +246,12 @@ async function getResult(n) {  //return array
 
 
 
+
       let transactionListSql = `
         SELECT  *
         FROM transaction
         ORDER BY tx_date DESC
+        LIMIT 100;
         `
       if(n==0) transactionListSql+=';'   //전체 트랜잭션 조회
       else transactionListSql+=` LIMIT ${n};` //최근 n개 트랜잭션 조회
@@ -290,10 +292,11 @@ async function oneMinuteInterval(conn){
   const allTxSql = `
   SELECT price,tx_date 
   FROM transaction 
-  ORDER BY tx_date ;
+  ORDER BY tx_date;
   `
 
   const [temp] = await conn.execute(allTxSql, []);
+
   if(temp.length==0) return [];
   
   //y: [open, high,low,close]
@@ -301,10 +304,10 @@ async function oneMinuteInterval(conn){
   let cnt = 1;
 
 
-
   while(cnt<temp.length){
     let preData = result[result.length-1];
-    const now = new Date(temp[cnt].x);
+    console.log(preData.x)
+    const now = new Date(temp[cnt].tx_date);
     preTime = new Date(preData.x)
     if(compareTime(preTime,now)==true){
       preData.y[3] = temp[cnt].price;
@@ -317,11 +320,10 @@ async function oneMinuteInterval(conn){
       cnt++;
     }else{
       const newDate = new Date(preTime).setMinutes(preTime.getMinutes()+1);
-      result.push({time:new Date(newDate),low:null,start:preData.end,end:preData.end,high:null })
       result.push({x:new Date(newDate), y: [preData.y[3],null,null,null] })
     }
    }
-   
+   console.log(result)
    return result;
 
 }

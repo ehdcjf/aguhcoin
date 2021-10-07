@@ -15,15 +15,12 @@ const WebSocketWrap = ({ children }) => {
   const { sendMessage, lastMessage, lastJsonMessage, readyState } = useWebSocket(socketUrl);
   
   useEffect(()=>{
-    console.log(useridx)
     if(useridx!=null){
-      console.log('sendMessage'+useridx)
       const request = {
         type:'Request_MyAsset',
         data:useridx,
       }
       sendMessage(JSON.stringify(request))
-      console.log('ssseeeeennnndd')
     }
 
 

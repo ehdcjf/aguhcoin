@@ -207,7 +207,7 @@ const txHistory = async (req, res) => {
                 let dataSql 
                 if(srcInterval == undefined || 
                     srcInterval == null){
-                    `SELECT * FROM order_list 
+                    dataSql = `SELECT * FROM order_list 
                     WHERE user_idx = ? ;`
                 } else{
                     dataSql = `SELECT * FROM order_list 

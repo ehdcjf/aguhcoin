@@ -1,10 +1,11 @@
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { BsCaretUpFill, BsCaretDownFill } from 'react-icons/bs';
 import Link from 'next/link';
 import styled from 'styled-components';
-import { BsCaretUpFill, BsCaretDownFill } from 'react-icons/bs';
 import MenuLogin from './MenuLogin';
-import { useState } from 'react';
 import HideMenu from './HideMenu';
+import Timer from './Timer';
 
 const Menu2 = styled.div`
     display: flex;
@@ -38,8 +39,6 @@ const Menu2 = styled.div`
     }
 `
 
-
-
 const UserMenu = () => {
     const { isLogin, userid } = useSelector((state) => state.user);
 
@@ -53,36 +52,36 @@ const UserMenu = () => {
         <>
             <Menu2>
                 {/* 로그인 만료 시간 */}
-                <div>
-                    <a>03시 00분</a>
-                </div>
+                {
+                    isLogin == true && <Timer />
+                }
                 <div>
                     {
                         isLogin == false
-                            ? <MenuLogin />
-                            : (
-                                <a onClick={handleClick}>
-                                    {userid} 님
-                                    <span>
-                                        {
-                                            hide
-                                            ? (
-                                                <BsCaretDownFill
-                                                    color="steelblue"
-                                                    size="10"
-                                                />
-                                            )
-                                            : (
-                                                <BsCaretUpFill
-                                                    color="steelblue"
-                                                    size="10"
-                                                />
-                                            )
-                                        }
-                                        
-                                    </span>
-                                </a>
-                            )
+                        ? <MenuLogin />
+                        : (
+                            <a onClick={handleClick}>
+                                {userid} 님
+                                <span>
+                                    {
+                                        hide
+                                        ? (
+                                            <BsCaretDownFill
+                                                color="steelblue"
+                                                size="10"
+                                            />
+                                        )
+                                        : (
+                                            <BsCaretUpFill
+                                                color="steelblue"
+                                                size="10"
+                                            />
+                                        )
+                                    }
+                                    
+                                </span>
+                            </a>
+                        )
                     }
                 </div>
                 {

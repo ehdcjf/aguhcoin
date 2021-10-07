@@ -81,6 +81,8 @@ const NonTradingList = () => {
     const { userid, useridx } = useSelector((state) => state.user);
     const { txList } = useSelector((state) => state.wallet);
 
+    console.log('vvvv', txList);
+
     // 미체결 내역 불러오기
     useEffect(() => {
         const data = {
@@ -140,6 +142,7 @@ const NonTradingList = () => {
                 </thead>
                 <tbody>
                     {
+                        
                         txList.map((e, k) => {
                             return (
                                 <tr>

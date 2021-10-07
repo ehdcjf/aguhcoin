@@ -1,22 +1,78 @@
-const pool = require('./config/dbconnection')
+const { pool } = require('./config/dbconnection')
 const messageData = require('./messageData')
 const defaultRet = {
+  type: 'exchange',
   buyList: { success: null, list: null },
   sellList: { success: null, list: null },
   txList: { success: null, list: null },
   success: true,
-  chartdata:[],
+  chartdata: [],
 }
 
 
-// 가격 상위 매수 목록 5개를 뿌려줌. 
-// 그런데 매수 목록이 없다면? 없다고 알려줘야함
-// length ==0 이면 매수물량이 없다고 알려줘야함.
-// 이건 프론트에서 처리하자. 
-// success가 true인데  list값이 없으면 매수물량이 없습니다. 
-// success가 flase면..  error 메세지로 알려주기. 
-// 쿼리문 에러는 쿼리를 잘 짰으면 발생할 이유가 없음. 
-// DB 조회시 오류가 발생했다면 그것도 알려줘야함. 목록이 없는 게 아니라. 오류라는
+
+async function totalAsset(data) {
+  let ret = {
+    type: 'totalAsset',
+    success: false,
+    myAsset: 0,
+    lockedAsset: 0,
+    availableAsset: 0,
+    myCoin: 0,
+    lockedCoin: 0,
+    availableCoin: 0
+  }
+  let connection;
+  try {
+    connection = await pool.getConnection(async conn => conn);
+    try {
+
+      const myAsset = calcMyAsset(connection, data);
+      const LockedAsset = calcLockAsset(connection, data);
+      const availableAsset = myAsset - LockedAsset;
+      const myCoin = calcLockAsset(connection, data);
+      const LockedCoin = calcLockCoin(connection, data);
+      const availableCoin = myCoin.coin - LockedCoin;
+      ret.myAsset = myAsset;
+      ret.lockedAsset = LockedAsset;
+      ret.availableAsset = availableAsset;
+      ret.myCoin = myCoin.coin;
+      ret.lockedCoin = LockedCoin;
+      ret.availableCoin = availableCoin;
+      ret.success = true;
+    } catch (error) {
+      console.log('Query Error');
+      console.log(error)
+    }
+  } catch (error) {
+    console.log('DB Error')
+    console.log(error)
+  } finally {
+    connection.release();
+  }
+  return ret;
+}
+
+
+
+
+
+
+async function getBuyList(conn) {
+  const buyListSql = `
+  SELECT price,sum(leftover) AS leftover 
+  FROM order_list 
+  WHERE order_type=0 AND leftover>0
+  GROUP BY price
+  ORDER BY price DESC
+  LIMIT 5;
+  `
+
+  const temp = await conn.execute(buyListSql, []);
+  return temp[0]
+
+}
+
 
 async function getBuyList() {
   let ret = { ...defaultRet };
@@ -157,20 +213,22 @@ async function getResult(n) {  //return array
       const selltemp = await connection.execute(sellListSql, []);
       ret.sellList.success = true;
       ret.sellList.list = selltemp[0].reverse();
-      
+
       // //가짜 트랜잭션 데이터 
-      await makeTxTemp(connection);
+      // await makeTxTemp(connection);
       ret.chartdata = await oneMinuteInterval(connection);
+
 
 
 
       let transactionListSql = `
         SELECT  *
         FROM transaction
-        ORDER BY id DESC
+        ORDER BY tx_date DESC
+        LIMIT 100;
         `
-      if(n==0) transactionListSql+=';'   //전체 트랜잭션 조회
-      else transactionListSql+=` LIMIT ${n};` //최근 n개 트랜잭션 조회
+      if (n == 0) transactionListSql += ';'   //전체 트랜잭션 조회
+      else transactionListSql += ` LIMIT ${n};` //최근 n개 트랜잭션 조회
 
       const txtemp = await connection.execute(transactionListSql, []);
       txtemp[0].forEach((v, i) => {
@@ -195,92 +253,106 @@ async function getResult(n) {  //return array
 }
 
 
-async function clacMyAsset(conn,user_idx){
+async function calcMyAsset(conn, user_idx) {
   const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
   const assetParams = [user_idx]
   const [[myAsset]] = await conn.execute(assetSql, assetParams)
-  return myAsset.asset;
+  return +myAsset.asset;
+}
+
+async function calcLockAsset(conn, user_idx) {
+  const BuyOrderSql = `SELECT leftover,price FROM order_list WHERE user_idx = ?  AND order_type = 0 AND del=0;`;
+  const BuyOrderParams = [user_idx];
+  const [preBuyOrder] = await conn.execute(BuyOrderSql, BuyOrderParams)
+  const LockedAsset = preBuyOrder.reduce((r, v) => { return r + (v.leftover * v.price) }, 0);
+  return LockedAsset;
 }
 
 
-async function oneMinuteInterval(conn){
-  console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+async function calcMyCoin(conn, user_idx) {
+  const hasCoinSql = `SELECT SUM(c_input)-SUM(c_output) as coin from coin WHERE user_idx = ?`
+  const hasCoinParams = [user_idx];
+  const [[myCoin]] = await conn.execute(hasCoinSql, hasCoinParams)
+  return +myCoin.coin
+}
+
+//이전 주문 목록에서 내가 매도한 코인이 있는지? 있다면 그건 판매할 수 없는 코인.
+
+async function calcLockCoin(conn, user_idx) {
+
+  const SellOrderSql = `SELECT SUM(leftover) as leftover FROM order_list WHERE user_idx = ? AND order_type = 1 AND del=0`;
+  const SellOrderParams = [user_idx];
+  const [[preSellOrder]] = await conn.execute(SellOrderSql, SellOrderParams);
+  const LockedCoin = +preSellOrder.leftover;
+  return LockedCoin;
+}
+
+
+
+
+async function oneMinuteInterval(conn) {
 
   const allTxSql = `
   SELECT price,tx_date 
   FROM transaction 
-  ORDER BY tx_date ;
+  ORDER BY tx_date;
   `
-
   const [temp] = await conn.execute(allTxSql, []);
-  if(temp.length==0) return [];
-
-  let result = [{time:temp[0].tx_date, low:temp[0].price,start:temp[0].price,end:temp[0].price,high:temp[0].price}];
+  if (temp.length == 0) return [];
+  //x: time, y: [0:open, 1:high, 2:low, 3:close]
+  let result = [{ x: temp[0].tx_date, y: [temp[0].price, temp[0].price, temp[0].price, temp[0].price] }];
   let cnt = 1;
-
   console.log(temp)
-
-
-  while(cnt<temp.length){
-    let preData = result[result.length-1];
+  while (cnt < temp.length) {
+    let preData = result[result.length - 1];
     const now = new Date(temp[cnt].tx_date);
-    preTime = new Date(preData.time)
-    if(compareTime(preTime,now)==true){
-      preData.end = temp[cnt].price;
-      if(preData.high==null){
-        preData.high = temp[cnt].price;
+    preTime = new Date(preData.x)
+    if (compareTime(preTime, now) == true) {
+      preData.y[3] = temp[cnt].price; //종가는 가장 마지막 거래니까 들어올때마다 갱신
+      if (preData.y[1] == null || preData.y[1] < temp[cnt].price) {
+        preData.y[1] = temp[cnt].price;
       }
-      if(preData.low==null){
-        preData.low = temp[cnt].price;
-      }
-      if(preData.high<temp[cnt].price){
-        preData.low = temp[cnt].price;
-      }
-      if(preData.low>temp[cnt].price){
-        preData.low = temp[cnt].price;
+      if (preData.y[2] == null || preData.y[2] > temp[cnt].price) {
+        preData.y[2] = temp[cnt].price;
       }
       cnt++;
-    }else{
-      const newDate = new Date(preTime).setMinutes(preTime.getMinutes()+1);
-      result.push({time:new Date(newDate),low:null,start:preData.end,end:preData.end,high:null })
+    } else {
+      const newDate = new Date(preTime).setMinutes(preTime.getMinutes() + 1);
+      result.push({ x: new Date(newDate), y: [preData.y[3], null, null, null] })
     }
-   }
-   console.log(result)
-   const arrResult = result.map(v=>Object.entries(v).map(x=>x[1]));
-   return arrResult;
-
+  }
+  return result;
 }
 
 
-function compareTime(pre,now){
+function compareTime(pre, now) {
   const preDate = new Date(pre);
   const nowDate = new Date(now);
 
-  // console.log('==='+preDate+'     '+nowDate+'===')
-  
+  if (preDate.getFullYear() == nowDate.getFullYear()
+    && preDate.getMonth() == nowDate.getMonth()
+    && preDate.getDate() == nowDate.getDate()
+    && preDate.getHours() == nowDate.getHours()
+    && preDate.getMinutes() == nowDate.getMinutes()
+  ) {
 
-  if(preDate.getFullYear()==nowDate.getFullYear()
-    &&preDate.getMonth()==nowDate.getMonth()
-    &&preDate.getDate()==nowDate.getDate()
-    &&preDate.getHours()==nowDate.getHours()
-    &&preDate.getMinutes()==nowDate.getMinutes()
-  ){
-    
     return true;
   }
   return false;
 }
 
 
-async function makeTxTemp(conn){
+
+//가라데이터 넣기 위한 함수. 추후 정교하게 수정 필요.
+async function makeTxTemp(conn) {
 
   const sql = `INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,tx_date) VALUES(1,100,100,2,200,100,?,?)`
-  let now  = new Date();
-  for(let i = 0; i<100; i++){
-    let random = Math.random()*1000;
-    let newDate = (new Date().setMinutes(now.getMinutes()-50+i));
+  let now = new Date();
+  for (let i = 0; i < 100; i++) {
+    let random = Math.random() * 1000;
+    let newDate = (new Date().setMinutes(now.getMinutes() - 50 + i));
     let finalDate = new Date(newDate);
-    let params = [random,finalDate];
+    let params = [random, finalDate];
 
     const [temp] = await conn.execute(sql, params);
   }
@@ -294,4 +366,9 @@ module.exports = {
   getBuyList,
   getSellList,
   getTransactionList,
+  calcMyAsset,
+  calcMyCoin,
+  calcLockAsset,
+  calcLockCoin,
+  totalAsset
 }

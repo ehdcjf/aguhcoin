@@ -1,0 +1,22 @@
+
+.contain{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    color: black;
+    background: #222;
+}
+
+.content{
+    width: 1200px;
+    color: black;
+    display: inline-block;
+}
+
+.main_center{
+    width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between
+}

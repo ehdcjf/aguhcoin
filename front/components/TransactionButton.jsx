@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
+import { TransactionCtgAction } from '../reducers/wallet';
 
 const ButtonBox = styled.div`
     flex-direction: row;
@@ -42,8 +44,12 @@ const ButtonBox = styled.div`
 const Buttons = () => {
     const List1 = [
         {
-            id: "1week",
-            subejct: "1주일"
+            id: "1day",
+            subejct: "1일"
+        },
+        {
+            id: "7day",
+            subejct: "7일"
         },
         {
             id: "1month",
@@ -56,10 +62,6 @@ const Buttons = () => {
         {
             id: "6month",
             subejct: "6개월"
-        },
-        {
-            id: "custom1",
-            subejct: "직접입력"
         },
     ];
 
@@ -76,15 +78,10 @@ const Buttons = () => {
             id: "sell",
             subejct: "매도"
         },
-        {
-            id: "deposit",
-            subejct: "입금"
-        },
-        {
-            id: "withdraw",
-            subejct: "출금"
-        },
     ];
+
+    const dispatch = useDispatch();
+    const { userid, useridx } = useSelector((state) => state.user);
     
     const [currentClick1, setCurrentClick1] = useState(null);
     const [prevClick1, setPrevClick1] = useState(null);
@@ -92,7 +89,14 @@ const Buttons = () => {
     const [prevClick2, setPrevClick2] = useState(null);
 
     const handleClick1 = e => {
+        const data = {
+            userid: userid,
+            useridx: useridx,
+            searchType: e.target.id,
+        }
+
         setCurrentClick1(e.target.id);
+        dispatch(TransactionCtgAction(data));
     };
 
     const handleClick2 = e => {

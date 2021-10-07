@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import Router from 'next/router';
 import { UserLogoutAction } from '../reducers/user';
-import { NonTrading_REQUEST } from '../reducers/wallet';
+import { NonTrading_REQUEST, Transaction_REQUEST } from '../reducers/wallet';
 
 const MenuLogout = () => {
     const dispatch = useDispatch();
@@ -15,6 +15,7 @@ const MenuLogout = () => {
         }
         dispatch(UserLogoutAction(data));
         dispatch(NonTrading_REQUEST());
+        dispatch(Transaction_REQUEST());
         Router.push('/');
     }
 

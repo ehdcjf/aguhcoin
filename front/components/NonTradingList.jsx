@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { NonTradingAction, NonTrading_REQUEST, OrderCancleAction } from '../reducers/wallet';
+import { NonTradingAction, OrderCancleAction } from '../reducers/wallet';
 import styled from 'styled-components';
 
 const NonTradingHistory = styled.div`
@@ -79,9 +79,7 @@ const NonTradingHistory = styled.div`
 const NonTradingList = () => {
     const dispatch = useDispatch();
     const { userid, useridx } = useSelector((state) => state.user);
-    const { txList } = useSelector((state) => state.wallet);
-
-    console.log('vvvv', txList);
+    const { nontdList } = useSelector((state) => state.wallet);
 
     // 미체결 내역 불러오기
     useEffect(() => {
@@ -122,11 +120,11 @@ const NonTradingList = () => {
             <table>
                 <colgroup>
                     <col width="10%" />
-                    <col width="5%" />
-                    <col width="18.75%" />
-                    <col width="18.75%" />
-                    <col width="18.75%" />
-                    <col width="18.75%" />
+                    <col width="6%" />
+                    <col width="18%" />
+                    <col width="18%" />
+                    <col width="18%" />
+                    <col width="18%" />
                     <col width="10%" />
                 </colgroup>
                 <thead>
@@ -142,13 +140,25 @@ const NonTradingList = () => {
                 </thead>
                 <tbody>
                     {
-                        
-                        txList.map((e, k) => {
+                        nontdList.map((e, k) => {
                             return (
                                 <tr>
                                     <td>
                                         {/* 주문시간 */}
-                                        <p>{e.order_date}</p>
+                                        <p>
+                                            {
+                                                new Date(e.order_date).getFullYear()+"년 "
+                                                +(new Date(e.order_date).getMonth()+1)+"월 "
+                                                +new Date(e.order_date).getDate()+"일"
+                                            }
+                                        </p>
+                                        <p>
+                                            {
+                                                new Date(e.order_date).getHours()+"시 "
+                                                +new Date(e.order_date).getMinutes()+"분 "
+                                                +new Date(e.order_date).getSeconds()+"초"
+                                            }
+                                        </p>
                                     </td>
                                     <td>
                                         {/* 거래종류 */}
@@ -160,22 +170,22 @@ const NonTradingList = () => {
                                     </td>
                                     <td>
                                         {/* 주문가격 */}
-                                        {e.price}
+                                        {e.price.toLocaleString('en')}
                                         <span>KRW</span>
                                     </td>
                                     <td>
                                         {/* 주문수량 */}
-                                        {e.qty}
+                                        {e.qty.toLocaleString('en')}
                                         <span>AGU</span>
                                     </td>
                                     <td>
                                         {/* 체결수량 */}
-                                        
+                                        {(e.qty - e.leftover).toLocaleString('en')}
                                         <span>AGU</span>
                                     </td>
                                     <td>
                                         {/* 미체결량 */}
-                                        {e.leftover}
+                                        {e.leftover.toLocaleString('en')}
                                         <span>AGU</span>
                                     </td>
                                     <td>

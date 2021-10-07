@@ -2,7 +2,9 @@ import axios from 'axios';
 
 const initialState = {
     success: false,
+    mcAsset: null,
     txList: [],
+    nontdList: [],
 }
 
 const TRANSACTION_REQUEST = "TRANSACTION_REQUEST";
@@ -15,44 +17,86 @@ const ORDERCANCLE_REQUEST = "ORDERCANCLE_REQUEST";
 const ORDERCANCLE_SUCCESS = "ORDERCANCLE_SUCCESS";
 const ORDERCANCLE_ERROR = "ORDERCANCLE_ERROR";
 
+const TRANSACTION_CTG_REQUEST = "TRANSACTION_CTG_REQUEST";
+const TRANSACTION_CTG_SUCCESS = "TRANSACTION_CTG_SUCCESS";
+const TRANSACTION_CTG_ERROR = "TRANSACTION_CTG_ERROR";
+
 // Transaction, 거래내역
-// export const TransactionAction = data => {
-//     return async (dispatch) => {
-//         dispatch(Transaction_REQUEST());
+export const TransactionAction = data => {
+    return async (dispatch) => {
+        dispatch(Transaction_REQUEST());
 
-//         try {
-//             let url = 'http://localhost:3500/user/txlog';
-//             const response = await axios({
-//                 method: "POST",
-//                 url: url,
-//                 data: { ...data },
-//             });
-//             console.log(response.data);
-//             const result = response.data;
+        try {
+            let url = 'http://localhost:3500/user/txlog';
+            const response = await axios({
+                method: "POST",
+                url: url,
+                data: { ...data },
+            });
+            const result = response.data;
 
-//             dispatch(Transaction_SUCCESS(result));
-//         } catch (e) {
-//             dispatch(Transaction_ERROR());
-//         }
-//     }
-// }
+            dispatch(Transaction_SUCCESS(result));
+        } catch (e) {
+            dispatch(Transaction_ERROR());
+        }
+    }
+}
 
-// export const Transaction_REQUEST = () => {
-//     return {
-//         type: TRANSACTION_REQUEST,
-//     }
-// }
-// export const Transaction_SUCCESS = data => {
-//     return {
-//         type: TRANSACTION_SUCCESS,
-//         data: data,
-//     }
-// }
-// export const Transaction_ERROR = () => {
-//     return {
-//         type: TRANSACTION_ERROR,
-//     }
-// }
+export const Transaction_REQUEST = () => {
+    return {
+        type: TRANSACTION_REQUEST,
+    }
+}
+export const Transaction_SUCCESS = data => {
+    return {
+        type: TRANSACTION_SUCCESS,
+        data: data,
+    }
+}
+export const Transaction_ERROR = () => {
+    return {
+        type: TRANSACTION_ERROR,
+    }
+}
+
+// TransactionCtgAction, 거래내역 카테고리 버튼
+export const TransactionCtgAction = data => {
+    return async (dispatch) => {
+        dispatch(TransactionCtg_REQUEST());
+
+        try {
+            let url = 'http://localhost:3500/user/txlog';
+            const response = await axios({
+                method: "POST",
+                url: url,
+                data: { ...data },
+            });
+            console.log('리듀서 카테고리별 거래내역', response.data);
+            const result = response.data;
+
+            dispatch(TransactionCtg_SUCCESS(result));
+        } catch (e) {
+            dispatch(TransactionCtg_ERROR());
+        }
+    }
+}
+
+export const TransactionCtg_REQUEST = () => {
+    return {
+        type: TRANSACTION_CTG_REQUEST,
+    }
+}
+export const TransactionCtg_SUCCESS = data => {
+    return {
+        type: TRANSACTION_CTG_SUCCESS,
+        data: data,
+    }
+}
+export const TransactionCtg_ERROR = () => {
+    return {
+        type: TRANSACTION_CTG_ERROR,
+    }
+}
 
 // NonTrading, 미체결
 export const NonTradingAction = data => {
@@ -60,7 +104,7 @@ export const NonTradingAction = data => {
         dispatch(NonTrading_REQUEST());
 
         try {
-            let url = 'http://localhost:3500/user/txlog';
+            let url = 'http://localhost:3500/user/nontd';
             const response = await axios({
                 method: "POST",
                 url: url,
@@ -135,27 +179,43 @@ const reducer = (state = initialState, action) => {
         case TRANSACTION_REQUEST:
             return {
                 ...state,
+                txList: [],
             }
         case TRANSACTION_SUCCESS:
             return {
                 ...state,
                 success: action.data.success,
-                // txList: action.data.txList,
+                txList: action.data.txList,
             }
         case TRANSACTION_ERROR:
+            return {
+                ...state,
+            }
+        case TRANSACTION_CTG_REQUEST:
+            return {
+                ...state,
+                txList: [],
+            }
+        case TRANSACTION_CTG_SUCCESS:
+            return {
+                ...state,
+                success: action.data.success,
+                txList: action.data.txList,
+            }
+        case TRANSACTION_CTG_ERROR:
             return {
                 ...state,
             }
         case NONTRADING_REQUEST:
             return {
                 ...state,
-                txList: [],
+                nontdList: [],
             }
         case NONTRADING_SUCCESS:
             return {
                 ...state,
                 success: action.data.success,
-                txList: action.data.txList,
+                nontdList: action.data.nontdList,
             }
         case NONTRADING_ERROR:
             return {
@@ -164,7 +224,7 @@ const reducer = (state = initialState, action) => {
         case ORDERCANCLE_REQUEST:
             return {
                 ...state,
-                txList: [],
+                nontdList: [],
             }
         case ORDERCANCLE_SUCCESS:
             return {

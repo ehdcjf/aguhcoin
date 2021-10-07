@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DuplicateCheckAction, UserJoinAction } from '../reducers/user';
 import Router from 'next/router';
@@ -147,8 +147,8 @@ const JoinScreen = () => {
     const [termCheck, setTermCheck] = useState(false);
     const [termCheck2, setTermCheck2] = useState(false);
     const [termCheckAll, setTermCheckAll] = useState(false);
-    const [userpwCheck, setUserpwCheck] = useState('');
-    const [userpwError, setUserpwError] = useState(false);
+    const [userpwCheck, setUserpwCheck] = useState(null);
+    const [userpwError, setUserpwError] = useState(null);
     const [step, setStep] = useState(1);
 
     // 이전 Step으로 이동
@@ -202,15 +202,16 @@ const JoinScreen = () => {
         }
     }
 
-
     // Step 2 정보 입력
     // 회원가입 유효성 검사
     const duplicateCheck = () => {
-        const data = {
-            userid: useridInput.value,
+        if (useridInput.value != '') {
+            const data = {
+                userid: useridInput.value,
+            }
+    
+            dispatch(DuplicateCheckAction(data));
         }
-
-        dispatch(DuplicateCheckAction(data));
     }
 
     // 비밀번호 재입력 오류 메시지
@@ -333,7 +334,7 @@ const JoinScreen = () => {
                                             {...useridInput}
                                         />
                                         {
-                                            !success
+                                            success == false
                                             ? <span style={{ color: "red" }}>이미 등록 되어있는 아이디입니다.</span>
                                             : null
                                         }
@@ -354,7 +355,7 @@ const JoinScreen = () => {
                                             onBlur={pwdFocusout}
                                             placeholder="비밀번호 재입력" />
                                         {
-                                            userpwError
+                                            userpwError == true
                                             ? <span style={{ color: "red" }}>비밀번호가 일치하지 않습니다.</span>
                                             : null
                                         }

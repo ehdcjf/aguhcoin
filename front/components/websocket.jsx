@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { useSelector,useDispatch } from "react-redux";
-import {ChartData_SUCCESS} from '../reducers/test'
+
+import {GetExchange} from '../reducers/exchange'
 
 const WebSocketWrap = ({ children }) => {
 
@@ -16,9 +17,15 @@ const WebSocketWrap = ({ children }) => {
 
   useEffect(() => {
     if (lastJsonMessage != null) {
-      console.log(lastJsonMessage); // 여기서 객체로 받아옴. 이걸처리해주면됨. 받아서 리덕스나? 뭐 컨텍스트 업데이트해주면됨.
+
+      console.log("JsonMessage",lastJsonMessage); // 여기서 객체로 받아옴. 이걸처리해주면됨. 받아서 리덕스나? 뭐 컨텍스트 업데이트해주면됨.
       
-      dispatch(ChartData_SUCCESS(lastJsonMessage.chartdata))   
+     
+        if(lastJsonMessage.success){
+          dispatch( GetExchange(lastJsonMessage))   
+        }
+      
+      
     }
   
   }, [lastJsonMessage]);

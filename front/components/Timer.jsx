@@ -10,7 +10,7 @@ const Timer = () => {
     const { userid, useridx } = useSelector((state) => state.user);
 
     const [minutes, setMinutes] = useState(parseInt(0));
-    const [seconds, setSeconds] = useState(parseInt(5));
+    const [seconds, setSeconds] = useState(parseInt(10));
 
     // 타이머 초기화
     const resetTime = () => {

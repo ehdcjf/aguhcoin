@@ -1,4 +1,4 @@
-const pool = require('../../config/dbconnection');
+const {pool} = require('../../config/dbconnection');
 const messageData = require('../../messageData')
 const ws = require('../../socket')
 const exchangeData = require('../../exchangeData')

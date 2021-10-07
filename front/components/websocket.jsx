@@ -3,16 +3,34 @@ import useWebSocket, { ReadyState } from "react-use-websocket";
 import { useSelector,useDispatch } from "react-redux";
 
 import {GetExchange} from '../reducers/exchange'
+import {Exchange_Action} from '../reducers/test'
 
 const WebSocketWrap = ({ children }) => {
-
-  useEffect(()=>{})
+  
   const {socketUrl} = useSelector(state=>state.test);
+  const {userid,useridx} = useSelector(state=>state.user);
   const messageHistory = useRef([]);
   const dispatch = useDispatch(); 
-
   
   const { sendMessage, lastMessage, lastJsonMessage, readyState } = useWebSocket(socketUrl);
+  
+  useEffect(()=>{
+    console.log(useridx)
+    if(useridx!=null){
+      console.log('sendMessage'+useridx)
+      const request = {
+        type:'Request_MyAsset',
+        data:useridx,
+      }
+      sendMessage(JSON.stringify(request))
+      console.log('ssseeeeennnndd')
+    }
+
+
+  },[useridx])
+
+
+
 
 
   useEffect(() => {
@@ -22,10 +40,17 @@ const WebSocketWrap = ({ children }) => {
       
      
         if(lastJsonMessage.success){
-          dispatch( GetExchange(lastJsonMessage))   
+
+          switch(lastJsonMessage.type){
+            case "exchange":
+              dispatch( GetExchange(lastJsonMessage))   
+              break; 
+
+            case 'totalAsset':
+              console.log('ttoottaallaasssseett')
+              break;
+          }
         }
-      
-      
     }
   
   }, [lastJsonMessage]);

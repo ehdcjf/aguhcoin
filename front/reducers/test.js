@@ -1,3 +1,5 @@
+
+
 const initialState = {
   socketUrl:"ws://localhost:6005",
   chartData:[],
@@ -15,6 +17,7 @@ const GET_BUYLIST_SUCCESSS='GET_BUYLIST_SUCCESSS'
 
 
 export const Exchange_Action = (data) => {
+
   return {
       type:EXCHANGE_ACTION,
       data:data,

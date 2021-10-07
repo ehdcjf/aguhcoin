@@ -1,4 +1,4 @@
-const pool = require('../../config/dbconnection');
+const {pool} = require('../../config/dbconnection');
 const {createToken,jwtId}  = require('../../jwt')
 const exchangeData = require('../../exchangeData')
 

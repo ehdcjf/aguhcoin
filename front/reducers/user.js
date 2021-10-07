@@ -225,7 +225,7 @@ const reducer = (state = initialState, action) => {
                 isLogin: action.data.isLogin,
                 success: action.data.success,
                 userid: action.data.userid,
-                useridx: action.data.useridx,
+                useridx: action.data.user_idx,
             }
         case USER_LOGIN_ERROR:
             return {

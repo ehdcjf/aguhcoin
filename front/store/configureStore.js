@@ -1,35 +1,78 @@
-import { createWrapper } from 'next-redux-wrapper';
-import { applyMiddleware, createStore, compose } from 'redux';
-import reducer from '../reducers';
-import { composeWithDevTools } from 'redux-devtools-extension';
-import thunkMiddleware from 'redux-thunk';
+import { createWrapper } from "next-redux-wrapper"
+import { applyMiddleware, compose, createStore } from 'redux'
+import { composeWithDevTools } from "redux-devtools-extension"
+import reducer from "../reducers"
+import { persistStore } from 'redux-persist';
 
-// npm install redux-thunk
+import thunkMiddleware from "redux-thunk"
+import router from "next/router";
+// import createSaga from 'redux-saga'
+// import rootSaga from '../saga/index'
 
-const loggerMiddleware = ({ dispatch, getState }) => (next) => (action) => {
-    // console.log(action,dispatch,getState)
-    console.log(action)
-    return next(action)
+
+
+///from   https://github.com/fazlulkarimweb/with-next-redux-wrapper-redux-persist  넥스트 리덕스 퍼시스트에 도움을 준  고마운 분들^^
+
+
+
+
+
+
+
+const loggetrMiddelware = ({ dispatch, getState }) => (next) => (action) => {
+  // console.log(action); 
+  // console.log(dispatch); 
+  // console.log(getState);
+  return next(action);
 }
 
-// redux middleware 사용할수있는 설정까지하고 그리고 devtools사용까지. 
+
+
 
 const configureStore = () => {
-    const middlewares = [loggerMiddleware, thunkMiddleware];
-    const enhancer = process.env.NODE_ENV === 'production'
-        ? compose(applyMiddleware(...middlewares))
-        : composeWithDevTools(applyMiddleware(...middlewares))
-    // const enhancer = composeWithDevTools(applyMiddleware(...middlewares))
-    const Store = createStore(reducer, enhancer);
-    return Store;
-} // createStore (reducer) === createContext (상태초기값) 초기값을 상태를 가지고
-//              reducer안에 상태초기값을 가지고있어요   
+  // const sagaMiddleware = createSaga(); 
 
-// 첫번째 redux의 
-// Store => const Store = createContext(initialState) 
-// 두번째
-const wrapper = createWrapper(configureStore, {
-    debug: process.env.NODE_ENV === 'development'
-}) // createWrapper ?  configureStore Store를 가지고있는 함수표현식에대한 함수
+  const Store = createStore(reducer, enhancer)
+  // Store.sagaTask = sagaMiddleware.run(rootSaga) 
 
-export default wrapper; // wrapper ?
+  return Store
+}
+
+const makeStore = ({ isServer }) => {
+
+  const middlewares = [loggetrMiddelware, thunkMiddleware];
+  // const middlewares = [sagaMiddleware]; 
+  const enhancer = process.env.NODE_ENV === 'production'
+    ? compose(applyMiddleware(...middlewares))
+    : composeWithDevTools(applyMiddleware(...middlewares))
+
+  if (isServer) {
+    return createStore(reducer, enhancer);
+  } else {
+    const { persistStore, persistReducer } = require("redux-persist");
+    const storage = require("redux-persist/lib/storage/session").default;
+
+    const persistConfig = {
+      key: "root",
+      storage,
+      whitelist: [ "user"], 
+      blacklist:[]
+    };
+
+    const persistedReducer = persistReducer(persistConfig, reducer);
+
+    const store = createStore(persistedReducer, enhancer);
+
+    store.__persistor = persistStore(store);
+
+    return store;
+
+  }
+}
+
+const wrapper = createWrapper(makeStore, {
+    debug: process.env.NODE_ENV === 'davelopment'
+  })
+  
+  export default wrapper
+  

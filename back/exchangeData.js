@@ -281,38 +281,34 @@ async function oneMinuteInterval(conn){
 
   const [temp] = await conn.execute(allTxSql, []);
   if(temp.length==0) return [];
-
-  let result = [{time:temp[0].tx_date, low:temp[0].price,start:temp[0].price,end:temp[0].price,high:temp[0].price}];
+  
+  //y: [open, high,low,close]
+  let result = [{x:temp[0].tx_date, y: [temp[0].price,temp[0].price,temp[0].price,temp[0].price]}];
   let cnt = 1;
 
 
 
   while(cnt<temp.length){
     let preData = result[result.length-1];
-    const now = new Date(temp[cnt].tx_date);
-    preTime = new Date(preData.time)
+    const now = new Date(temp[cnt].x);
+    preTime = new Date(preData.x)
     if(compareTime(preTime,now)==true){
-      preData.end = temp[cnt].price;
-      if(preData.high==null){
-        preData.high = temp[cnt].price;
+      preData.y[3] = temp[cnt].price;
+      if(preData.y[1]==null || preData.y[1]<temp[cnt].price){
+        preData.y[1] = temp[cnt].price;
       }
-      if(preData.low==null){
-        preData.low = temp[cnt].price;
-      }
-      if(preData.high<temp[cnt].price){
-        preData.low = temp[cnt].price;
-      }
-      if(preData.low>temp[cnt].price){
-        preData.low = temp[cnt].price;
+      if(preData.y[2]==null || preData.y[2]>temp[cnt].price){
+        preData.y[2] = temp[cnt].price;
       }
       cnt++;
     }else{
       const newDate = new Date(preTime).setMinutes(preTime.getMinutes()+1);
       result.push({time:new Date(newDate),low:null,start:preData.end,end:preData.end,high:null })
+      result.push({x:new Date(newDate), y: [preData.y[3],null,null,null] })
     }
    }
-   const arrResult = result.map(v=>Object.entries(v).map(x=>x[1]));
-   return arrResult;
+   
+   return result;
 
 }
 

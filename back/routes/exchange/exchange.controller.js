@@ -311,7 +311,7 @@ const garaInput = async (req, res) => {
                 }
             }
         }
-        let garaArr = new Array
+
         async function everyThirtySec(){
             for(let i = 0; i<500; i++){
                 let newTime =  getNow - i*1000*30
@@ -322,14 +322,15 @@ const garaInput = async (req, res) => {
                           (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,txid, tx_date, coin_id)
                           VALUES (?,?, 10, ?, ?, 10, ?, ?, ?, 1);`
                 const [result] = await connection.execute(sql, [i+1, amount, i+501, amount, getRandomPrice(i), i+1, convertedTime])
-                garaArr.push(result[0])
             }
         }
-        everyThirtySec()
+        // everyThirtySec()
+        const [getArr] = await connection.execute(`SELECT * from transaction`)
+
           //가라데이터 삽입//
           data = {
               success: true,
-              data: garaArr
+              data: getArr
           }
           res.json(data);
       } catch (error) {

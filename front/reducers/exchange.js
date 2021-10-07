@@ -18,6 +18,7 @@ const GET_CHARTDATA = "GET_CHARTDATA"
 
 export const GetExchange = (data) => {
     const exchange = data
+    console.log(exchange)
     return (dispatch) => {
     if(exchange.buyList.success){
         dispatch(GetBuyList(exchange.buyList.list))

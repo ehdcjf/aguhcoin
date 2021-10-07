@@ -1,4 +1,4 @@
-const pool = require('../../config/dbconnection');
+const {pool} = require('../../config/dbconnection');
 const messageData = require('../../messageData')
 const ws = require('../../socket')
 const exchangeData = require('../../exchangeData')
@@ -9,13 +9,6 @@ const exchangeData = require('../../exchangeData')
 //내가 100원에 10개 팔려고 했다면 나한테 코인이 10개 있는지 확인. 
 //내가 100원에 10개 사려고 했다면 나한테 1000원이 있는지 확인. 
 //createOrderBuy createOrderSell 합칠 수 있을 듯.
-
-async function clacMyAsset(conn,user_idx){
-  const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
-  const assetParams = [user_idx]
-  const [[myAsset]] = await conn.execute(assetSql, assetParams)
-  return myAsset.asset;
-}
 
 
 
@@ -43,9 +36,13 @@ const createOrderBuy = async (req, res) => {
       const available = myAsset.asset - preSum;
 
       if ((qty * price) > available) {
+        const data = {
+          totalAsset:myAsset.myAsset,
+          reservation: preSum,
+        }
 
         // 구매 못할 때. db 고쳐줄 필요도 없고. ws랑  rpc도 필요없음. 
-        res.json(messageData.notEnoughAsset());
+        res.json(messageData.notEnoughAsset(data));
       } else {
         // 구매할 수 있다면
 
@@ -106,10 +103,10 @@ const createOrderBuy = async (req, res) => {
             }
           }
           // updateSQL += 'UNLOCK TABLES;'
-          const lastSQL = updateSQL + insertSQL
+
+          const lastSQL = updateSQL + insertSQL 
           await connection.query(lastSQL);
           ws.commission(cnt);
-          ////트랜잭션 완료에 대한 메시지.?? 그냥 주문이 완료됬다고만 알려줄까? 
           res.json(messageData.transaction())
         }
       }
@@ -232,7 +229,8 @@ const createOrderSell = async (req, res) => {
       res.json(messageData.errorMessage(error))
     }
   } catch (error) {
-    console.log('DB Error\n' + error);
+    console.log('DB Error');
+    console.log(error)
     res.json(messageData.errorMessage(error))
   } finally {
     connection.release();
@@ -254,11 +252,13 @@ const deleteOrder = async (req, res) => {
       }
       res.json(data)
     } catch (error) {
-      console.log('Query Error\n' + error);
+      console.log('Query Error' );
+      console.log(error)
       res.json(messageData.errorMessage(error))
     }
   } catch (error) {
-    console.log('DB Error\n' + error)
+    console.log('DB Error')
+    console.log(error)
     res.json(messageData.errorMessage(error))
   } finally {
     connection.release();

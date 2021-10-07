@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS `order_list` (
 	`order_date` DATETIME(2) NULL DEFAULT current_timestamp(2),
 	`coin_id` INT(11) NULL DEFAULT '1',
 	`del` TINYINT(4) NULL DEFAULT '0',
+	CONSTRAINT `FK_order_list_user` FOREIGN KEY (`user_idx`) REFERENCES `user` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,
 	PRIMARY KEY (`id`) USING BTREE
 ) COLLATE='utf8_general_ci' ENGINE=InnoDB AUTO_INCREMENT=1;
 
@@ -58,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `coininfo` (
 
 
 CREATE TABLE IF NOT EXISTS `transaction` (
-	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`id` INT(11) NOT NULL AUTO_INCREMENT,    
 	`sell_orderid` INT(11) NOT NULL,
 	`sell_amount` INT(11) NOT NULL,
 	`sell_commission` INT(11) NOT NULL,

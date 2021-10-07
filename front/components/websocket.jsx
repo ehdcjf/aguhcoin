@@ -1,24 +1,56 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { useSelector,useDispatch } from "react-redux";
-import {ChartData_SUCCESS} from '../reducers/test'
+
+import {GetExchange} from '../reducers/exchange'
+import {Exchange_Action} from '../reducers/test'
 
 const WebSocketWrap = ({ children }) => {
-
-  useEffect(()=>{})
+  
   const {socketUrl} = useSelector(state=>state.test);
+  const {userid,useridx} = useSelector(state=>state.user);
   const messageHistory = useRef([]);
   const dispatch = useDispatch(); 
-
   
   const { sendMessage, lastMessage, lastJsonMessage, readyState } = useWebSocket(socketUrl);
+  
+  useEffect(()=>{
+    console.log(useridx)
+    if(useridx!=null){
+      console.log('sendMessage'+useridx)
+      const request = {
+        type:'Request_MyAsset',
+        data:useridx,
+      }
+      sendMessage(JSON.stringify(request))
+      console.log('ssseeeeennnndd')
+    }
+
+
+  },[useridx])
+
+
+
 
 
   useEffect(() => {
     if (lastJsonMessage != null) {
-      console.log(lastJsonMessage); // 여기서 객체로 받아옴. 이걸처리해주면됨. 받아서 리덕스나? 뭐 컨텍스트 업데이트해주면됨.
+
+      console.log("JsonMessage",lastJsonMessage); // 여기서 객체로 받아옴. 이걸처리해주면됨. 받아서 리덕스나? 뭐 컨텍스트 업데이트해주면됨.
       
-      dispatch(ChartData_SUCCESS(lastJsonMessage.chartdata))   
+     
+        if(lastJsonMessage.success){
+
+          switch(lastJsonMessage.type){
+            case "exchange":
+              dispatch( GetExchange(lastJsonMessage))   
+              break; 
+
+            case 'totalAsset':
+              console.log('ttoottaallaasssseett')
+              break;
+          }
+        }
     }
   
   }, [lastJsonMessage]);

@@ -1,7 +1,6 @@
 import Head from 'next/head';
 import Image from 'next/image';
 import MainLayout from '../components/layout/MainLayout';
-import TestChart from '../components/TestChart';
 
 const Index = () => {
     return (

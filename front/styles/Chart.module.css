@@ -1,0 +1,26 @@
+.chart{
+    background: white;
+    width: 1000px;
+    height: 400px;
+    border: 1px solid black;
+    box-sizing: border-box;
+    margin: 20px auto;
+}
+
+.chart_header{
+    background: blue;
+}
+
+.coin_name{
+    padding: 4px;
+    display: inline-block;
+    width: 10%;
+    font-size: 20px;
+}
+
+.sub_side{
+    padding: 4px;
+    display: inline-block;
+    width: 90%;
+    text-align: right;
+}

@@ -4,6 +4,7 @@ import { combineReducers } from 'redux';
 import user from './user';
 import wallet from './wallet';
 import test from './test';
+import exchange from './exchange'
 
 const reducer = combineReducers({
     index: (state = {}, action) => {
@@ -17,7 +18,7 @@ const reducer = combineReducers({
                 return state;
         }
     },
-    user, wallet, test,
+    user, wallet, test, exchange
 })
 
 export default reducer;

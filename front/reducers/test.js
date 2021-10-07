@@ -1,41 +1,28 @@
+
+
 const initialState = {
   socketUrl:"ws://localhost:6005",
-  chartdata:  [
-  ["Mon", 20, 28, 38, 45],
-  ["Tue", 31, 38, 55, 66],
-  ["Wed", 50, 55, 77, 80],
-  ["Thu", 77, 77, 66, 50],
-  ["Fri", 68, 66, 22, 15]
-],
-
- header:[
-  {
-    type: "string",
-    id: "Date"
-  },
-  
-  {
-    type: "number",
-    label: "low"
-  },
-  {
-    type: "number",
-    label: "open"
-  },
-  {
-    type: "number",
-    label: "close"
-  },
-  {
-    type: "number",
-    label: "high"
-  }
-]
-  
+  chartData:[],
+  buyList:[],
+  sellList:[],
+  txList:[],
 }
 
 
 const CHARTDATA_SUCCESS = 'CHARTDATA_SUCCESS';
+const EXCHANGE_ACTION = 'EXCHANGE_ACTION';
+const GET_BUYLIST_SUCCESSS='GET_BUYLIST_SUCCESSS'
+
+
+
+
+export const Exchange_Action = (data) => {
+
+  return {
+      type:EXCHANGE_ACTION,
+      data:data,
+  }
+}
 
 export const ChartData_SUCCESS = (data) => {
   return {

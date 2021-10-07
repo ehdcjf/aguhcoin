@@ -1,6 +1,7 @@
-const pool = require('./config/dbconnection')
+const {pool} = require('./config/dbconnection')
 const messageData = require('./messageData')
 const defaultRet = {
+  type:'exchange',
   buyList: { success: null, list: null },
   sellList: { success: null, list: null },
   txList: { success: null, list: null },
@@ -17,6 +18,73 @@ const defaultRet = {
 // success가 flase면..  error 메세지로 알려주기. 
 // 쿼리문 에러는 쿼리를 잘 짰으면 발생할 이유가 없음. 
 // DB 조회시 오류가 발생했다면 그것도 알려줘야함. 목록이 없는 게 아니라. 오류라는
+
+async function totalAsset(data){
+  let ret = {
+    type:'totalAsset',
+    success:true,
+    myAsset:0,
+    lockedAsset:0,
+    availableAsset:0,
+    myCoin:0,
+    lockedCoin:0,
+    availableCoin:0
+     
+
+  }
+  let connection;
+  try {
+    connection = await pool.getConnection(async conn => conn);
+    try {
+      const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
+      const assetParams = [data]
+      const [[myAsset]] = await connection.execute(assetSql, assetParams)
+      
+      const BuyOrderSql = `SELECT leftover,price FROM order_list WHERE user_idx = ?  AND order_type = 0 AND del=0;`;
+      const BuyOrderParams = [data];
+      const [preBuyOrder] = await connection.execute(BuyOrderSql, BuyOrderParams)
+      
+      const LockedAsset =preBuyOrder.reduce((r,v)=>{return r+(v.leftover*v.price)},0);
+      const availableAsset = +myAsset.asset - LockedAsset;
+      ret.myAsset = +myAsset.asset;
+      ret.lockedAsset = LockedAsset;
+      ret.availableAsset = availableAsset;
+
+      const hasCoinSql = `SELECT SUM(c_input)-SUM(c_output) as coin from coin WHERE user_idx = ?`
+      const hasCoinParams = [data];
+      const [[myCoin]] = await connection.execute(hasCoinSql, hasCoinParams)
+
+      //이전 주문 목록에서 내가 매도한 코인이 있는지? 있다면 그건 판매할 수 없는 코인.
+      const SellOrderSql = `SELECT SUM(leftover) as leftover FROM order_list WHERE user_idx = ? AND order_type = 1 AND del=0`;
+      const SellOrderParams = [data];
+      const [[preSellOrder]] = await connection.execute(SellOrderSql, SellOrderParams)
+      const LockedCoin = +preSellOrder.leftover;
+      const availableCoin = myCoin.coin - LockedCoin;
+
+      ret.myCoin = myCoin.coin;
+      ret.lockedCoin = LockedCoin;
+      ret.availableCoin = availableCoin;
+    } catch (error) {
+      console.log('Query Error');
+      console.log(error)
+      ret.success=false;
+    }
+  } catch (error) {
+    console.log('DB Error')
+    console.log(error)
+    ret.success=false;
+  } finally {
+    connection.release();
+  }
+  return ret;
+}
+
+
+
+
+
+
+
 
 async function getBuyList() {
   let ret = { ...defaultRet };
@@ -159,7 +227,7 @@ async function getResult(n) {  //return array
       ret.sellList.list = selltemp[0].reverse();
       
       // //가짜 트랜잭션 데이터 
-      await makeTxTemp(connection);
+      // await makeTxTemp(connection);
       ret.chartdata = await oneMinuteInterval(connection);
 
 
@@ -167,7 +235,7 @@ async function getResult(n) {  //return array
       let transactionListSql = `
         SELECT  *
         FROM transaction
-        ORDER BY id DESC
+        ORDER BY tx_date DESC
         `
       if(n==0) transactionListSql+=';'   //전체 트랜잭션 조회
       else transactionListSql+=` LIMIT ${n};` //최근 n개 트랜잭션 조회
@@ -204,7 +272,6 @@ async function clacMyAsset(conn,user_idx){
 
 
 async function oneMinuteInterval(conn){
-  console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxx')
 
   const allTxSql = `
   SELECT price,tx_date 
@@ -218,7 +285,6 @@ async function oneMinuteInterval(conn){
   let result = [{time:temp[0].tx_date, low:temp[0].price,start:temp[0].price,end:temp[0].price,high:temp[0].price}];
   let cnt = 1;
 
-  console.log(temp)
 
 
   while(cnt<temp.length){
@@ -245,7 +311,6 @@ async function oneMinuteInterval(conn){
       result.push({time:new Date(newDate),low:null,start:preData.end,end:preData.end,high:null })
     }
    }
-   console.log(result)
    const arrResult = result.map(v=>Object.entries(v).map(x=>x[1]));
    return arrResult;
 
@@ -294,4 +359,6 @@ module.exports = {
   getBuyList,
   getSellList,
   getTransactionList,
+  clacMyAsset,
+  totalAsset
 }

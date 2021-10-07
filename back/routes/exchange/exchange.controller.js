@@ -1,4 +1,4 @@
-const pool = require('../../config/dbconnection');
+const {pool} = require('../../config/dbconnection');
 const messageData = require('../../messageData')
 const ws = require('../../socket')
 const exchangeData = require('../../exchangeData')
@@ -10,18 +10,11 @@ const exchangeData = require('../../exchangeData')
 //내가 100원에 10개 사려고 했다면 나한테 1000원이 있는지 확인. 
 //createOrderBuy createOrderSell 합칠 수 있을 듯.
 
-async function clacMyAsset(conn,user_idx){
-  const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
-  const assetParams = [user_idx]
-  const [[myAsset]] = await conn.execute(assetSql, assetParams)
-  return myAsset.asset;
-}
-
 
 
 const createOrderBuy = async (req, res) => {
   const { user_idx, order_type, coin_id = 1 } = req.body;
-  let { qty, price } = req.body;
+  let { qty, price } = req.body; 
   let connection;
   try {
     connection = await pool.getConnection(async conn => conn);
@@ -43,9 +36,13 @@ const createOrderBuy = async (req, res) => {
       const available = myAsset.asset - preSum;
 
       if ((qty * price) > available) {
+        const data = {
+          totalAsset:myAsset.myAsset,
+          reservation: preSum,
+        }
 
         // 구매 못할 때. db 고쳐줄 필요도 없고. ws랑  rpc도 필요없음. 
-        res.json(messageData.notEnoughAsset());
+        res.json(messageData.notEnoughAsset(data));
       } else {
         // 구매할 수 있다면
 
@@ -106,10 +103,10 @@ const createOrderBuy = async (req, res) => {
             }
           }
           // updateSQL += 'UNLOCK TABLES;'
-          const lastSQL = updateSQL + insertSQL
+
+          const lastSQL = updateSQL + insertSQL 
           await connection.query(lastSQL);
           ws.commission(cnt);
-          ////트랜잭션 완료에 대한 메시지.?? 그냥 주문이 완료됬다고만 알려줄까? 
           res.json(messageData.transaction())
         }
       }
@@ -232,7 +229,8 @@ const createOrderSell = async (req, res) => {
       res.json(messageData.errorMessage(error))
     }
   } catch (error) {
-    console.log('DB Error\n' + error);
+    console.log('DB Error');
+    console.log(error)
     res.json(messageData.errorMessage(error))
   } finally {
     connection.release();
@@ -254,11 +252,13 @@ const deleteOrder = async (req, res) => {
       }
       res.json(data)
     } catch (error) {
-      console.log('Query Error\n' + error);
+      console.log('Query Error' );
+      console.log(error)
       res.json(messageData.errorMessage(error))
     }
   } catch (error) {
-    console.log('DB Error\n' + error)
+    console.log('DB Error')
+    console.log(error)
     res.json(messageData.errorMessage(error))
   } finally {
     connection.release();
@@ -272,45 +272,65 @@ const garaInput = async (req, res) => {
       connection = await pool.getConnection(async conn => conn);
       try {
           //가라데이터 삽입//
-          let getNow = new Date().getTime()  // 현재시간
-          let newTime =  getNow - 1*1000*30
-          let newnewTime = new Date(newTime)
-          console.log(newnewTime.toUTCString())
-          function getRandomPrice(){
-              let output
-              while(true){
-                  output = Math.floor(Math.random()*500)
-                  if(output>1){
-                      return output
-                  } 
-              }
-          }
-          
-          function getRandomAmount(){
-              let output
-              while(true){
-                  output = Math.floor(Math.random()*10)
-                  if(output>1){
-                      return output
-                  }
-              }
-          }
-          async function everyThirtySec(){
-              for(let i = 0; i<1000; i++){
-                  let newTime =  getNow - i*1000*30
-                  let newnewTime = new Date(newTime)
-                  let convertedTime = newnewTime
-                  let amount = getRandomAmount()
-                  let sql = `INSERT INTO transaction 
-                             (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,txid, tx_date, coin_id)
-                             VALUES (?,?, 10, ?, ?, 10, ?, ?, ?, 1);`
-                  await connection.execute(sql, [i+1, amount, i+1001, amount, getRandomPrice(), i+1, convertedTime])
-              }
-          }
-          everyThirtySec()
+        let getNow = new Date().getTime()  // 현재시간
+        let newTime =  getNow - 1*1000*30
+        let newnewTime = new Date(newTime)
+
+        function getRandomPrice(a){
+            let output
+            if(a<300){
+                while(true){
+                    output = Math.floor(Math.random()*500)
+                    if(output>200 && output<=300){
+                        return output
+                    } 
+                }
+            } else if(a>=300 && a< 400){
+                while(true){
+                    output = Math.floor(Math.random()*500)
+                    if(output>300 && output<=430){
+                        return output
+                    } 
+                }
+            } else{
+                while(true){
+                    output = Math.floor(Math.random()*500)
+                    if(output>430 && output<=500){
+                        return output
+                    } 
+                }
+            }
+        }
+
+        function getRandomAmount(){
+            let output
+            while(true){
+                output = Math.floor(Math.random()*10)
+                if(output>1){
+                    return output
+                }
+            }
+        }
+
+        async function everyThirtySec(){
+            for(let i = 0; i<500; i++){
+                let newTime =  getNow - i*1000*30
+                let newnewTime = new Date(newTime)
+                let convertedTime = newnewTime
+                let amount = getRandomAmount()
+                let sql = `INSERT INTO transaction 
+                          (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,txid, tx_date, coin_id)
+                          VALUES (?,?, 10, ?, ?, 10, ?, ?, ?, 1);`
+                const [result] = await connection.execute(sql, [i+1, amount, i+501, amount, getRandomPrice(i), i+1, convertedTime])
+            }
+        }
+        // everyThirtySec()
+        const [getArr] = await connection.execute(`SELECT * from transaction`)
+
           //가라데이터 삽입//
           data = {
               success: true,
+              data: getArr
           }
           res.json(data);
       } catch (error) {

@@ -1,7 +1,6 @@
-const { search } = require('.');
-const pool = require('../../config/dbconnection');
+const {pool} = require('../../config/dbconnection');
 const {createToken,jwtId}  = require('../../jwt')
-
+const exchangeData = require('../../exchangeData')
 
 // 아이디 중복 검사
 const idCheck = async (req, res) => { 
@@ -56,7 +55,6 @@ const createUser = async (req, res) => {
             const params = [userid, userpw]
             const [result] = await connection.execute(sql, params)
 
-        
             const user_idx = result.insertId;
             const assetSql = `INSERT INTO ASSET (user_idx, input, output) values(?,?,?)`
             const assetParams = [user_idx, 1000000, 0] //sql과 함께 바꿔야 함
@@ -205,9 +203,16 @@ const txHistory = async (req, res) => {
 
                 const user_idx = useridResult[0].id; 
                 // userid가 없으면 임의 로 user_idx 0으로 설정.
-                const dataSql = `SELECT * FROM order_list 
-                                 WHERE user_idx = ? AND
-                                 order_Date>date_add(now(),interval - ${srcInterval});` // del=1 취소된 거래에 대한 내용.
+                let dataSql 
+                if(srcInterval == undefined || 
+                    srcInterval == null){
+                    dataSql = `SELECT * FROM order_list 
+                    WHERE user_idx = ? ;`
+                } else{
+                    dataSql = `SELECT * FROM order_list 
+                               WHERE user_idx = ? AND
+                               order_Date>date_add(now(),interval - ${srcInterval});` // del=1 취소된 거래에 대한 내용.
+                }
                 const dataParams = [user_idx]
                 const [result] = await connection.execute(dataSql, dataParams)
                 data = {

@@ -116,6 +116,8 @@ export const UserLoginAction = data => {
             const result = await response.json();
             console.log('프론트 result', result);
 
+            
+
             dispatch(UserLogin_SUCCESS(result));
         } catch (e) {
             dispatch(UserLogin_ERROR());
@@ -223,7 +225,7 @@ const reducer = (state = initialState, action) => {
                 isLogin: action.data.isLogin,
                 success: action.data.success,
                 userid: action.data.userid,
-                useridx: action.data.useridx,
+                useridx: action.data.user_idx,
             }
         case USER_LOGIN_ERROR:
             return {
@@ -243,6 +245,7 @@ const reducer = (state = initialState, action) => {
         case USER_LOGOUT_ERROR:
             return {
                 ...state,
+                ...initialState
             }
         default:
             return state;

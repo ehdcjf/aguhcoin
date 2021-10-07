@@ -1,15 +1,17 @@
 
-const notEnoughAsset = () => {
+const notEnoughAsset = (data) => {
   return {
     success: false,
-    msg: "자산이 충분하지 않음을 알려주는 메세지."
+    msg: "자산이 충분하지 않습니다..",
+    ...data,
   }
 }
 
-const notEnoughCoin = () => {
+const notEnoughCoin = (data) => {
   return {
     success: false,
-    msg: "코인이 충분하지 않음을 알려주는 메세지."
+    msg: "코인이 충분하지 않습니다.",
+    ...data,
   }
 }
 const addOrder = () => {

@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS `order_list` (
 	`order_date` DATETIME(2) NULL DEFAULT current_timestamp(2),
 	`coin_id` INT(11) NULL DEFAULT '1',
 	`del` TINYINT(4) NULL DEFAULT '0',
+	CONSTRAINT `FK_order_list_user` FOREIGN KEY (`user_idx`) REFERENCES `user` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,
 	PRIMARY KEY (`id`) USING BTREE
 ) COLLATE='utf8_general_ci' ENGINE=InnoDB AUTO_INCREMENT=1;
 
@@ -58,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `coininfo` (
 
 
 CREATE TABLE IF NOT EXISTS `transaction` (
-	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`id` INT(11) NOT NULL AUTO_INCREMENT,    
 	`sell_orderid` INT(11) NOT NULL,
 	`sell_amount` INT(11) NOT NULL,
 	`sell_commission` INT(11) NOT NULL,
@@ -69,12 +70,12 @@ CREATE TABLE IF NOT EXISTS `transaction` (
 	`txid` VARCHAR(150) NULL COLLATE 'utf8mb4_general_ci',
 	`tx_date` DATETIME(2) NULL DEFAULT current_timestamp(2),
 	`coin_id` INT(11) NULL DEFAULT '1',
-	PRIMARY KEY (`id`) USING BTREE,
-	INDEX `FK_transaction_order_list` (`sell_orderid`) USING BTREE,
-	INDEX `FK_transaction_order_list_2` (`buy_orderid`) USING BTREE,
+	PRIMARY KEY (`id`) USING BTREE
+	-- INDEX `FK_transaction_order_list` (`sell_orderid`) USING BTREE,
+	-- INDEX `FK_transaction_order_list_2` (`buy_orderid`) USING BTREE,
 
-	FOREIGN KEY (`sell_orderid`) REFERENCES `exchange`.`order_list` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,
-	FOREIGN KEY (`buy_orderid`) REFERENCES `exchange`.`order_list` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
+	-- FOREIGN KEY (`sell_orderid`) REFERENCES `exchange`.`order_list` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,
+	-- FOREIGN KEY (`buy_orderid`) REFERENCES `exchange`.`order_list` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
 )
 COLLATE='utf8mb4_general_ci' ENGINE=InnoDB AUTO_INCREMENT=1;
 

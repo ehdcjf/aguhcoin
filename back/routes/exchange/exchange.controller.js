@@ -14,7 +14,7 @@ const exchangeData = require('../../exchangeData')
 
 const createOrderBuy = async (req, res) => {
   const { user_idx, order_type, coin_id = 1 } = req.body;
-  let { qty, price } = req.body;
+  let { qty, price } = req.body; 
   let connection;
   try {
     connection = await pool.getConnection(async conn => conn);

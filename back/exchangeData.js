@@ -84,6 +84,20 @@ async function totalAsset(data){
 
 
 
+async function getBuyList(conn){
+  const buyListSql = `
+  SELECT price,sum(leftover) AS leftover 
+  FROM order_list 
+  WHERE order_type=0 AND leftover>0
+  GROUP BY price
+  ORDER BY price DESC
+  LIMIT 5;
+  `
+  
+const temp = await conn.execute(buyListSql, []);
+ return temp[0]
+
+}
 
 
 async function getBuyList() {

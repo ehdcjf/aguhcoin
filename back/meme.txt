@@ -1,0 +1,6 @@
+config에 있는 DB정보랑. 
+dbsetting에 있는 DB정보 env로 숨기기. 
+
+order에 있는 user_idx 는 user의 userid가 아닌 user의 id 값. 
+궅이 자리를 많이 차지하는 userid를 쓸 필요가 없음.
+따라서 토큰에 userid랑 id 넘겨줘야함. 

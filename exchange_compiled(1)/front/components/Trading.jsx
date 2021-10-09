@@ -16,8 +16,9 @@ const TradingContain = styled.div`
 const Trading = ()=>{
     const Subheader = ["매수","매도"];
 
-    const [currentClick,setCurrentClick] = useState(0)
+    const [currentClick, setCurrentClick] = useState(0)
     const [prevClick , setPrevClick] = useState(null);
+
 
     const handleClick = e =>{
         setCurrentClick(e.target.id)

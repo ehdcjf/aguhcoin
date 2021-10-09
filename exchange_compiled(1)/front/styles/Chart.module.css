@@ -24,3 +24,10 @@
     width: 90%;
     text-align: right;
 }
+.coin_chart{
+    width: 1000px;
+    height: 300px;
+    margin: 30px auto;
+    font-size: 24px;
+    background: white;
+}

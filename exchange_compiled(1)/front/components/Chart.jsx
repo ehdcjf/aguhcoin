@@ -59,13 +59,13 @@ import { useSelector } from "react-redux";
     return (
       <div id="chartBox">
         <div id="chart">
-          <span className={styles.coin_name}>악어코인</span><span className={styles.sub_side}>시세 정보</span>
+          {/* <span className={styles.coin_name}>악어코인</span><span className={styles.sub_side}>시세 정보</span> */}
           <ReactApexChart
             options={options}
             series={series}
+            height={450}
             type="candlestick"
-            height={600}
-            width={1000}
+            className={styles.coin_chart}
           />
         </div>
       </div>

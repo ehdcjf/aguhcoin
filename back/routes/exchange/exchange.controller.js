@@ -2,6 +2,7 @@ const { pool } = require('../../config/dbconnection');
 const messageData = require('../../messageData')
 const ws = require('../../socket')
 const exchangeData = require('../../exchangeData')
+const rpc = require('../rpc/rpc')
 
 //우선 내가 100원에 10개 팔기로 했는데 동시에 내가 100원에 10개 사기로 했다면. 못하게 해야되고. 
 // 내가 100원에 10개 사기로 했는데, 내가 100원에 10개 팔고 있으면 그것도 막아줘야됨. 
@@ -16,12 +17,13 @@ const getAll = async (req, res) => {
 }
 
 const createOrderBuy = async (req, res) => {
-  const { user_idx, coin_id = 1 } = req.body;
+  const { user_idx, user_id, coin_id = 1 } = req.body;
   let { qty, price } = req.body;
   let connection;
   try {
     connection = await pool.getConnection(async conn => conn);
     try {
+
 
       // 나한테 살만큼의 돈이 있는지 확인한다. 
       const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
@@ -38,23 +40,20 @@ const createOrderBuy = async (req, res) => {
       const available = myAsset.asset - preSum;
 
       if ((qty * price) > available) {
+        // 구매 못할 때. 
         const data = {
           totalAsset: myAsset.myAsset,
           reservation: preSum,
         }
-
-        // 구매 못할 때. db 고쳐줄 필요도 없고. ws랑  rpc도 필요없음. 
         res.json(messageData.notEnoughAsset(data));
       } else {
         // 구매할 수 있다면
+        const myAddressSql = `SELECT user_wallet FROM user where id=?`
+        const myAddressParams = [user_idx];
+        const [myAddressResult] = await connection.execute(myAddressSql, myAddressParams);
+        const myAddress = myAddressResult.user_wallet;
 
-        //이 트랜잭션이 진행되는 동안에 다른 트랜잭션이 진행되면 안되므로.. 
-        // const LOCKSQL = `LOCK TABLES order_list WRITE;`
-        // await connection.query(LOCKSQL)
 
-
-        //우선 빨리 DB에 넣어줘야할 것 같음.  주문은 시간이 매우 중요하니까. 
-        //그리고 주문이 있다는 거 ws로 쏴줘야함. 거래확인까지 하고 할지? 아님 지금할지 정해야됨.
         const insertOrderSql = `
         INSERT INTO order_list (user_idx, qty, price, leftover, order_type) VALUES (?,?,?,?,?);`;
         const insertOrderParams = [user_idx, qty, price, qty, 0];
@@ -64,7 +63,9 @@ const createOrderBuy = async (req, res) => {
         //거래 가능한 주문의 목록을 가져온다. 가격 - 시간 - 물량 순으로 정렬. 
         const availableOrderSql = `
           SELECT *
-          FROM order_list
+          FROM order_list 
+          LEFT JOIN user as user
+          ON order_list.user_idx = user.id
           WHERE user_idx NOT IN(?) AND price<=? AND leftover>0 AND order_type=1 AND del=0
           ORDER BY price ASC, order_date ASC, qty DESC;
         `
@@ -76,36 +77,61 @@ const createOrderBuy = async (req, res) => {
           ws.broadcast(await exchangeData.getBuyList())
           res.json(messageData.addOrder())
         } else {
-          let updateSQL = ''
-          let insertSQL = ''
           let cnt = 0;
           for (let i = 0; i < availableOrder.length; i++) {
             const order = availableOrder[i];
             const sellerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0;
             const buyerLeftover = qty - order.leftover > 0 ? qty - order.leftover : 0;
-            const calcAsset = sellerLeftover > 0 ? qty * order.price : order.leftover * order.price;
-            const calcCoin = sellerLeftover > 0 ? qty : order.leftover;
-            updateSQL += `
-              UPDATE order_list SET leftover=${sellerLeftover} WHERE id=${order.id}; 
-              UPDATE order_list SET leftover=${buyerLeftover} WHERE id=${nowOrderIndex};\n`
-            insertSQL += `
-              INSERT INTO asset (user_idx,input,output) VALUES(${order.user_idx},${calcAsset},0);
-              INSERT INTO coin (user_idx,c_input,c_output) VALUES(${order.user_idx},0,${calcCoin});
-              INSERT INTO asset (user_idx,input,output) VALUES(${user_idx},0,${calcAsset});
-              INSERT INTO coin (user_idx,c_input,c_output) VALUES(${user_idx},${calcCoin},0);
-              INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price) 
-              VALUES(${order.id},${order.leftover},${calcCoin},${nowOrderIndex},${qty},${calcCoin},${order.price});\n`
+            const Asset = sellerLeftover > 0 ? qty * order.price : order.leftover * order.price;
+            const Coin = sellerLeftover > 0 ? qty : order.leftover;
+
+            const body = rpc.createOptions('getnewaddress', [order.user_id, myAddress, Coin]);
+            const url = rpc.url;
+            const headers = rpc.headers;
+            const option = {
+              url,
+              method: "POST",
+              headers,
+              body
+            }
+            const callback = async (error, response, data) => {
+              if (error == null && response.statusCode == 200) {
+                const body = JSON.parse(data);
+                let txid = body.result
+
+                const updateSQL = `
+                    UPDATE order_list SET leftover=${sellerLeftover} WHERE id=${order.id}; 
+                    UPDATE order_list SET leftover=${buyerLeftover} WHERE id=${nowOrderIndex};\n`
+                const insertSQL = `
+                    INSERT INTO asset (user_idx,input,output) VALUES(${order.user_idx},${Asset},0);
+                    INSERT INTO coin (user_idx,c_input,c_output) VALUES(${order.user_idx},0,${Coin});
+                    INSERT INTO asset (user_idx,input,output) VALUES(${user_idx},0,${Asset});
+                    INSERT INTO coin (user_idx,c_input,c_output) VALUES(${user_idx},${Coin},0);
+                    INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,txid) 
+                    VALUES(${order.id},${order.leftover},${Coin},${nowOrderIndex},${qty},${Coin},${order.price},${txid});`
+
+                const lastSQL = updateSQL + insertSQL
+                await connection.query(lastSQL);
+              } else {
+                const data = {
+                  success: false,
+                  error: error,
+                }
+                res.json(data)
+              }
+            }
+
+            request(option, callback)
             qty -= order.leftover;
             cnt++;
             if (qty <= 0) {
               break;
             }
           }
-          // updateSQL += 'UNLOCK TABLES;'
 
-          const lastSQL = updateSQL + insertSQL
-          await connection.query(lastSQL);
           ws.commission(cnt);
+
+
           res.json(messageData.transaction())
         }
       }
@@ -170,6 +196,8 @@ const createOrderSell = async (req, res) => {
         const availableOrderSql = `
           SELECT *
           FROM order_list
+          LEFT JOIN user as user
+          ON order_list.user_idx = user.id
           WHERE user_idx NOT IN(?) AND price>=? AND leftover>0 AND order_type=0 AND del=0
           ORDER BY price DESC, order_date ASC, qty DESC;
         `
@@ -183,32 +211,66 @@ const createOrderSell = async (req, res) => {
           ws.broadcast(await exchangeData.getSellList())
           res.json(messageData.addOrder())
         } else {
-          let updateSQL = ''  // leftover를 갱신하기 위한 sql;
-          let insertSQL = '' //  자산, 코인, 트랜잭션 정보를 갱신하기 위한 sql; 
+
+
+          const myAccountSql = `SELECT user_id FROM user where id=?`
+          const myAccountParams = [user_idx];
+          const [myAccountResult] = await connection.execute(myAccountSql, myAccountParams);
+          const myAccount = myAccountResult.user_id;
+
           let cnt = 0;
           for (let i = 0; i < availableOrder.length; i++) {
             const order = availableOrder[i];
             const sellerLeftover = qty - order.leftover > 0 ? qty - order.leftover : 0;
             const buyerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0;
-            const calcAsset = sellerLeftover > 0 ? order.leftover * price : qty * price;
+            const Asset = sellerLeftover > 0 ? order.leftover * price : qty * price;
             const calcCoin = sellerLeftover > 0 ? order.leftover : qty;
-            updateSQL += `
-              UPDATE order_list SET leftover=${buyerLeftover} WHERE id=${order.id}; 
-              UPDATE order_list SET leftover=${sellerLeftover} WHERE id=${nowOrderIndex};\n`
-            insertSQL += `
-              INSERT INTO asset (user_idx,input,output) VALUES(${order.user_idx},0,${calcAsset});
-              INSERT INTO coin (user_idx,c_input,c_output) VALUES(${order.user_idx},${calcCoin},0);
-              INSERT INTO asset (user_idx,input,output) VALUES(${user_idx},${calcAsset},0);
-              INSERT INTO coin (user_idx,c_input,c_output) VALUES(${user_idx},0,${calcCoin});
-              INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price) 
-              VALUES(${nowOrderIndex},${qty},${calcCoin},${order.id},${order.leftover},${calcCoin},${price});\n`
+
+
+            const body = rpc.createOptions('getnewaddress', [myAccount, order.user_wallet, Coin]);
+            const url = rpc.url;
+            const headers = rpc.headers;
+            const option = {
+              url,
+              method: "POST",
+              headers,
+              body
+            }
+            const callback = async (error, response, data) => {
+              if (error == null && response.statusCode == 200) {
+                const body = JSON.parse(data);
+                let txid = body.result
+
+                const updateSQL = `
+                UPDATE order_list SET leftover=${buyerLeftover} WHERE id=${order.id}; 
+                UPDATE order_list SET leftover=${sellerLeftover} WHERE id=${nowOrderIndex};\n`
+                const insertSQL = `
+                INSERT INTO asset (user_idx,input,output) VALUES(${order.user_idx},0,${Asset});
+                INSERT INTO coin (user_idx,c_input,c_output) VALUES(${order.user_idx},${calcCoin},0);
+                INSERT INTO asset (user_idx,input,output) VALUES(${user_idx},${Asset},0);
+                INSERT INTO coin (user_idx,c_input,c_output) VALUES(${user_idx},0,${calcCoin});
+                INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,txid) 
+                VALUES(${nowOrderIndex},${qty},${calcCoin},${order.id},${order.leftover},${calcCoin},${price},${txid});`
+
+                const lastSQL = updateSQL + insertSQL
+                await connection.query(lastSQL);
+              } else {
+                const data = {
+                  success: false,
+                  error: error,
+                }
+                res.json(data)
+              }
+            }
+
+            request(option, callback)
+
             qty -= order.leftover;
             cnt++;
             if (qty <= 0) break;
           }
           // updateSQL += 'UNLOCK TABLES;'
-          const lastSQL = updateSQL + insertSQL
-          await connection.query(lastSQL);
+
           ws.commission(cnt);
           res.json(messageData.transaction())
         }

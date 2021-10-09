@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS `user` (
 	`user_id` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`user_pw` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
   `user_wallet` VARCHAR(255) NULL COLLATE 'utf8mb4_general_ci',
-	PRIMARY KEY (`id`) USING BTREE
+	PRIMARY KEY (`id`) USING BTREE,
+	UNIQUE INDEX `user_id` (`user_id`)
 )
 COLLATE='utf8mb4_general_ci' ENGINE=InnoDB AUTO_INCREMENT=1;
 
@@ -83,35 +84,35 @@ COLLATE='utf8mb4_general_ci' ENGINE=InnoDB AUTO_INCREMENT=1;
 
 
 
-INSERT INTO `user` ( `user_id`, `user_pw`) VALUES
-	('111', '111'),
-	('222', '222'),
-	('333', '333'),
-	('444', '444'),
-	('555', '555');
+-- INSERT INTO `user` ( `user_id`, `user_pw`) VALUES
+-- 	('111', '111'),
+-- 	('222', '222'),
+-- 	('333', '333'),
+-- 	('444', '444'),
+-- 	('555', '555');
 
-INSERT INTO `asset` (`user_idx`, `input`, `output`, `asset_date`) VALUES
-	(1, 1000000, 0, '2021-10-04 18:33:51'),
-	(2, 1000000, 0, '2021-10-04 18:33:51'),
-	(3, 1000000, 0, '2021-10-04 18:33:51'),
-	(4, 1000000, 0, '2021-10-04 18:33:51'),
-	(5, 1000000, 0, '2021-10-04 18:33:51');
+-- INSERT INTO `asset` (`user_idx`, `input`, `output`, `asset_date`) VALUES
+-- 	(1, 1000000, 0, '2021-10-04 18:33:51'),
+-- 	(2, 1000000, 0, '2021-10-04 18:33:51'),
+-- 	(3, 1000000, 0, '2021-10-04 18:33:51'),
+-- 	(4, 1000000, 0, '2021-10-04 18:33:51'),
+-- 	(5, 1000000, 0, '2021-10-04 18:33:51');
 
-INSERT INTO `coin` (`user_idx`, `c_input`, `c_output`, `coin_date`, `coin_id`) VALUES
-	(1, 10000, 0, '2021-10-04 18:34:45', 1),
-	(2, 10000, 0, '2021-10-04 18:34:45', 1),
-	(3, 10000, 0, '2021-10-04 18:34:45', 1),
-	(4, 10000, 0, '2021-10-04 18:34:45', 1),
-	(5, 10000, 0, '2021-10-04 18:34:45', 1);
+-- INSERT INTO `coin` (`user_idx`, `c_input`, `c_output`, `coin_date`, `coin_id`) VALUES
+-- 	(1, 10000, 0, '2021-10-04 18:34:45', 1),
+-- 	(2, 10000, 0, '2021-10-04 18:34:45', 1),
+-- 	(3, 10000, 0, '2021-10-04 18:34:45', 1),
+-- 	(4, 10000, 0, '2021-10-04 18:34:45', 1),
+-- 	(5, 10000, 0, '2021-10-04 18:34:45', 1);
 
-INSERT INTO `order_list` ( `user_idx`, `price`, `qty`, `order_type`, `leftover`, `order_date`, `coin_id`, `del`) VALUES
-	( 3, 50, 10, 0, 0, '2021-10-05 14:01:52.87', 1, 0),
-	( 2, 50, 10, 0, 0, '2021-10-05 14:01:59.82', 1, 0),
-	( 3, 900, 50, 0, 0, '2021-10-05 14:02:11.43', 1, 0),
-	( 1, 40, 100, 1, 30, '2021-10-05 14:02:23.71', 1, 0),
-	( 1, 40, 100, 1, 100, '2021-10-05 14:03:12.20', 1, 0),
-	( 1, 200, 100, 1, 100, '2021-10-05 14:03:22.73', 1, 0),
-	( 1, 800, 100, 1, 100, '2021-10-05 14:03:32.74', 1, 0);
+-- INSERT INTO `order_list` ( `user_idx`, `price`, `qty`, `order_type`, `leftover`, `order_date`, `coin_id`, `del`) VALUES
+-- 	( 3, 50, 10, 0, 0, '2021-10-05 14:01:52.87', 1, 0),
+-- 	( 2, 50, 10, 0, 0, '2021-10-05 14:01:59.82', 1, 0),
+-- 	( 3, 900, 50, 0, 0, '2021-10-05 14:02:11.43', 1, 0),
+-- 	( 1, 40, 100, 1, 30, '2021-10-05 14:02:23.71', 1, 0),
+-- 	( 1, 40, 100, 1, 100, '2021-10-05 14:03:12.20', 1, 0),
+-- 	( 1, 200, 100, 1, 100, '2021-10-05 14:03:22.73', 1, 0),
+-- 	( 1, 800, 100, 1, 100, '2021-10-05 14:03:32.74', 1, 0);
 
 
   -- INSERT INTO `transaction` (`sell_orderid`, `sell_amount`, `sell_commission`, `buy_orderid`, `buy_amount`, `buy_commission`, `price`, `txid`, `tx_date`, `coin_id`) VALUES

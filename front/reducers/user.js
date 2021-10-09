@@ -122,9 +122,9 @@ export const UserLoginAction = data => {
                 body: JSON.stringify({ ...data }),
             });
             const result = await response.json();
+
             dispatch(UserLogin_SUCCESS(result));
             if (result.totalAsset.success) {
-                console.log(result.totalAsset)
                 dispatch(GetMyAsset(result.totalAsset));
             }
         } catch (e) {

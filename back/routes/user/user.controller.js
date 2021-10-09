@@ -1,22 +1,20 @@
-const {pool} = require('../../config/dbconnection');
-const {createToken,jwtId}  = require('../../jwt')
+const { pool } = require('../../config/dbconnection');
+const { createToken, jwtId } = require('../../jwt')
 const exchangeData = require('../../exchangeData')
 
 // 아이디 중복 검사
-const idCheck = async (req, res) => { 
+const idCheck = async (req, res) => {
     let connection;
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
             const { userid } = req.query // post로 userid 받아오기
-            console.log(req.query)
             const sql = `SELECT * FROM user WHERE user_id=?`
             const params = [userid]
             const result = await connection.execute(sql, params)
             let data = {
                 success: false,
             }
-            console.log(result[0].length == 0)
             if (result[0].length == 0) { // user_id, userid 상황에 따라 변경 필요
                 data.success = true;
             }
@@ -44,14 +42,14 @@ const idCheck = async (req, res) => {
 }
 
 //============회원가입
-const createUser = async (req, res) => { 
-  console.log(req.body,'asd')
+const createUser = async (req, res) => {
+    console.log(req.body, 'asd')
     let connection;
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
             const { userid, userpw } = req.body;
-            const sql = `INSERT INTO USER (user_id, user_pw) values(?,?);` 
+            const sql = `INSERT INTO USER (user_id, user_pw) values(?,?);`
             const params = [userid, userpw]
             const [result] = await connection.execute(sql, params)
 
@@ -59,7 +57,7 @@ const createUser = async (req, res) => {
             const assetSql = `INSERT INTO ASSET (user_idx, input, output) values(?,?,?)`
             const assetParams = [user_idx, 1000000, 0] //sql과 함께 바꿔야 함
             const [assetResult] = await connection.execute(assetSql, assetParams)
-            
+
             console.log(assetResult)
 
             const data = {
@@ -67,7 +65,7 @@ const createUser = async (req, res) => {
                 userid: userid,
                 userpw: userpw,
             }
-            console.log(data,'data')
+            console.log(data, 'data')
 
             res.json(data);
         } catch (error) {
@@ -94,8 +92,8 @@ const createUser = async (req, res) => {
 
 
 //====================로그인
-const loginUser = async (req, res) => { 
-    let connection; 
+const loginUser = async (req, res) => {
+    let connection;
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
@@ -106,25 +104,25 @@ const loginUser = async (req, res) => {
             const params = [userid, userpw]
             const [result] = await connection.execute(sql, params)
             // const myAsset = calcAsset(connection,user_idx);
-            console.log('zzz',result)
-            if(result.length == 0){ //회원정보 없으면
+            console.log('zzz', result)
+            if (result.length == 0) { //회원정보 없으면
                 console.log('회원정보 없음')
-                data = { 
+                data = {
                     success: false,
-                    isLogin: false, 
+                    isLogin: false,
                 }
                 res.json(data)
-            } else{ // 있으면
-                console.log('회원정보 있음')
+            } else { // 있으면
                 const user_id = result[0].user_id
-                const user_idx = result[0].id  
-                    console.log('dlTdma')
-                    data = { 
-                        success: true,
-                        isLogin: true, 
-                        userid: user_id, 
-                        user_idx
-                    }
+                const user_idx = result[0].id
+                const totalAsset = await exchangeData.totalAsset(connection, user_idx);
+                data = {
+                    success: true,
+                    isLogin: true,
+                    userid: user_id,
+                    user_idx: user_idx,
+                    totalAsset,
+                }
                 // 쿠키 관련
                 const access_token = createToken(user_idx)
                 res.cookie('aguhToken', access_token, { httpOnly: true, secure: true })
@@ -133,10 +131,10 @@ const loginUser = async (req, res) => {
         } catch (error) {
             console.log('Query Error');
             console.log(error)
-                const data = {
-                    success: false,
-                    error: error.sqlMessage,
-                }
+            const data = {
+                success: false,
+                error: error.sqlMessage,
+            }
             res.json(data)
         }
     } catch (error) {
@@ -153,7 +151,6 @@ const loginUser = async (req, res) => {
 }
 
 const logoutUser = (req, res) => {
-    console.log('logout')
     res.clearCookie('aguhToken', { path: '/' })
     const data = {
         isLogin: false,
@@ -163,7 +160,7 @@ const logoutUser = (req, res) => {
 
 
 const txHistory = async (req, res) => {
-    let connection; 
+    let connection;
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
@@ -174,41 +171,41 @@ const txHistory = async (req, res) => {
             const useridSql = `SELECT * FROM user WHERE user_id = ? `
             const useridParams = [userid]
             const [useridResult] = await connection.execute(useridSql, useridParams)
-            if(useridResult.length == 0){
+            if (useridResult.length == 0) {
                 data = {
-                    success:false,
+                    success: false,
                     msg: '잘못된 접근입니다.',
                     quote: '로그인 상태인데 db에서 해당 id를 못가져옴'
                 }
                 res.json(data)
-            } else{
+            } else {
                 let srcInterval
-                switch(searchType){
+                switch (searchType) {
                     case '1day':
-                    srcInterval = '1 day'
-                    break;
+                        srcInterval = '1 day'
+                        break;
                     case '7day':
-                    srcInterval = '7 day'
-                    break;
+                        srcInterval = '7 day'
+                        break;
                     case '1month':
-                    srcInterval = '1 month'
-                    break;
+                        srcInterval = '1 month'
+                        break;
                     case '3month':
-                    srcInterval = '3 month'
-                    break;
+                        srcInterval = '3 month'
+                        break;
                     case '6month':
-                    srcInterval = '6 month'
-                    break;
+                        srcInterval = '6 month'
+                        break;
                 }
 
-                const user_idx = useridResult[0].id; 
+                const user_idx = useridResult[0].id;
                 // userid가 없으면 임의 로 user_idx 0으로 설정.
-                let dataSql 
-                if(srcInterval == undefined || 
-                    srcInterval == null){
+                let dataSql
+                if (srcInterval == undefined ||
+                    srcInterval == null) {
                     dataSql = `SELECT * FROM order_list 
                     WHERE user_idx = ? ;`
-                } else{
+                } else {
                     dataSql = `SELECT * FROM order_list 
                                WHERE user_idx = ? AND
                                order_Date>date_add(now(),interval - ${srcInterval});` // del=1 취소된 거래에 대한 내용.
@@ -224,10 +221,10 @@ const txHistory = async (req, res) => {
         } catch (error) {
             console.log('Query Error');
             console.log(error)
-                const data = {
-                    success: false,
-                    error: error.sqlMessage,
-                }
+            const data = {
+                success: false,
+                error: error.sqlMessage,
+            }
             res.json(data)
         }
     } catch (error) {
@@ -258,25 +255,24 @@ const outstandingLog = async (req, res) => {
                 success: false,
                 error: '접근권한이 없습니다'
             }
-        res.json(data)
+            res.json(data)
         }
-        else{
-            let connection; 
+        else {
+            let connection;
             try {
                 connection = await pool.getConnection(async conn => conn);
                 try {
                     let data = {}
                     const { userid } = req.body; // order_list
-                 
+
                     const useridSql = `SELECT * FROM user WHERE user_id = ? `
                     const useridParams = [userid]
                     const [useridResult] = await connection.execute(useridSql, useridParams)
-                  
+
                     const user_idx = useridResult[0].id;
                     const dataSql = `SELECT * FROM order_list WHERE user_idx = ? AND leftover > 0`
                     const dataParams = [user_idx]
                     const [result] = await connection.execute(dataSql, dataParams)
-                    console.log(result)
                     data = {
                         success: true,
                         txList: result,
@@ -285,10 +281,10 @@ const outstandingLog = async (req, res) => {
                 } catch (error) {
                     console.log('Query Error');
                     console.log(error)
-                        const data = {
-                            success: false,
-                            error: error.sqlMessage,
-                        }
+                    const data = {
+                        success: false,
+                        error: error.sqlMessage,
+                    }
                     res.json(data)
                 }
             } catch (error) {
@@ -302,7 +298,7 @@ const outstandingLog = async (req, res) => {
             } finally {
                 connection.release();
             }
-        } 
+        }
     }
 }
 

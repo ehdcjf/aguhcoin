@@ -3,6 +3,12 @@ const initialState = {
     success: null,
     userid: null,
     useridx: null,
+    myAsset: 0,
+    lockedAsset: 0,
+    availableAsset: 0,
+    myCoin: 0,
+    lockedCoin: 0,
+    availableCoin: 0
 }
 
 const DUPLICATECHECK_REQUEST = "DUPLICATECHECK_REQUEST";
@@ -17,6 +23,9 @@ const USER_LOGIN_ERROR = "USER_LOGIN_ERROR";
 const USER_LOGOUT_REQUEST = "USER_LOGOUT_REQUEST";
 const USER_LOGOUT_SUCCESS = "USER_LOGOUT_SUCCESS";
 const USER_LOGOUT_ERROR = "USER_LOGOUT_ERROR";
+
+const GET_TOTAL_ASSET = "GET_TOTAL_ASSET"
+
 
 // Join -> DuplicateCheck(), 회원가입 아이디 유효성 검사
 export const DuplicateCheckAction = data => {
@@ -73,7 +82,6 @@ export const UserJoinAction = data => {
                 body: JSON.stringify({ ...data }),
             });
             const result = await response.json();
-            console.log('ㅈ인데이터', result);
 
             dispatch(UserJoin_SUCCESS(result));
         } catch (e) {
@@ -114,16 +122,27 @@ export const UserLoginAction = data => {
                 body: JSON.stringify({ ...data }),
             });
             const result = await response.json();
-            console.log('프론트 result', result);
-
-            
-
             dispatch(UserLogin_SUCCESS(result));
+            if (result.totalAsset.success) {
+                console.log(result.totalAsset)
+                dispatch(GetMyAsset(result.totalAsset));
+            }
         } catch (e) {
             dispatch(UserLogin_ERROR());
         }
     }
 }
+
+
+export const GetMyAsset = (data) => {
+    let totalAsset = data;
+    delete totalAsset.sussess
+    return {
+        type: GET_TOTAL_ASSET,
+        data: totalAsset,
+    }
+}
+
 
 export const UserLogin_REQUEST = () => {
     return {
@@ -246,6 +265,11 @@ const reducer = (state = initialState, action) => {
             return {
                 ...state,
                 ...initialState
+            }
+        case GET_TOTAL_ASSET:
+            return {
+                ...state,
+                ...action.data,
             }
         default:
             return state;

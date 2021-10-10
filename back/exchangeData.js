@@ -1,9 +1,9 @@
 const { pool } = require('./config/dbconnection')
 const messageData = require('./messageData')
 const defaultRet = {
-  buyList: { success: null, list: null },
-  sellList: { success: null, list: null },
-  txList: { success: null, list: null },
+  buyList: { success: false, list: null },
+  sellList: { success: false, list: null },
+  txList: { success: false, list: null },
   success: true,
   chartdata: [],
 }
@@ -61,7 +61,6 @@ async function getBuyList() {
         LIMIT 5;
         `
       const temp = await connection.execute(buyListSql, []);
-      ret.success = true;
       ret.buyList.success = true;
       ret.buyList.list = temp[0];
     } catch (error) {
@@ -96,7 +95,6 @@ async function getSellList() {
         LIMIT 5;
         `
       const temp = await connection.execute(sellListSql, []);
-      ret.success = true;
       ret.sellList.success = true;
       ret.sellList.list = temp[0].reverse();
     } catch (error) {
@@ -131,7 +129,6 @@ async function getTransactionList(n) {
       temp[0].forEach((v, i) => {
         temp[0][i].tx_date = temp[0][i].tx_date.toLocaleString();
       })
-      ret.success = true;
       ret.txList.success = true;
       ret.txList.list = temp[0];
     } catch (error) {

@@ -14,24 +14,30 @@ const Sell = () => {
 
     if (price.value == "" || qty.value == "") {
       alert("매도가격과 주문수량은 필수 입력 사항입니다.");
-    }
-
-    const data = {
-      price: price.value,
-      qty: qty.value,
-    };
-    let url = `http://localhost:3500/exchange/sell`;
-    const response = await fetch(url, {
-      method: "POST",
-      mode: "cors",
-      credentials: "include",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...data }),
-    });
-    const result = await response.json();
-    console.log("매수매도?", result);
-    if (result.success) {
+    } else if (!isLogin) {
+      alert("로그인해주세요.");
+    } else if (availableCoin < qty.value) {
+      alert("주문 총액이 주문 가능액을 초과하였습니다.");
     } else {
+      const data = {
+        price: price.value,
+        qty: qty.value,
+        user_idx: useridx,
+      };
+      let url = `http://localhost:3500/exchange/sell`;
+      const response = await fetch(url, {
+        method: "POST",
+        mode: "cors",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...data }),
+      });
+      const result = await response.json();
+      console.log("매수매도?", result);
+      if (result.success) {
+        alert(result.msg);
+      } else {
+      }
     }
   };
   return (

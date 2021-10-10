@@ -17,6 +17,7 @@ const GET_SELLLIST = "GET_SELLLIST"
 const GET_TXLIST = "GET_TXLIST"
 const GET_CHARTDATA = "GET_CHARTDATA"
 const UPDATE_TXLIST = "UPDATE_TXLIST"
+const UPDATE_CHARTDATA = "UPDATE_CHARTDATA"
 const GET_EXCHANGE_REQUEST = 'GET_EXCHANGE_REQUEST'
 const LOAD_SUCCESS = 'LOAD_SUCCESS'
 const GET_EXCHANGE_ERROR = 'GET_EXCHANGE_ERROR'
@@ -33,13 +34,19 @@ export const GetExchangeAction = () => {
                 credentials: "include",
             });
             const result = await response.json();
-            dispatch(GetExchange_SUCCESS(result));
+            if (result.success) {
+                dispatch(GetExchange_SUCCESS(result));
+            }
         } catch (e) {
             dispatch(GetExchange_ERROR());
         }
     }
 
 }
+
+
+
+
 
 
 
@@ -65,8 +72,9 @@ export const GetExchange_SUCCESS = (data) => {
 }
 
 
-export const UpdateExchange = (data) => {
+export function UpdateExchange(data) {
     const exchange = data
+    console.log(data)
     return (dispatch) => {
         if (exchange.buyList.success) {
             dispatch(GetBuyList(exchange.buyList.list))
@@ -76,7 +84,7 @@ export const UpdateExchange = (data) => {
         }
         if (exchange.txList.success) {
             dispatch(UpdateTxList(exchange.txList.list))
-            dispatch(UpdateChartData(exchange.chartdata))
+            dispatch(UpdateChartData(exchange.txList.list))
         }
     }
 }
@@ -135,37 +143,9 @@ export const UpdateTxList = (data) => {
     }
 }
 export const UpdateChartData = (data) => {
-    let chartdata = [...state.chartdata]
-    let cnt = 0;
-    while (cnt < data.length) {
-        const v = data[cnt];
-        let lastItem = chartdata[chartdata.length - 1];
-        let lastTime = lastItem.x;
-        const lastDate = new Date(lastTime);
-        const nowDate = new Date(v.tx_date);
-        if (lastDate.getFullYear() == nowDate.getFullYear()
-            && lastDate.getMonth() == nowDate.getMonth()
-            && lastDate.getDate() == nowDate.getDate()
-            && lastDate.getHours() == nowDate.getHours()
-            && lastDate.getMinutes() == nowDate.getMinutes()
-        ) {
-            chartdata[chartdata.length - 1].y[3] = v.price; //종가 update 
-            if (lastItem.y[1] == null || lastItem.y[1] < v.price) {
-                chartdata[chartdata.length - 1].y[1] = v.price
-            }
-            if (lastItem.y[2] == null || lastItem.y[2] > v.price) {
-                chartdata[chartdata.length - 1].y[2] = v.price
-            }
-            cnt++;
-        } else {
-            const newDate = new Date(lastTime).setMinutes(lastTime.getMinutes() + 1);
-            const open = lastItem.y[3] != null ? lastItem.y[3] : lastItem.y[0];
-            chartdata.push({ x: new Date(newDate), y: [open, null, null, null] })
-        }
-    }
     return {
         type: GET_CHARTDATA,
-        data: chartdata,
+        data: data,
     }
 }
 
@@ -218,6 +198,41 @@ const reducer = (state = initialState, action) => {
             return {
                 ...state,
                 txList: [action.data, ...state.txList]
+            }
+
+        case UPDATE_CHARTDATA:
+            const data = action.data.list;
+            let newChartdata = [...state.series[0].data]
+            let cnt = 0;
+            while (cnt < data.length) {
+                const v = data[cnt];
+                let lastItem = newChartdata[newChartdata.length - 1];
+                let lastTime = lastItem.x;
+                const lastDate = new Date(lastTime);
+                const nowDate = new Date(v.tx_date);
+                if (lastDate.getFullYear() == nowDate.getFullYear()
+                    && lastDate.getMonth() == nowDate.getMonth()
+                    && lastDate.getDate() == nowDate.getDate()
+                    && lastDate.getHours() == nowDate.getHours()
+                    && lastDate.getMinutes() == nowDate.getMinutes()
+                ) {
+                    newChartdata[newChartdata.length - 1].y[3] = v.price; //종가 update 
+                    if (lastItem.y[1] == null || lastItem.y[1] < v.price) {
+                        newChartdata[newChartdata.length - 1].y[1] = v.price
+                    }
+                    if (lastItem.y[2] == null || lastItem.y[2] > v.price) {
+                        newChartdata[newChartdata.length - 1].y[2] = v.price
+                    }
+                    cnt++;
+                } else {
+                    const newDate = new Date(lastTime).setMinutes(lastTime.getMinutes() + 1);
+                    const open = lastItem.y[3] != null ? lastItem.y[3] : lastItem.y[0];
+                    newChartdata.push({ x: new Date(newDate), y: [open, null, null, null] })
+                }
+            }
+            return {
+                ...state,
+                chartdata: [...newChartdata]
             }
 
         default:

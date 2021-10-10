@@ -3,8 +3,19 @@ const messageData = require('../../messageData')
 const ws = require('../../socket')
 const exchangeData = require('../../exchangeData')
 const rpc = require('../rpc/rpc')
+const request = require('request');
 const { jwtId } = require('../../jwt')
+const headers = { "Content-type": "application/json" };
+const USER = process.env.RPC_USER || 'hello';
+const PW = process.env.RPC_PASSWORD || '1234';
+const RPCPORT = process.env.RPC_PORT || 3005;
+const ID_STRING = 'aguhcoin_exchange';
+const url = `http://${USER}:${PW}@127.0.0.1:${RPCPORT}`
 
+function createOptions(method, params = []) {
+  const obj = { jsonrpc: "1.0", id: ID_STRING, method, params, }
+  return JSON.stringify(obj)
+}
 
 //우선 내가 100원에 10개 팔기로 했는데 동시에 내가 100원에 10개 사기로 했다면. 못하게 해야되고. 
 // 내가 100원에 10개 사기로 했는데, 내가 100원에 10개 팔고 있으면 그것도 막아줘야됨. 
@@ -21,8 +32,17 @@ const getAll = async (req, res) => {
 const createOrderBuy = async (req, res) => {
   const { aguhToken } = req.cookies;
   const idx = jwtId(aguhToken)
-  const { user_idx, coin_id = 1 } = req.body;
+  const { user_idx } = req.body;
   let { qty, price } = req.body;
+  if (idx != user_idx) {
+    const data = {
+      success: false,
+      error: "잘못된 접근입니다."
+    }
+    res.json(data);
+    return;
+  }
+
   let connection;
   try {
     connection = await pool.getConnection(async conn => conn);
@@ -54,7 +74,7 @@ const createOrderBuy = async (req, res) => {
         // 구매할 수 있다면
         const myAddressSql = `SELECT user_wallet FROM user where id=?`
         const myAddressParams = [user_idx];
-        const [myAddressResult] = await connection.execute(myAddressSql, myAddressParams);
+        const [[myAddressResult]] = await connection.execute(myAddressSql, myAddressParams);
         const myAddress = myAddressResult.user_wallet;
 
 
@@ -82,6 +102,7 @@ const createOrderBuy = async (req, res) => {
           res.json(messageData.addOrder())
         } else {
           let cnt = 0;
+          let flag = false;
           for (let i = 0; i < availableOrder.length; i++) {
             const order = availableOrder[i];
             const sellerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0;
@@ -89,9 +110,7 @@ const createOrderBuy = async (req, res) => {
             const Asset = sellerLeftover > 0 ? qty * order.price : order.leftover * order.price;
             const Coin = sellerLeftover > 0 ? qty : order.leftover;
 
-            const body = rpc.createOptions('getnewaddress', [order.user_id, myAddress, Coin]);
-            const url = rpc.url();
-            const headers = rpc.headers();
+            const body = createOptions('sendfrom', [order.user_id, myAddress, Coin]);
             const option = {
               url,
               method: "POST",
@@ -117,18 +136,14 @@ const createOrderBuy = async (req, res) => {
                 const lastSQL = updateSQL + insertSQL
                 await connection.query(lastSQL);
               } else {
-                const data = {
-                  success: false,
-                  error: error,
-                }
-                res.json(data)
+                flag = true;
               }
             }
 
             request(option, callback)
             qty -= order.leftover;
             cnt++;
-            if (qty <= 0) {
+            if (qty <= 0 || flag) {
               break;
             }
           }
@@ -155,11 +170,19 @@ const createOrderBuy = async (req, res) => {
 
 
 const createOrderSell = async (req, res) => {
-  const { aguhToken } = req.cookies.aguhToken;
-  console.log(req.cookies)
-  console.log(aguhToken)
-  const { user_idx, coin_id = 1 } = req.body;
+  const { aguhToken } = req.cookies;
+  const idx = jwtId(aguhToken)
+  const { user_idx } = req.body;
   let { qty, price } = req.body;
+  if (idx != user_idx) {
+    const data = {
+      success: false,
+      error: "잘못된 접근입니다."
+    }
+    res.json(data);
+    return;
+  }
+
   let connection;
   try {
     connection = await pool.getConnection(async conn => conn);
@@ -213,8 +236,8 @@ const createOrderSell = async (req, res) => {
         if (availableOrder.length == 0) {
           //가능한 거래가 없으므로 종료.
           //주문 완료에 대한 메시지
-          const UNLOCKSQL = `UNLOCK TABLES;`
-          await connection.query(UNLOCKSQL)
+          // const UNLOCKSQL = `UNLOCK TABLES;`
+          // await connection.query(UNLOCKSQL)
           ws.broadcast(await exchangeData.getSellList())
           res.json(messageData.addOrder())
         } else {
@@ -222,21 +245,19 @@ const createOrderSell = async (req, res) => {
 
           const myAccountSql = `SELECT user_id FROM user where id=?`
           const myAccountParams = [user_idx];
-          const [myAccountResult] = await connection.execute(myAccountSql, myAccountParams);
+          const [[myAccountResult]] = await connection.execute(myAccountSql, myAccountParams);
           const myAccount = myAccountResult.user_id;
 
           let cnt = 0;
           for (let i = 0; i < availableOrder.length; i++) {
+            let flag = false;
             const order = availableOrder[i];
             const sellerLeftover = qty - order.leftover > 0 ? qty - order.leftover : 0;
             const buyerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0;
             const Asset = sellerLeftover > 0 ? order.leftover * price : qty * price;
-            const calcCoin = sellerLeftover > 0 ? order.leftover : qty;
+            const Coin = sellerLeftover > 0 ? order.leftover : qty;
 
-
-            const body = rpc.createOptions('getnewaddress', [myAccount, order.user_wallet, Coin]);
-            const url = rpc.url();
-            const headers = rpc.headers();
+            const body = createOptions('sendfrom', [myAccount, order.user_wallet, Coin]);
             const option = {
               url,
               method: "POST",
@@ -262,11 +283,7 @@ const createOrderSell = async (req, res) => {
                 const lastSQL = updateSQL + insertSQL
                 await connection.query(lastSQL);
               } else {
-                const data = {
-                  success: false,
-                  error: error,
-                }
-                res.json(data)
+                flag = true;
               }
             }
 
@@ -274,7 +291,7 @@ const createOrderSell = async (req, res) => {
 
             qty -= order.leftover;
             cnt++;
-            if (qty <= 0) break;
+            if (qty <= 0 || flag) break;
           }
           // updateSQL += 'UNLOCK TABLES;'
 

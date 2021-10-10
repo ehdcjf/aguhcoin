@@ -115,9 +115,6 @@ export const UserLoginAction = data => {
             });
             const result = await response.json();
             console.log('프론트 result', result);
-
-            
-
             dispatch(UserLogin_SUCCESS(result));
         } catch (e) {
             dispatch(UserLogin_ERROR());

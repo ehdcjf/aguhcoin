@@ -1,4 +1,4 @@
-const {pool} = require('../../config/dbconnection');
+const { pool } = require('../../config/dbconnection');
 const messageData = require('../../messageData')
 const ws = require('../../socket')
 const exchangeData = require('../../exchangeData')
@@ -10,11 +10,14 @@ const exchangeData = require('../../exchangeData')
 //내가 100원에 10개 사려고 했다면 나한테 1000원이 있는지 확인. 
 //createOrderBuy createOrderSell 합칠 수 있을 듯.
 
-
+const getAll = async (req, res) => {
+  const result = await exchangeData.getResult(0);
+  res.json(result)
+}
 
 const createOrderBuy = async (req, res) => {
-  const { user_idx, order_type, coin_id = 1 } = req.body;
-  let { qty, price } = req.body; 
+  const { user_idx, coin_id = 1 } = req.body;
+  let { qty, price } = req.body;
   let connection;
   try {
     connection = await pool.getConnection(async conn => conn);
@@ -29,15 +32,14 @@ const createOrderBuy = async (req, res) => {
       const orderSql = `SELECT leftover,price FROM order_list WHERE user_idx = ?  AND order_type = 0 AND del=0 AND leftover>0;`;
       const orderParams = [user_idx];
       const [preOrder] = await connection.execute(orderSql, orderParams)
-      console.log(preOrder)
-      
 
-      const preSum = preOrder.length>0 ? preOrder.reduce((r,v)=>{return r+(v.leftover*v.price)},0) : 0
+
+      const preSum = preOrder.length > 0 ? preOrder.reduce((r, v) => { return r + (v.leftover * v.price) }, 0) : 0
       const available = myAsset.asset - preSum;
 
       if ((qty * price) > available) {
         const data = {
-          totalAsset:myAsset.myAsset,
+          totalAsset: myAsset.myAsset,
           reservation: preSum,
         }
 
@@ -55,7 +57,7 @@ const createOrderBuy = async (req, res) => {
         //그리고 주문이 있다는 거 ws로 쏴줘야함. 거래확인까지 하고 할지? 아님 지금할지 정해야됨.
         const insertOrderSql = `
         INSERT INTO order_list (user_idx, qty, price, leftover, order_type) VALUES (?,?,?,?,?);`;
-        const insertOrderParams = [user_idx, qty, price, qty, order_type];
+        const insertOrderParams = [user_idx, qty, price, qty, 0];
         const [orderResult] = await connection.execute(insertOrderSql, insertOrderParams)
         const nowOrderIndex = orderResult.insertId;
 
@@ -79,7 +81,7 @@ const createOrderBuy = async (req, res) => {
           let cnt = 0;
           for (let i = 0; i < availableOrder.length; i++) {
             const order = availableOrder[i];
-            const sellerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0; 
+            const sellerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0;
             const buyerLeftover = qty - order.leftover > 0 ? qty - order.leftover : 0;
             const calcAsset = sellerLeftover > 0 ? qty * order.price : order.leftover * order.price;
             const calcCoin = sellerLeftover > 0 ? qty : order.leftover;
@@ -101,7 +103,7 @@ const createOrderBuy = async (req, res) => {
           }
           // updateSQL += 'UNLOCK TABLES;'
 
-          const lastSQL = updateSQL + insertSQL 
+          const lastSQL = updateSQL + insertSQL
           await connection.query(lastSQL);
           ws.commission(cnt);
           res.json(messageData.transaction())
@@ -123,8 +125,7 @@ const createOrderBuy = async (req, res) => {
 
 
 const createOrderSell = async (req, res) => {
-  console.log('sell')
-  const { user_idx, order_type, coin_id = 1 } = req.body;
+  const { user_idx, coin_id = 1 } = req.body;
   let { qty, price } = req.body;
   let connection;
   try {
@@ -143,12 +144,6 @@ const createOrderSell = async (req, res) => {
 
       const myOrder = preOrder.leftover;
       const available = myCoin.coin - myOrder;
-      console.log(myCoin+'마이코인')
-      console.log(myCoin.coin+'마이코인의 코인')
-      console.log(myOrder+'내가 한 주문')
-
-      console.log(qty)
-      console.log(available)
       if (qty > available) {
 
         // 판매 못할 때.
@@ -167,7 +162,7 @@ const createOrderSell = async (req, res) => {
         //그리고 주문이 있다는 거 ws로 쏴줘야함. 거래확인까지 하고 할지? 아님 지금할지 정해야됨.
         const insertOrderSql = `
         INSERT INTO order_list (user_idx, qty, price, leftover, order_type) VALUES (?,?,?,?,?);`;
-        const insertOrderParams = [user_idx, qty, price, qty, order_type];
+        const insertOrderParams = [user_idx, qty, price, qty, 1];
         const [orderResult] = await connection.execute(insertOrderSql, insertOrderParams)
         const nowOrderIndex = orderResult.insertId;
 
@@ -197,8 +192,6 @@ const createOrderSell = async (req, res) => {
             const buyerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0;
             const calcAsset = sellerLeftover > 0 ? order.leftover * price : qty * price;
             const calcCoin = sellerLeftover > 0 ? order.leftover : qty;
-            //트랜잭션 RPC 진행하고 txid 값을 가져와야함. 
-            //각 거래가 이루어질 때마다 ws로 계속 쏴주기? 아니면 마지막에 한번 쏴주기? 
             updateSQL += `
               UPDATE order_list SET leftover=${buyerLeftover} WHERE id=${order.id}; 
               UPDATE order_list SET leftover=${sellerLeftover} WHERE id=${nowOrderIndex};\n`
@@ -245,11 +238,11 @@ const deleteOrder = async (req, res) => {
       await connection.execute(transactionListSql, [order_id]);
       const data = {
         success: true,
-        msg: ` 주문번호:${order_id}\n주문을 취소했습니다.`
+        msg: `주문번호:${order_id}\n주문을 취소했습니다.`
       }
       res.json(data)
     } catch (error) {
-      console.log('Query Error' );
+      console.log('Query Error');
       console.log(error)
       res.json(messageData.errorMessage(error))
     }
@@ -264,100 +257,149 @@ const deleteOrder = async (req, res) => {
 
 
 const garaInput = async (req, res) => {
-  let connection; 
+  let connection;
   try {
-      connection = await pool.getConnection(async conn => conn);
-      try {
-          //가라데이터 삽입//
-        let getNow = new Date().getTime()  // 현재시간
-        let newTime =  getNow - 1*1000*30
-        let newnewTime = new Date(newTime)
+    connection = await pool.getConnection(async conn => conn);
+    try {
+      //가라데이터 삽입//
+      let getNow = new Date().getTime()  // 현재시간
+      let newTime = getNow - 1 * 1000 * 30
+      let newnewTime = new Date(newTime)
 
-        function getRandomPrice(a){
-            let output
-            if(a<300){
-                while(true){
-                    output = Math.floor(Math.random()*500)
-                    if(output>200 && output<=300){
-                        return output
-                    } 
-                }
-            } else if(a>=300 && a< 400){
-                while(true){
-                    output = Math.floor(Math.random()*500)
-                    if(output>300 && output<=430){
-                        return output
-                    } 
-                }
-            } else{
-                while(true){
-                    output = Math.floor(Math.random()*500)
-                    if(output>430 && output<=500){
-                        return output
-                    } 
-                }
+      function getRandomPrice(a) {
+        let output
+        if (a < 300) {
+          while (true) {
+            output = Math.floor(Math.random() * 500)
+            if (output > 200 && output <= 300) {
+              return output
             }
-        }
-
-        function getRandomAmount(){
-            let output
-            while(true){
-                output = Math.floor(Math.random()*10)
-                if(output>1){
-                    return output
-                }
+          }
+        } else if (a >= 300 && a < 400) {
+          while (true) {
+            output = Math.floor(Math.random() * 500)
+            if (output > 300 && output <= 430) {
+              return output
             }
+          }
+        } else {
+          while (true) {
+            output = Math.floor(Math.random() * 500)
+            if (output > 430 && output <= 500) {
+              return output
+            }
+          }
         }
+      }
 
-        async function everyThirtySec(){
-            for(let i = 0; i<500; i++){
-                let newTime =  getNow - i*1000*30
-                let newnewTime = new Date(newTime)
-                let convertedTime = newnewTime
-                let amount = getRandomAmount()
-                let sql = `INSERT INTO transaction 
+      function getRandomAmount() {
+        let output
+        while (true) {
+          output = Math.floor(Math.random() * 10)
+          if (output > 1) {
+            return output
+          }
+        }
+      }
+
+      async function everyThirtySec() {
+        for (let i = 0; i < 500; i++) {
+          let newTime = getNow - i * 1000 * 30
+          let newnewTime = new Date(newTime)
+          let convertedTime = newnewTime
+          let amount = getRandomAmount()
+          let sql = `INSERT INTO transaction 
                           (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,txid, tx_date, coin_id)
                           VALUES (?,?, 10, ?, ?, 10, ?, ?, ?, 1);`
-                const [result] = await connection.execute(sql, [i+1, amount, i+501, amount, getRandomPrice(i), i+1, convertedTime])
-            }
+          const [result] = await connection.execute(sql, [i + 1, amount, i + 501, amount, getRandomPrice(i), i + 1, convertedTime])
         }
-        // everyThirtySec()
-        const [getArr] = await connection.execute(`SELECT * from transaction`)
-
-          //가라데이터 삽입//
-          data = {
-              success: true,
-              data: getArr
-          }
-          res.json(data);
-      } catch (error) {
-          console.log('Query Error');
-          console.log(error)
-              const data = {
-                  success: false,
-                  error: error.sqlMessage,
-              }
-          res.json(data)
       }
-  } catch (error) {
-      console.log('DB Error')
+      // everyThirtySec()
+      const [getArr] = await connection.execute(`SELECT * from transaction`)
+
+      //가라데이터 삽입//
+      data = {
+        success: true,
+        data: getArr
+      }
+      res.json(data);
+    } catch (error) {
+      console.log('Query Error');
       console.log(error)
       const data = {
-          success: false,
-          error: error.sqlMessage,
+        success: false,
+        error: error.sqlMessage,
       }
       res.json(data)
+    }
+  } catch (error) {
+    console.log('DB Error')
+    console.log(error)
+    const data = {
+      success: false,
+      error: error.sqlMessage,
+    }
+    res.json(data)
   } finally {
-      connection.release();
+    connection.release();
   }
 }
 
+// //매수매도
+// const createTradingBuy = async (req, res) => {
+//   let connection;
+//   try {
+//       connection = await pool.getConnection(async conn => conn);
+  //     try {
+  //         const { userid, userpw } = req.body;
+  //         const sql = `INSERT INTO USER (user_id, user_pw) values(?,?);`
+  //         const params = [userid, userpw]
+  //         const [result] = await connection.execute(sql, params)
+
+  //         const user_idx = result.insertId;
+  //         const assetSql = `INSERT INTO ASSET (user_idx, input, output) values(?,?,?)`
+  //         const assetParams = [user_idx, 1000000, 0] //sql과 함께 바꿔야 함
+  //         const [assetResult] = await connection.execute(assetSql, assetParams)
+
+  //         console.log(assetResult)
+
+  //         const data = {
+  //             success: true,
+  //             userid: userid,
+  //             userpw: userpw,
+  //         }
+  //         console.log(data, 'data')
+
+  //         res.json(data);
+  //     } catch (error) {
+  //         console.log('Query Error');
+  //         console.log(error)
+  //         const data = {
+  //             success: false,
+  //             error: error.sqlMessage,
+  //         }
+  //         res.json(data)
+  //     }
+  // } catch (error) {
+  //     console.log('DB Error')
+  //     console.log(error)
+  //     const data = {
+  //         success: false,
+  //         error: error.sqlMessage,
+  //     }
+  //     res.json(data)
+  // } finally {
+  //     connection.release();
+//   }
+// }
 
 
 
 module.exports = {
+  getAll,
   createOrderBuy,
   createOrderSell,
   deleteOrder,
-  garaInput
+  garaInput,
+  // createTradingBuy
 }

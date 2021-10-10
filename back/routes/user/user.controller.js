@@ -1,6 +1,14 @@
 const { pool } = require('../../config/dbconnection');
 const { createToken, jwtId } = require('../../jwt')
 const exchangeData = require('../../exchangeData')
+const request = require('request');
+const logger = require('../../logger')
+const rpc = require('../rpc/rpc.js')
+
+
+
+
+
 
 // 아이디 중복 검사
 const idCheck = async (req, res) => {
@@ -8,7 +16,8 @@ const idCheck = async (req, res) => {
     try {
         connection = await pool.getConnection(async conn => conn);
         try {
-            const { userid } = req.query // post로 userid 받아오기
+            const { userid } = req.body;
+
             const sql = `SELECT * FROM user WHERE user_id=?`
             const params = [userid]
             const result = await connection.execute(sql, params)
@@ -43,51 +52,71 @@ const idCheck = async (req, res) => {
 
 //============회원가입
 const createUser = async (req, res) => {
-    console.log(req.body, 'asd')
-    let connection;
-    try {
-        connection = await pool.getConnection(async conn => conn);
-        try {
-            const { userid, userpw } = req.body;
-            const sql = `INSERT INTO USER (user_id, user_pw) values(?,?);`
-            const params = [userid, userpw]
-            const [result] = await connection.execute(sql, params)
+    const { userid, userpw } = req.body;
+    let address;
+    const body = rpc.createOptions('getnewaddress', [userid]);
+    const url = rpc.url();
+    const headers = rpc.headers();
+    const option = {
+        url,
+        method: "POST",
+        headers,
+        body
+    }
+    const callback = async (error, response, data) => {
+        if (error == null && response.statusCode == 200) {
+            const body = JSON.parse(data);
+            address = body.result
+            let connection;
+            try {
+                connection = await pool.getConnection(async conn => conn);
+                try {
+                    const sql = `INSERT INTO USER (user_id, user_pw,user_wallet) values(?,?,?);`
+                    const params = [userid, userpw, address]
+                    const [result] = await connection.execute(sql, params)
 
-            const user_idx = result.insertId;
-            const assetSql = `INSERT INTO ASSET (user_idx, input, output) values(?,?,?)`
-            const assetParams = [user_idx, 1000000, 0] //sql과 함께 바꿔야 함
-            const [assetResult] = await connection.execute(assetSql, assetParams)
+                    const user_idx = result.insertId;
+                    const assetSql = `INSERT INTO ASSET (user_idx, input, output) values(?,?,?)`
+                    const assetParams = [user_idx, 1000000, 0]
+                    const [assetResult] = await connection.execute(assetSql, assetParams)
 
-            console.log(assetResult)
+                    const data = {
+                        success: true,
+                        userid: userid,
+                        userpw: userpw,
+                    }
 
-            const data = {
-                success: true,
-                userid: userid,
-                userpw: userpw,
+                    res.json(data);
+                } catch (error) {
+                    console.log('Query Error');
+                    console.log(error)
+                    const data = {
+                        success: false,
+                        error: error.sqlMessage,
+                    }
+                    res.json(data)
+                }
+            } catch (error) {
+                console.log('DB Error')
+                console.log(error)
+                const data = {
+                    success: false,
+                    error: error.sqlMessage,
+                }
+                res.json(data)
+            } finally {
+                connection.release();
             }
-            console.log(data, 'data')
-
-            res.json(data);
-        } catch (error) {
-            console.log('Query Error');
-            console.log(error)
+        } else {
             const data = {
                 success: false,
-                error: error.sqlMessage,
+                error: error,
             }
             res.json(data)
         }
-    } catch (error) {
-        console.log('DB Error')
-        console.log(error)
-        const data = {
-            success: false,
-            error: error.sqlMessage,
-        }
-        res.json(data)
-    } finally {
-        connection.release();
     }
+
+    request(option, callback)
 }
 
 
@@ -302,6 +331,52 @@ const outstandingLog = async (req, res) => {
     }
 }
 
+// 지환 추가, 미체결 내역
+const nontd = async (req, res) => {
+    let connection;
+    try {
+        connection = await pool.getConnection(async conn => conn);
+        try {
+            let data = {}
+            const { userid } = req.body;
+            const useridSql = `SELECT * FROM user WHERE user_id = ? `;
+            const useridParams = [userid];
+            const [useridResult] = await connection.execute(useridSql, useridParams);
+            
+            let user_idx;
+            useridResult.length == 0 ? user_idx = 0 : user_idx = useridResult[0].id;
+
+            const dataSql = `SELECT * FROM order_list WHERE user_idx = ?`;
+            const dataParams = [user_idx];
+            const [result] = await connection.execute(dataSql, dataParams);
+
+            console.log('백엔드 미체결', result);
+
+            data = {
+                success: true,
+                nontdList: result,
+            }
+            res.json(data);
+        } catch (error) {
+            console.log('Query Error', error);
+            const data = {
+                success: false,
+                error: error.sqlMessage,
+            }
+            res.json(data);
+        }
+    } catch (error) {
+        console.log('DB Error')
+        console.log(error);
+        const data = {
+            success: false,
+            error: error.sqlMessage,
+        }
+        res.json(data);
+    } finally {
+        connection.release();
+    }
+}
 
 module.exports = {
     idCheck,
@@ -310,4 +385,7 @@ module.exports = {
     logoutUser,
     txHistory,
     outstandingLog,
+    nontd,
 }
+
+

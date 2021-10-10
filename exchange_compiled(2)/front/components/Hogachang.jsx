@@ -60,8 +60,8 @@ const Hogachang = ()=>{
             return (buyList.slice(0, 6).map((e, k) => {
                 return (
                     <tr key={k} className={styles.table_buy}>
-                        <td>{e.leftover}</td>
                         <td>{e.price}</td>
+                        <td>{e.leftover}</td>
                     </tr>
                 )
             })

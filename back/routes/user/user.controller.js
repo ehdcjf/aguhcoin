@@ -3,7 +3,7 @@ const { createToken, jwtId } = require('../../jwt')
 const exchangeData = require('../../exchangeData')
 const request = require('request');
 const logger = require('../../logger')
-const rpc = require('../rpc/rpc')
+const rpc = require('../rpc/rpc.js')
 
 
 
@@ -55,8 +55,8 @@ const createUser = async (req, res) => {
     const { userid, userpw } = req.body;
     let address;
     const body = rpc.createOptions('getnewaddress', [userid]);
-    const url = rpc.url;
-    const headers = rpc.headers;
+    const url = rpc.url();
+    const headers = rpc.headers();
     const option = {
         url,
         method: "POST",

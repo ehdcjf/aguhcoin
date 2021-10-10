@@ -3,6 +3,8 @@ const messageData = require('../../messageData')
 const ws = require('../../socket')
 const exchangeData = require('../../exchangeData')
 const rpc = require('../rpc/rpc')
+const { jwtId } = require('../../jwt')
+
 
 //우선 내가 100원에 10개 팔기로 했는데 동시에 내가 100원에 10개 사기로 했다면. 못하게 해야되고. 
 // 내가 100원에 10개 사기로 했는데, 내가 100원에 10개 팔고 있으면 그것도 막아줘야됨. 
@@ -17,7 +19,9 @@ const getAll = async (req, res) => {
 }
 
 const createOrderBuy = async (req, res) => {
-  const { user_idx, user_id, coin_id = 1 } = req.body;
+  const { aguhToken } = req.cookies;
+  const idx = jwtId(aguhToken)
+  const { user_idx, coin_id = 1 } = req.body;
   let { qty, price } = req.body;
   let connection;
   try {
@@ -86,8 +90,8 @@ const createOrderBuy = async (req, res) => {
             const Coin = sellerLeftover > 0 ? qty : order.leftover;
 
             const body = rpc.createOptions('getnewaddress', [order.user_id, myAddress, Coin]);
-            const url = rpc.url;
-            const headers = rpc.headers;
+            const url = rpc.url();
+            const headers = rpc.headers();
             const option = {
               url,
               method: "POST",
@@ -151,6 +155,9 @@ const createOrderBuy = async (req, res) => {
 
 
 const createOrderSell = async (req, res) => {
+  const { aguhToken } = req.cookies.aguhToken;
+  console.log(req.cookies)
+  console.log(aguhToken)
   const { user_idx, coin_id = 1 } = req.body;
   let { qty, price } = req.body;
   let connection;
@@ -228,8 +235,8 @@ const createOrderSell = async (req, res) => {
 
 
             const body = rpc.createOptions('getnewaddress', [myAccount, order.user_wallet, Coin]);
-            const url = rpc.url;
-            const headers = rpc.headers;
+            const url = rpc.url();
+            const headers = rpc.headers();
             const option = {
               url,
               method: "POST",

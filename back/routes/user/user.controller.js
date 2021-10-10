@@ -331,6 +331,52 @@ const outstandingLog = async (req, res) => {
     }
 }
 
+// 지환 추가, 미체결 내역
+const nontd = async (req, res) => {
+    let connection;
+    try {
+        connection = await pool.getConnection(async conn => conn);
+        try {
+            let data = {}
+            const { userid } = req.body;
+            const useridSql = `SELECT * FROM user WHERE user_id = ? `;
+            const useridParams = [userid];
+            const [useridResult] = await connection.execute(useridSql, useridParams);
+            
+            let user_idx;
+            useridResult.length == 0 ? user_idx = 0 : user_idx = useridResult[0].id;
+
+            const dataSql = `SELECT * FROM order_list WHERE user_idx = ?`;
+            const dataParams = [user_idx];
+            const [result] = await connection.execute(dataSql, dataParams);
+
+            console.log('백엔드 미체결', result);
+
+            data = {
+                success: true,
+                nontdList: result,
+            }
+            res.json(data);
+        } catch (error) {
+            console.log('Query Error', error);
+            const data = {
+                success: false,
+                error: error.sqlMessage,
+            }
+            res.json(data);
+        }
+    } catch (error) {
+        console.log('DB Error')
+        console.log(error);
+        const data = {
+            success: false,
+            error: error.sqlMessage,
+        }
+        res.json(data);
+    } finally {
+        connection.release();
+    }
+}
 
 module.exports = {
     idCheck,
@@ -339,6 +385,7 @@ module.exports = {
     logoutUser,
     txHistory,
     outstandingLog,
+    nontd,
 }
 
 

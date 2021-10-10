@@ -21,7 +21,14 @@ const Hogachang = ()=>{
             })
             )
         } else {
-            return <div>없음</div>
+            return(
+                <tr>
+                    <td>
+                        없음
+                    </td>
+                </tr>
+            ) 
+            
         }
 
     }
@@ -29,17 +36,33 @@ const Hogachang = ()=>{
     const renderSellList = () => {
         if (sellList.length > 0) {
             return (sellList.slice(0, 6).map((e, k) => {
-                return (
+                if(e.price==null && e.leftover==null){
+                    return (
                     <tr key={k} className={styles.table_sell}>
-                        <td>{e.price}</td>
-                        <td>{e.leftover}</td>
+                        <td>{" "}</td>
+                        <td>{" "}</td>
                     </tr>
-                )
+                    )   
+                }else{
+                    return (
+                        <tr key={k} className={styles.table_sell}>
+                            <td>{e.price}</td>
+                            <td>{e.leftover}</td>
+                        </tr>
+                    )
+                }
+                
             })
 
             )
         } else {
-            return <div>없음</div>
+            return(
+                <tr>
+                    <td>
+                        없음
+                    </td>
+                </tr>
+            ) 
         }
     }
     const renderBuyList = () => {
@@ -47,15 +70,21 @@ const Hogachang = ()=>{
             return (buyList.slice(0, 6).map((e, k) => {
                 return (
                     <tr key={k} className={styles.table_buy}>
-                        <td>{e.leftover}</td>
                         <td>{e.price}</td>
+                        <td>{e.leftover}</td>
                     </tr>
                 )
             })
 
             )
         } else {
-            return <div>없음</div>
+            return(
+                <tr>
+                    <td>
+                        없음
+                    </td>
+                </tr>
+            ) 
         }
     }
 
@@ -81,11 +110,11 @@ const Hogachang = ()=>{
                     {renderTxList()}
                 </tbody>
             </table>
-            <table className={styles.table_main}>
-                {renderSellList()}
+            <table className={styles.table_sell}>
+                <tbody>{renderSellList()}</tbody>
             </table>
-            <table className={styles.table_main}>
-                {renderBuyList()}
+            <table className={styles.table_buy}>
+                <tbody>{renderBuyList()}</tbody>
             </table>
             </div>
             

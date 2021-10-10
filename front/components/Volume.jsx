@@ -18,7 +18,11 @@ const Volume = () => {
         );
       });
     } else {
-      return <div>없음</div>;
+      return (
+        <tr>
+          <td>없음</td>
+        </tr>
+      )
     }
   }
   useEffect(() => {

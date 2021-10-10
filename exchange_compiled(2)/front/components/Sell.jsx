@@ -31,7 +31,8 @@ const Sell = () => {
     const result = await response.json();
     console.log("매수매도?", result);
     if (result.success) {
-    } else {
+    } else if (!isLogin) {
+      alert("로그인해주세요.");
     }
   };
   return (

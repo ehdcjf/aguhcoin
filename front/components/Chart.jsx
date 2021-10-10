@@ -16,7 +16,8 @@ import { useSelector } from "react-redux";
     const options = {
       title: {
         text: 'Aguh Coin',
-        align: 'left'
+        align: 'center',
+        size: '20px',
       },
       annotations: {
         xaxis: [
@@ -59,14 +60,15 @@ import { useSelector } from "react-redux";
     return (
       <div id="chartBox">
         <div id="chart">
-        <>  
-            <span className={styles.coin_name}>악어코인</span><span className={styles.sub_side}>시세 정보</span>
-        </>
+          <>
+            {/* <span className={styles.coin_name}>악어코인</span><span className={styles.sub_side}>시세 정보</span> */}
+          </>
           <ReactApexChart
+            className={styles.coin_chart}
             options={options}
             series={series}
             type="candlestick"
-            height={600}
+            height={450}
           />
         </div>
       </div>

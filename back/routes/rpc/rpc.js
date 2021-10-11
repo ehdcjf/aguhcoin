@@ -20,13 +20,13 @@ function createOptions(method, params = []) {
   return JSON.stringify(obj)
 }
 
-const url = () => {
-  const USER = process.env.RPC_USER || 'hello';
-  const PW = process.env.RPC_PASSWORD || '1234';
-  const RPCPORT = process.env.RPC_PORT || 3005;
-  const ID_STRING = 'aguhcoin_exchange';
-  return `http://${USER}:${PW}@127.0.0.1:${RPCPORT}`;
-}
+// const url = () => {
+//   const USER = process.env.RPC_USER || 'hello';
+//   const PW = process.env.RPC_PASSWORD || '1234';
+//   const RPCPORT = process.env.RPC_PORT || 3005;
+//   const ID_STRING = 'aguhcoin_exchange';
+//   return ;
+// }
 
 
 

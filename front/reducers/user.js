@@ -81,8 +81,9 @@ export const UserJoinAction = data => {
                 headers: { "content-type": "application/json", },
                 body: JSON.stringify({ ...data }),
             });
+            console.log(response);
             const result = await response.json();
-
+            console.log(result);
             dispatch(UserJoin_SUCCESS(result));
         } catch (e) {
             dispatch(UserJoin_ERROR());

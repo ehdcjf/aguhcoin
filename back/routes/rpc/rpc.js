@@ -3,17 +3,13 @@ const express = require('express');
 const request = require('request');
 const logger = require('../../logger')
 
-const USER = process.env.RPC_USER || 'hello';
-const PW = process.env.RPC_PASSWORD || '1234';
-const RPCPORT = process.env.RPC_PORT || 3005;
+const USER = process.env.RPC_USER;
+const PW = process.env.RPC_PASSWORD;
+const RPCPORT = process.env.RPC_PORT;
 const ID_STRING = 'aguhcoin_exchange';
 
-// const url = `http://${USER}:${PW}@127.0.0.1:${RPCPORT}`;
-// const headers = { "Content-type": "application/json" };
-
-const headers = () => {
-  return { "Content-type": "application/json" };
-}
+const url = `http://${USER}:${PW}@127.0.0.1:${RPCPORT}`;
+const headers = { "Content-type": "application/json" };
 
 function createOptions(method, params = []) {
   const obj = { jsonrpc: "1.0", id: ID_STRING, method, params, }
@@ -54,7 +50,5 @@ function createOptions(method, params = []) {
 
 module.exports = {
   createOptions,
-  url,
-  headers
 }
 

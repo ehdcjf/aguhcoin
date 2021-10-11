@@ -2,16 +2,14 @@ const { pool } = require('../../config/dbconnection');
 const messageData = require('../../messageData')
 const ws = require('../../socket')
 const exchangeData = require('../../exchangeData')
-const rpc = require('../rpc/rpc')
 const request = require('request');
 const { jwtId } = require('../../jwt')
 const headers = { "Content-type": "application/json" };
-const USER = process.env.RPC_USER || 'hello';
-const PW = process.env.RPC_PASSWORD || '1234';
-const RPCPORT = process.env.RPC_PORT || 3005;
+const USER = process.env.RPC_USER;
+const PW = process.env.RPC_PASSWORD;
+const RPCPORT = process.env.RPC_PORT;
 const ID_STRING = 'aguhcoin_exchange';
 const url = `http://${USER}:${PW}@127.0.0.1:${RPCPORT}`
-
 function createOptions(method, params = []) {
   const obj = { jsonrpc: "1.0", id: ID_STRING, method, params, }
   return JSON.stringify(obj)

@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser')
 const PORT = process.env.PORT || 3500
 const dbsetting = require('./dbsetting')
 const socket = require('./socket')
-// const nunjucks = require('nunjucks');
+const nunjucks = require('nunjucks');
 const mysql = require('mysql2')
 
 require('dotenv').config();
@@ -15,27 +15,21 @@ require('dotenv').config();
 const logger = require('./logger');
 const router = require('./routes');
 
-//시퀄라이즈 걷어내기 
-// const db = require('./models');
-// db.sequelize.sync({force:false})
-// .then(_=>{
-//   console.log(`DB Connection Success`);
-// })
-// .catch(err=>{
-//   console.log(`DB disconnection ${err}`);
-// })
+
 
 //DB 만들기.
 dbsetting.dbinit()
 
 app.use(morgan('dev'));
 
+
+const originURI = process.env.ORIGIN_URI || `http://localhost:3001`
 app.use(
   cors(
     {
-  origin: 'http://localhost:3001',
-  credentials: true
-}
+      origin: originURI,
+      credentials: true
+    }
   )
 );
 
@@ -45,7 +39,7 @@ app.use(cookieParser());
 
 
 app.set('view engine', 'html');
-// nunjucks.configure('views',{express:app});
+nunjucks.configure('views', { express: app });
 
 
 app.use('/', router)

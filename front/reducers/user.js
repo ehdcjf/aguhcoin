@@ -11,6 +11,7 @@ const initialState = {
     availableCoin: 0
 }
 
+const server = process.env.SERVER || 'http://localhost:3500';
 const DUPLICATECHECK_REQUEST = "DUPLICATECHECK_REQUEST";
 const DUPLICATECHECK_SUCCESS = "DUPLICATECHECK_SUCCESS";
 const DUPLICATECHECK_ERROR = "DUPLICATECHECK_ERROR";
@@ -23,7 +24,6 @@ const USER_LOGIN_ERROR = "USER_LOGIN_ERROR";
 const USER_LOGOUT_REQUEST = "USER_LOGOUT_REQUEST";
 const USER_LOGOUT_SUCCESS = "USER_LOGOUT_SUCCESS";
 const USER_LOGOUT_ERROR = "USER_LOGOUT_ERROR";
-
 const GET_TOTAL_ASSET = "GET_TOTAL_ASSET"
 
 
@@ -33,7 +33,7 @@ export const DuplicateCheckAction = data => {
         dispatch(DuplicateCheck_REQUEST());
 
         try {
-            let url = `http://localhost:3500/user/idcheck`;
+            let url = server + `/user/idcheck`;
             const response = await fetch(url, {
                 method: "POST",
                 mode: "cors",
@@ -73,7 +73,7 @@ export const UserJoinAction = data => {
         dispatch(UserJoin_REQUEST());
 
         try {
-            let url = `http://localhost:3500/user/join`;
+            let url = server + `/user/join`;
             const response = await fetch(url, {
                 method: "POST",
                 mode: "cors",
@@ -114,7 +114,7 @@ export const UserLoginAction = data => {
         dispatch(UserLogin_REQUEST());
 
         try {
-            let url = 'http://localhost:3500/user/login';
+            let url = server + '/user/login';
             const response = await fetch(url, {
                 method: "POST",
                 mode: "cors",
@@ -168,7 +168,7 @@ export const UserLogoutAction = data => {
         dispatch(UserLogout_REQUEST());
 
         try {
-            let url = 'http://localhost:3500/user/logout';
+            let url = server + '/user/logout';
             const response = await fetch(url, {
                 method: "POST",
                 mode: "cors",

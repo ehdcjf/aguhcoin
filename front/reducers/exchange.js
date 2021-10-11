@@ -12,6 +12,7 @@ const initialState = {
 
 // 1. success인지 확인 -> 서버에서 이미 한번 거르므로 필요없음
 
+const sever = process.env.SERVER || 'http://localhost:3500';
 const GET_BUYLIST = "GET_BUYLIST"
 const GET_SELLLIST = "GET_SELLLIST"
 const GET_TXLIST = "GET_TXLIST"
@@ -27,7 +28,7 @@ export const GetExchangeAction = () => {
     return async (dispatch) => {
         dispatch(GetExchange_REQUEST());
         try {
-            let url = `http://localhost:3500/exchange/all`;
+            let url = sever + `/exchange/all`;
             const response = await fetch(url, {
                 method: "get",
                 mode: "cors",

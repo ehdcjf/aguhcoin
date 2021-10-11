@@ -204,7 +204,7 @@ const JoinScreen = () => {
 
     // Step 2 정보 입력
     // 회원가입 유효성 검사
-    const duplicateCheck = () => {
+    const duplicateCheck = e => {
         if (useridInput.value != '') {
             const data = {
                 userid: useridInput.value,
@@ -250,7 +250,11 @@ const JoinScreen = () => {
         }
 
         dispatch(UserJoinAction(data));
-        nextStep(e);
+        if (success == false) {
+            alert('아이디 또는 비밀번호를 확인해주세요.');
+        } else {
+            nextStep(e);
+        }
     }
 
     // 메인으로

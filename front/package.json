@@ -13,6 +13,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "apexcharts": "^3.28.3",
     "axios": "^0.22.0",
     "dayjs": "^1.10.7",
     "dynamic": "^4.2.2",

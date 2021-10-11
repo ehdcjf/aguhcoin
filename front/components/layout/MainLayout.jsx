@@ -1,7 +1,6 @@
 import Header from '../Header';
 import Space from '../Space';
 
-
 const MainLayout = ({children}) => {
     return (
         <>

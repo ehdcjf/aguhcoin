@@ -1,11 +1,38 @@
-import styles from "../styles/Chart.module.css"
+
 import { useState, useEffect } from "react"
 import dynamic from 'next/dynamic';
 const ReactApexChart = dynamic(() => import('react-apexcharts'), { ssr: false });
 import dayjs from 'dayjs'
 import { useSelector } from "react-redux";
+import styled from 'styled-components';
 
+const Charts = styled.div`
+.chart{
+    background: white;
+    width: 1000px;
+    height: 450px;
+    border: 1px solid black;
+    box-sizing: border-box;
+    margin: 20px auto;
+}
 
+.chart_header{
+    background: blue;
+}
+.sub_side{
+    padding: 4px;
+    display: inline-block;
+    width: 90%;
+    text-align: right;
+}
+/* .coin_chart{
+    width: 1000px;
+    height: 300px;
+    margin: 30px auto;
+    font-size: 24px;
+    background: white;
+} */
+`
 
   
   const Chart = () => {
@@ -58,13 +85,11 @@ import { useSelector } from "react-redux";
 
 
     return (
-      <div id="chartBox">
-        <div id="chart">
-          <>
-            {/* <span className={styles.coin_name}>악어코인</span><span className={styles.sub_side}>시세 정보</span> */}
-          </>
+      <Charts>
+      <div className="chart">
+        <div>
           <ReactApexChart
-            className={styles.coin_chart}
+            className="coin_chart"
             options={options}
             series={series}
             type="candlestick"
@@ -72,6 +97,7 @@ import { useSelector } from "react-redux";
           />
         </div>
       </div>
+      </Charts>
     )
   }
   

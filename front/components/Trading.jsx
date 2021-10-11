@@ -1,4 +1,4 @@
-import styles from '../styles/Trading.module.css'
+
 import { useEffect,useState } from 'react'
 import styled from 'styled-components'
 import Buy from '../components/Buy';
@@ -6,7 +6,112 @@ import Sell from '../components/Sell'
 
 
 const TradingContain = styled.div`
-    width: 450px;
+.trading{
+    width: 500px;
+    height: 500px;
+    display: inline-block;
+    box-sizing: border-box;
+    border: 1px solid black;
+    background: white;
+    position: relative;
+}
+
+/* .sub_header> span > a {
+    padding: 2px;
+    box-sizing: border-box;
+    display: inline-block;
+    width: 100px;
+    height: 40px;
+    border: 1px solid #ededed;
+    text-align: center;
+    color: black;
+    border-bottom: 3px solid crimson;
+    font-size: 19px;
+} */
+
+.sub_header{
+    padding: 3px;
+    box-sizing: border-box;
+    display: inline-block;
+    width: 100px;
+    height: 40px;
+    border: 1px solid #ededed;
+    text-align: center;
+    color: #222;
+    font-size: 18px;
+    float: left;
+}
+
+.sub_header:hover{
+    cursor: pointer;
+    border-bottom: 3px solid crimson;
+
+}
+
+/* 매수 */
+.buy_contain{
+    width: 100%;
+    height: 400px;
+    margin-top: 70px;
+    padding: 4px;
+}
+.possible_asset{
+    display: inline-block;
+}
+
+.buy_contain>li{
+    display: flex;
+    padding: 9px;
+    margin-top: 10px; 
+}
+
+.buy_contain>li>a{
+    line-height: 40px;
+    height: 25px;
+    font-size: 14px;
+    width: 130px;
+    color: gray;
+    
+}
+
+.buy_contain>li>input{
+    width: 280px;
+    height: 35px;
+    border: 2px solid #ededed;
+}
+.cf{
+    margin-top: 20px;
+    /* padding: 8px; */
+    width: 420px;
+    font-size: 8px;
+    display: inline-block;
+    text-align: right;
+}
+
+.buy_button{
+    width: 250px;
+    height: 34px;
+    padding: 4px;
+    box-sizing: border-box;
+    background: crimson;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    display: inline-block;
+    position: relative;
+    left: 50%;
+    top: 20%;
+    transform: translateX(-50%);
+}
+.buy_button:hover{
+    cursor: pointer;
+    background: rgb(185, 17, 51);
+}
+
+.hi{
+    color: turquoise;
+}
+    width: 480px;
     display: inline-block;
     box-sizing: border-box;
     border: 1px solid black;
@@ -48,7 +153,7 @@ const Trading = ()=>{
                                 <a 
                                 id={k} 
                                 onClick={handleClick}
-                                className={styles.sub_header}
+                                className="sub_header"
                                 >
                                 {e}
                                 </a>
@@ -71,87 +176,4 @@ const Trading = ()=>{
 }
 
 export default Trading;
-// export default function Trading(){
-//     const Subheader =()=>{
-//         return(
-//             <div>
-//                 <span><a>매수</a></span>
-//                 <span><a>매도</a></span>
-//             </div>
-//         )
-//     }
 
-//     return (
-//         <div className={styles.hi}>
-//             <Subheader/>
-//         </div>
-//     )
-// }
-
-
-
-// import styles from '../styles/Trading.module.css'
-// import { useState } from 'react'
-
-
-// function Subheader(){
-//     return(
-//         <>
-//         <div className={styles.sub_header}>
-//             <span><a class="buy" className={styles.mesu}>매수</a></span>
-//             <span><a>매도</a></span>
-//         </div>
-//         </>
-//     )
-// }
-// const Buy = ()=>{
-//     return(
-//         <>
-//             <ul className={styles.buy_contain}>
-//                 <li><a>주문 가능액</a><h3 className={styles.possible_asset}>자기 자산만큼</h3></li>
-//                 <li><a>매수 가격(krw)</a><input type="text"/></li>
-//                 <li><a>주문 수량</a><input type="text"/></li>
-//                 <li><a>주문 총액</a><input type="text"/></li>
-//                 <div className={styles.cf}>-최소 주문금액: 1,000 KRW    -수수료: 0.05 %</div>
-//                 <button className={styles.buy_button}>매수하기</button>
-//             </ul>
-//         </>
-//     )
-// }
-// const Sell = ()=>{
-//     return(
-//         <>
-//         <ul className={styles.buy_contain}>
-//                 <li><a>주문 가능액</a><h3 className={styles.possible_asset}>자기 자산만큼</h3></li>
-//                 <li><a>매도 가격(krw)</a><input type="text"/></li>
-//                 <li><a>주문 수량</a><input type="text"/></li>
-//                 <li><a>주문 총액</a><input type="text"/></li>
-//                 <div className={styles.cf}>-최소 주문금액: 1,000 KRW    -수수료: 0.05 %</div>
-//             </ul>
-//         </>
-//     )
-// }
-
-// const [buy , setBuy] = useState(<Buy/>)
-// const [sell, setSell] = useState(<Sell/>)
-// function changeTrading(){
-//     setBuy(<Buy/>)
-//     setSell(<Sell/>)
-// }
-
-// const Trading =()=> {
-//         return(
-        
-//             <div className={styles.trading}>
-//                 <Subheader/>
-//                  <Buy/>
-//                {/* <Sell/> */}
-//                 {/* <>
-//                 {bs}
-//                 </> */}
-//             </div>
-        
-//         )
-// }
-
-// export default Trading

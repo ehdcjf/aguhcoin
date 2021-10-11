@@ -2,6 +2,7 @@ import Link from 'next/link';
 import styled from 'styled-components';
 
 const Menu = styled.div`
+    height: 100%;
     display: flex;
     flex-direction: row;
     width: 60%;

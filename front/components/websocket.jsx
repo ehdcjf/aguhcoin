@@ -12,9 +12,9 @@ import { UpdateExchange } from "../reducers/exchange";
 
 const WebSocketWrap = ({ children }) => {
   const dispatch = useDispatch();
-
+  const socketSever = process.env.SOCKET_SERVER || 'ws://localhost:6005';
   const { sendMessage, lastMessage, lastJsonMessage, readyState } =
-    useWebSocket("ws://localhost:6005");
+    useWebSocket(socketSever);
 
   useEffect(() => {
     if (lastJsonMessage != null) {

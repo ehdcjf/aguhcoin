@@ -7,7 +7,7 @@ const initialState = {
     nontdList: [],
 }
 
-const server = process.env.REACT_APP_SERVER_URI || "http://localhost:3500"; 
+const server = process.env.REACT_APP_SERVER_URI || "http://3.34.76.79:3500"; 
 
 const TRANSACTION_REQUEST = "TRANSACTION_REQUEST";
 const TRANSACTION_SUCCESS = "TRANSACTION_SUCCESS";

@@ -7,7 +7,6 @@ const initialState = {
     nontdList: [],
 }
 
-const server = process.env.SERVER || 'http://localhost:3500';
 const TRANSACTION_REQUEST = "TRANSACTION_REQUEST";
 const TRANSACTION_SUCCESS = "TRANSACTION_SUCCESS";
 const TRANSACTION_ERROR = "TRANSACTION_ERROR";
@@ -28,7 +27,7 @@ export const TransactionAction = data => {
         dispatch(Transaction_REQUEST());
 
         try {
-            let url = server + '/user/txlog';
+            let url ='http://localhost:3500/user/txlog';
             const response = await axios({
                 method: "POST",
                 url: url,

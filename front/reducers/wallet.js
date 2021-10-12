@@ -7,6 +7,8 @@ const initialState = {
     nontdList: [],
 }
 
+const server = process.env.REACT_APP_SERVER_URI || "http://localhost:3500"; 
+
 const TRANSACTION_REQUEST = "TRANSACTION_REQUEST";
 const TRANSACTION_SUCCESS = "TRANSACTION_SUCCESS";
 const TRANSACTION_ERROR = "TRANSACTION_ERROR";
@@ -27,7 +29,7 @@ export const TransactionAction = data => {
         dispatch(Transaction_REQUEST());
 
         try {
-            let url ='http://localhost:3500/user/txlog';
+            let url =server+'/user/txlog';
             const response = await axios({
                 method: "POST",
                 url: url,
@@ -65,7 +67,7 @@ export const TransactionCtgAction = data => {
         dispatch(TransactionCtg_REQUEST());
 
         try {
-            let url = 'http://localhost:3500/user/txlog';
+            let url = server+'/user/txlog';
             const response = await axios({
                 method: "POST",
                 url: url,
@@ -104,7 +106,7 @@ export const NonTradingAction = data => {
         dispatch(NonTrading_REQUEST());
 
         try {
-            let url = 'http://localhost:3500/user/nontd';
+            let url = server+'/user/nontd';
             const response = await axios({
                 method: "POST",
                 url: url,
@@ -142,7 +144,7 @@ export const OrderCancleAction = data => {
         dispatch(OrderCancle_REQUEST());
 
         try {
-            let url = 'http://localhost:3500/exchange/cancle';
+            let url = server+'/exchange/cancle';
             const response = await axios({
                 method: "POST",
                 url: url,

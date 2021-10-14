@@ -36,9 +36,7 @@ function write(ws, message) {
 
 
 function broadcast(message) {  //객체형태로 메시지 전해주기. 그럼 stringify가 알아서 변환해줌. 
-  console.log(clients)
   clients.forEach(client => {
-    console.log('8888888888888888888')
     if (ConnectionStatus[client.readyState] === 'OPEN') {
       client.send(JSON.stringify(message))
     }
@@ -46,10 +44,8 @@ function broadcast(message) {  //객체형태로 메시지 전해주기. 그럼 
 }
 
 
-
-
-async function commission(cnt) {
-  let result = await exchangeData.getResult(cnt);
+async function commission(conn,cnt) {
+  let result = await exchangeData.getResult(conn,cnt);
   broadcast(result);
 }
 

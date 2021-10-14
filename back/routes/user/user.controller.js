@@ -40,7 +40,7 @@ const idCheck = async (req, res) => {
             console.log('Query Error');
             console.log(error)
             const data = {
-                success: null,
+                success: false,
                 error: "부적절한 입력입니다.",
             }
             res.json(data)
@@ -49,7 +49,7 @@ const idCheck = async (req, res) => {
         console.log('DB Error')
         console.log(error)
         const data = {
-            success: null,
+            success: false,
             error: `${error}: 관리자에게 문의해주세요.`,
         }
         res.json(data)
@@ -89,9 +89,8 @@ const createUser = async (req, res) => {
                     const data = {
                         success: true,
                         userid: userid,
-                        userpw: userpw,
+                        user_idx:user_idx,
                     }
-
                     res.json(data);
                 } catch (error) {
                     console.log('Query Error');
@@ -116,7 +115,7 @@ const createUser = async (req, res) => {
         } else {
             const data = {
                 success: false,
-                error: error,
+                error: 'rpc 실패',
             }
             res.json(data)
         }
@@ -141,7 +140,7 @@ const loginUser = async (req, res) => {
             if (result.length == 0) { //회원정보 없으면
                 data = {
                     success: false,
-                    isLogin: false,
+                    error:'회원정보가 없습니다' 
                 }
                 res.json(data)
             } else { // 있으면
@@ -150,13 +149,13 @@ const loginUser = async (req, res) => {
                 const totalAsset = await exchangeData.totalAsset(connection, user_idx);
                 data = {
                     success: true,
-                    isLogin: true,
                     userid: user_id,
                     user_idx: user_idx,
                     totalAsset,
                 }
+
                 // 쿠키 관련
-                const access_token = createToken(user_idx)
+                const access_token = createToken(`${user_idx}`)
                 res.cookie('aguhToken', access_token, { httpOnly: true, secure: true })
                 res.json(data)
             }

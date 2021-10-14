@@ -47,7 +47,7 @@ async function totalAsset(conn, data) {
 
 
 async function getBuyList() {
-  let ret = { ...defaultRet };
+  let ret = { success: false, list: null };
   let connection;
   try {
     connection = await pool.getConnection(async conn => conn);
@@ -60,18 +60,18 @@ async function getBuyList() {
         ORDER BY price DESC
         LIMIT 5;
         `
-      const temp = await connection.execute(buyListSql, []);
-      ret.buyList.success = true;
-      ret.buyList.list = temp[0];
+      const [temp] = await connection.execute(buyListSql, []);
+      ret.success = true;
+      ret.list = temp;
     } catch (error) {
       console.log('Query Error');
       console.log(error)
-      ret.buyList = messageData.errorMessage(error)
+      ret = messageData.errorMessage(error)
     }
   } catch (error) {
     console.log('DB Error')
     console.log(error)
-    ret.buyList = messageData.errorMessage(error);
+    ret = messageData.errorMessage(error);
   } finally {
     connection.release();
   }
@@ -94,9 +94,9 @@ async function getSellList() {
         ORDER BY price ASC
         LIMIT 5;
         `
-      const temp = await connection.execute(sellListSql, []);
+      const [temp] = await connection.execute(sellListSql, []);
       ret.sellList.success = true;
-      ret.sellList.list = temp[0].reverse();
+      ret.sellList.list = temp.reverse();
     } catch (error) {
       console.log('Query Error');
       console.log(error)

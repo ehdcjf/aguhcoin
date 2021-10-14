@@ -37,6 +37,7 @@ export const TransactionAction = data => {
             });
             const result = response.data;
 
+            
             dispatch(Transaction_SUCCESS(result));
         } catch (e) {
             dispatch(Transaction_ERROR());
@@ -151,6 +152,8 @@ export const OrderCancleAction = data => {
                 data: { ...data },
             });
             const result = response.data;
+
+            
 
             dispatch(OrderCancle_SUCCESS(result));
         } catch (e) {

@@ -30,7 +30,7 @@ const transaction = () => {
 const errorMessage = (error) => {
   return {
     success: false,
-    msg: "관리자에게 문의해주세요\n" + error.sqlMessage
+    msg: "관리자에게 문의해주세요." + error.sqlMessage
   }
 }
 

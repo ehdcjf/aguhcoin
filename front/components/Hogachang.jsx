@@ -2,6 +2,7 @@
 import { useEffect,useState,  } from "react"
 import { useSelector } from "react-redux";
 import styled from 'styled-components';
+// import {ResetError} from ''
 
 const HogaChang = styled.div`
 .hoga{
@@ -101,7 +102,7 @@ const HogaChang = styled.div`
 }
 `
 const Hogachang = ()=>{
-    const { buyList, sellList, txList } = useSelector((state) => state.exchange)
+    const { buyList, sellList, txList,isError,msg } = useSelector((state) => state.exchange)
 
     const renderTxList = () =>{
         if (txList.length > 0) {
@@ -183,11 +184,25 @@ const Hogachang = ()=>{
     }
 
     useEffect(()=>{
-        // console.log('aaaa', sellList)
+        console.log('change~~~~~~')
         renderTxList();
         renderSellList();
-        renderBuyList();
     },[sellList,buyList,txList])
+
+    useEffect(()=>{
+        console.log('buyyyyyyyyyyyyyyyy')
+        renderBuyList();
+    },[buyList])
+
+
+    // useEffect(()=>{
+    //     if(isError){
+    //         alert(msg);
+    //     dispatch(ResetError()) 
+    //     }
+
+    // },[isError])
+
     return(
         <HogaChang>
             <div className="hoga">

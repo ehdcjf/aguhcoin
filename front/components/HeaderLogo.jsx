@@ -23,13 +23,16 @@ const HeaderLogo = () => {
         <Logo>
             <div>
                 <Link href="/">
+                    <a>
+
                     {/* <a>Logo</a> */}
                     <Image
                         src="/LOGO_Reflection_152x64.png"
                         width="180%"
                         height="70%"
                         // layout="fill"
-                    />
+                        />
+                    </a>
                 </Link>
             </div>
         </Logo>

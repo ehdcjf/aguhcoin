@@ -27,6 +27,7 @@ const getAll = async (req, res) => {
   res.json(result)
 }
 
+
 const createOrderBuy = async (req, res) => {
   const { aguhToken } = req.cookies;
   const idx = jwtId(aguhToken)
@@ -45,8 +46,6 @@ const createOrderBuy = async (req, res) => {
   try {
     connection = await pool.getConnection(async conn => conn);
     try {
-
-
       // 나한테 살만큼의 돈이 있는지 확인한다. 
       const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
       const assetParams = [user_idx]
@@ -96,7 +95,12 @@ const createOrderBuy = async (req, res) => {
         if (availableOrder.length == 0) {
           // const UNLOCKSQL = `UNLOCK TABLES;`
           // await connection.query(UNLOCKSQL)
-          ws.broadcast(await exchangeData.getBuyList())
+          const result = await exchangeData.getBuyList()
+          const data = {
+            buyList :result,
+          }
+          
+          ws.broadcast(data);
           res.json(messageData.addOrder())
         } else {
           let cnt = 0;
@@ -147,8 +151,6 @@ const createOrderBuy = async (req, res) => {
           }
 
           ws.commission(cnt);
-
-
           res.json(messageData.transaction())
         }
       }

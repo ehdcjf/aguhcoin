@@ -132,7 +132,8 @@ const Sell = () => {
         qty: qty.value,
         user_idx: useridx,
       };
-      let url = `http://localhost:3500/exchange/sell`;
+      const server = process.env.REACT_APP_SERVER_URI || "http://3.34.76.79:3500"; 
+      let url = server+`/exchange/sell`;
       const response = await fetch(url, {
         method: "POST",
         mode: "cors",
@@ -141,7 +142,6 @@ const Sell = () => {
         body: JSON.stringify({ ...data }),
       });
       const result = await response.json();
-      console.log("매수매도?", result);
       if (result.success) {
         alert(result.msg);
       } else {

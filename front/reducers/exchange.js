@@ -35,6 +35,7 @@ export const GetExchangeAction = () => {
                 credentials: "include",
             });
             const result = await response.json();
+            console.log(result)
             if (result.success) {
                 dispatch(GetExchange_SUCCESS(result));
             }
@@ -43,13 +44,6 @@ export const GetExchangeAction = () => {
         }
     }
 }
-
-
-
-
-
-
-
 
 
 

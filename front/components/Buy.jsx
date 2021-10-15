@@ -1,6 +1,7 @@
 import useInput from "../hooks/useInput";
 import styled from 'styled-components';
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { UpdateLockedAsset } from "../reducers/user";
 
 
 const Buys = styled.div`
@@ -37,7 +38,6 @@ const Buys = styled.div`
     text-align: center;
     color: #222;
     font-size: 18px;
-    float: left;
 }
 
 .sub_header:hover{
@@ -114,6 +114,7 @@ const Buy = () => {
   const qty = useInput("");
   const price = useInput("");
   const { availableAsset, isLogin, useridx, } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -150,6 +151,8 @@ const Buy = () => {
       });
       const result = await response.json();
       alert(result.msg);
+      dispatch(UpdateLockedAsset(result))
+      
   };
 
   return (

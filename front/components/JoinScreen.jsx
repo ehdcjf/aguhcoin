@@ -141,8 +141,9 @@ const JoinScreen = () => {
     const dispatch = useDispatch();
     const { check, joinSuccess } = useSelector((state) => state.user);
 
-    const useridInput = useInput('');
+    const userid = useInput('');
     const userpw = useInput('');
+    const userpwc = useInput('');
 
     const [termCheck, setTermCheck] = useState(false);
     const [termCheck2, setTermCheck2] = useState(false);
@@ -215,8 +216,7 @@ const JoinScreen = () => {
 
     // 비밀번호 재입력 오류 메시지
     const pwdCheckMsg = e => {
-        const { value } = { ...e.target };
-        setUserpwError(userpw.value !== value);
+        setUserpwError(userpw.value !== userpwc.value);
         setUserpwCheck(value);
     }
 
@@ -231,12 +231,7 @@ const JoinScreen = () => {
     // 회원가입 버튼 클릭 시 submmit
     const handleSubmit = e => {
         e.preventDefault();
-
-        const idInput = document.getElementById('idInput');
-        const pwInput = document.getElementById('pwInput');
-        const pwcInput = document.getElementById('pwcInput');
-
-        if (useridInput.value == '' || pwInput.value == '' || pwcInput.value == ''){
+        if (userid.value == '' || userpw.value == '' || userpwc.value == ''){
             alert('아이디와 비밀번호는 필수 입력 사항입니다.');
             return;
         } else {
@@ -244,7 +239,7 @@ const JoinScreen = () => {
         }
 
         const data = {
-            userid:useridInput.value,
+            userid:userid.value,
             userpw:userpw.value
         }
 
@@ -332,7 +327,7 @@ const JoinScreen = () => {
                                             type="text"
                                             onBlur={duplicateCheck}
                                             placeholder="아이디 입력"
-                                            {...useridInput}
+                                            {...userid}
                                         />
                                         {
                                             check == false
@@ -353,7 +348,9 @@ const JoinScreen = () => {
                                             type="password"
                                             onChange={pwdCheckMsg}
                                             onBlur={pwdFocusout}
-                                            placeholder="비밀번호 재입력" />
+                                            placeholder="비밀번호 재입력" 
+                                            {...userpwc}    
+                                        />
                                         {
                                             userpwError == true
                                             ? <span style={{ color: "red" }}>비밀번호가 일치하지 않습니다.</span>
@@ -376,7 +373,7 @@ const JoinScreen = () => {
                                 <form>
                                     <InputContainer>
                                         <span>
-                                            {useridInput}님의 가입이 정상적으로 완료 되었습니다.
+                                            {userid.value}님의 가입이 정상적으로 완료 되었습니다.
                                         </span>
                                     </InputContainer>
                                     <ButtonBox>

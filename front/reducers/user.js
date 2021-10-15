@@ -31,6 +31,8 @@ const USER_LOGOUT_REQUEST = "USER_LOGOUT_REQUEST";
 const USER_LOGOUT_SUCCESS = "USER_LOGOUT_SUCCESS";
 const USER_LOGOUT_ERROR = "USER_LOGOUT_ERROR";
 const GET_TOTAL_ASSET = "GET_TOTAL_ASSET"
+const UPDATE_LOCKED_ASSET = 'UPDATE_LOCKED_ASSET';
+const UPDATE_LOCKED_COIN = 'UPDATE_LOCKED_COIN';
 
 
 // Join -> DuplicateCheck(), 회원가입 아이디 유효성 검사
@@ -148,8 +150,6 @@ export const UserLoginAction = data => {
                 body: JSON.stringify({ ...data }),
             });
             const result = await response.json();
-            console.log('xxxxxxxxxxxxxxxxxxxxxxxxx')
-            console.log(result)
             if(result.success){
                 dispatch(UserLogin_SUCCESS(result));
             }else{
@@ -175,6 +175,23 @@ export const GetMyAsset = (data) => {
         data: totalAsset,
     }
 }
+
+export const UpdateLockedAsset = (data)=>{
+    console.log(data)
+    return {
+        type: UPDATE_LOCKED_ASSET,
+        data:data,
+    }
+}
+
+export const UpdateLockedCoin = (data)=>{
+    console.log(data)
+    return {
+        type: UPDATE_LOCKED_COIN,
+        data:data,
+    }
+}
+
 
 
 export const UserLogin_REQUEST = () => {
@@ -313,6 +330,23 @@ const reducer = (state = initialState, action) => {
                 ...state,
                 ...action.data,
             }
+        case UPDATE_LOCKED_ASSET:
+            let newLockedAsset = state.lockedAsset + action.data.asset_result;
+            let newavailableAsset = state.myAsset - newLockedAsset; 
+            return{
+                ...state,
+                lockedAsset:newLockedAsset,
+                availableAsset:newavailableAsset,
+            }
+        case UPDATE_LOCKED_COIN:
+            let newLockedCoin = state.lockedCoin + action.data.coin_result;
+            let newavailableCoin = state.myCoin - newLockedCoin; 
+            return{
+                ...state,
+                lockedCoin:newLockedCoin,
+                availableCoin:newavailableCoin,
+            }
+
         default:
             return state;
     }

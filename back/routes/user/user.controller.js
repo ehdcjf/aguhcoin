@@ -72,19 +72,19 @@ const createUser = async (req, res) => {
     const callback = async (error, response, data) => {
         if (error == null && response.statusCode == 200) {
             const body = JSON.parse(data);
-            address = body.result
+            address = body.result;
             let connection;
             try {
                 connection = await pool.getConnection(async conn => conn);
                 try {
-                    const sql = `INSERT INTO USER (user_id, user_pw,user_wallet) values(?,?,?);`
-                    const params = [userid, userpw, address]
-                    const [result] = await connection.execute(sql, params)
+                    const sql = `INSERT INTO USER (user_id, user_pw,user_wallet) values(?,?,?);`;
+                    const params = [userid, userpw, address];
+                    const [result] = await connection.execute(sql, params);
 
                     const user_idx = result.insertId;
-                    const assetSql = `INSERT INTO ASSET (user_idx, input, output) values(?,?,?)`
-                    const assetParams = [user_idx, 100000, 0]
-                    const [assetResult] = await connection.execute(assetSql, assetParams)
+                    const assetSql = `INSERT INTO ASSET (user_idx, input, output) values(?,?,?)`;
+                    const assetParams = [user_idx, 100000, 0];
+                    await connection.execute(assetSql, assetParams); 
 
                     const data = {
                         success: true,
@@ -136,17 +136,19 @@ const loginUser = async (req, res) => {
             const sql = `SELECT * FROM user WHERE user_id = ? AND user_pw = ?`
             const params = [userid, userpw]
             const [result] = await connection.execute(sql, params)
-            // const myAsset = calcAsset(connection,user_idx);
             if (result.length == 0) { //회원정보 없으면
+
                 data = {
                     success: false,
                     error:'회원정보가 없습니다' 
                 }
                 res.json(data)
             } else { // 있으면
+
                 const user_id = result[0].user_id
                 const user_idx = result[0].id
                 const totalAsset = await exchangeData.totalAsset(connection, user_idx);
+
                 data = {
                     success: true,
                     userid: user_id,

@@ -184,15 +184,18 @@ const Hogachang = ()=>{
     }
 
     useEffect(()=>{
-        console.log('change~~~~~~')
-        renderTxList();
         renderSellList();
-    },[sellList,buyList,txList])
+    },[sellList])
 
     useEffect(()=>{
-        console.log('buyyyyyyyyyyyyyyyy')
         renderBuyList();
     },[buyList])
+
+    useEffect(()=>{
+        renderTxList();
+    },[txList])
+
+
 
 
     // useEffect(()=>{

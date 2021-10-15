@@ -118,7 +118,7 @@ const createOrderBuy = async (req, res) => {
             success:true,
           }
           ws.broadcast(data);
-          res.json(messageData.addOrder())
+          res.json(messageData.addOrder({asset_result:qty*price}))
         } else {
           let cnt = 0;
           let flag = false;
@@ -162,13 +162,13 @@ const createOrderBuy = async (req, res) => {
             request(option, callback)
             qty -= order.leftover;
             cnt++;
-            if (qty <= 0 || flag) {
+            if (qty == 0 || flag) {
               break;
             }
           }
 
           ws.commission(connection,cnt);
-          res.json(messageData.transaction())
+          res.json(messageData.transaction({asset_result:qty*price}))
         }
       }
     } catch (error) {
@@ -261,7 +261,7 @@ const createOrderSell = async (req, res) => {
             success:true,
           }
           ws.broadcast(data);
-          res.json(messageData.addOrder())
+          res.json(messageData.addOrder({coin_result:qty}))
         } else {
 
           const myAccountSql = `SELECT user_id FROM user where id=?`
@@ -312,12 +312,12 @@ const createOrderSell = async (req, res) => {
 
             qty -= order.leftover;
             cnt++;
-            if (qty <= 0 || flag) break;
+            if (qty == 0 || flag) break;
           }
           // updateSQL += 'UNLOCK TABLES;'
 
-          ws.commission(cnt);
-          res.json(messageData.transaction())
+          ws.commission(connection,cnt);
+          res.json(messageData.transaction({coin_result:qty}))
         }
       }
     } catch (error) {
@@ -341,11 +341,24 @@ const deleteOrder = async (req, res) => {
   try {
     connection = await pool.getConnection(async conn => conn);
     try {
+      const orderInfoSql = `SELECT * FROM order_list WHERE id=?`
+      const [result] =await connection.execute(orderInfoSql, [order_id]);
+      let cancle = {
+        asset_result:0,
+        cosin_result:0 
+      }
+      if(result.order_type==0){
+        cancle.asset_result = -result.leftover * result.price;
+      }else{
+        cancle.coin_result = -result.leftover;
+      }
+
       const transactionListSql = `UPDATE order_list SET del=1 WHERE id=?;`
       await connection.execute(transactionListSql, [order_id]);
       const data = {
         success: true,
-        msg: `주문번호:${order_id}\n주문을 취소했습니다.`
+        msg: `주문번호:${order_id}\n주문을 취소했습니다.`,
+        cancle_order:cancle
       }
 
       const buyList = await exchangeData.getBuyList(connection);
@@ -360,7 +373,7 @@ const deleteOrder = async (req, res) => {
     } catch (error) {
       console.log('Query Error');
       console.log(error)
-      res.json(messageData.errorMessage(error))
+      res.json(messageData.errorMessage(error));
     }
   } catch (error) {
     console.log('DB Error')

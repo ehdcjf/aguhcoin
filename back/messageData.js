@@ -14,16 +14,18 @@ const notEnoughCoin = (data) => {
     ...data,
   }
 }
-const addOrder = () => {
+const addOrder = (data) => {
   return {
     success: true,
-    msg: "주문이 완료되었음을 알리는 메세지."
+    msg: "주문이 완료되었음을 알리는 메세지.",
+    ...data,
   }
 }
-const transaction = () => {
+const transaction = (data) => {
   return {
     success: true,
-    msg: "일부 혹은 전체 주문이 체결 됨을 알려주는 메세지."
+    msg: "일부 혹은 전체 주문이 체결 됨을 알려주는 메세지.",
+    ...data,
   }
 }
 

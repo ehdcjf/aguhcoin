@@ -1,6 +1,7 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import styled from 'styled-components';
 import useInput from "../hooks/useInput";
+import {UpdateLockedCoin} from '../reducers/user'
 
 
 const Sells = styled.div`
@@ -111,6 +112,7 @@ const Sells = styled.div`
 }
 `
 const Sell = () => {
+  const dispatch = useDispatch();
   const qty = useInput("");
   const price = useInput("");
   const { availableCoin, isLogin, useridx } = useSelector(
@@ -132,7 +134,7 @@ const Sell = () => {
         qty: qty.value,
         user_idx: useridx,
       };
-      const server = process.env.REACT_APP_SERVER_URI || "http://3.34.76.79:3500"; 
+      const server = process.env.NEXT_PUBLIC_APP_SERVER_URI || "http://3.34.76.79:3500"; 
       let url = server+`/exchange/sell`;
       const response = await fetch(url, {
         method: "POST",
@@ -142,10 +144,9 @@ const Sell = () => {
         body: JSON.stringify({ ...data }),
       });
       const result = await response.json();
-      if (result.success) {
         alert(result.msg);
-      } else {
-      }
+        dispatch(UpdateLockedCoin(result))
+
     }
   };
   return (

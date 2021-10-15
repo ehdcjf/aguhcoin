@@ -19,7 +19,7 @@ async function totalAsset(conn, data) {
   ret.myCoin = await calcMyCoin(conn, data);
   ret.lockedCoin = await calcLockCoin(conn, data);
   ret.availableCoin = ret.myCoin-ret.lockedCoin;
-  if (availableCoin != null && availableAsset != null) {
+  if (ret.availableCoin != null && ret.availableAsset != null) {
     ret.success = true;
   }else{
     ret.success = false
@@ -141,8 +141,8 @@ async function getTransactionList(conn,n) {
 async function getResult(conn,n) {  //return array
   let ret = {}  
   try {
-    ret.buyList = getBuyList(conn);
-    ret.sellList = getSellList(conn);
+    ret.buyList = await getBuyList(conn);
+    ret.sellList = await getSellList(conn);
 
       if (n == 0) {
         // 여기 시간 단위로 수정해야됨. 

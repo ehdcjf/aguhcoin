@@ -129,7 +129,7 @@ const Buy = () => {
       alert("로그인해주세요.");
       return;
     }
-    if (availableAsset < qty.value * price.value) {
+    if (myAsset - lockedAsset < qty.value * price.value) {
       alert("주문 총액이 주문 가능액을 초과하였습니다.");
       return;
     }

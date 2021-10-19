@@ -1,18 +1,18 @@
 const initialState = {
     loadding: true,
     isError: false,
-    nowPrice:0,
+    nowPrice: 0,
     buyList: [],
     sellList: [],
     txList: [],
     series: [{
         name: 'candle',
-        data: []
+        data: [{ x: new Date(), y: [0, 0, 0, 0] }]
     }]
 }
 
 
-const server = process.env.NEXT_PUBLIC_APP_SERVER_URI || "http://3.34.76.79:3500"; 
+const server = process.env.NEXT_PUBLIC_APP_SERVER_URI || "http://3.34.76.79:3500";
 
 const GET_BUYLIST = "GET_BUYLIST"
 const GET_SELLLIST = "GET_SELLLIST"
@@ -31,7 +31,7 @@ export const GetExchangeAction = () => {
     return async (dispatch) => {
         dispatch(GetExchange_REQUEST());
         try {
-            let url = server+`/exchange/all`;
+            let url = server + `/exchange/all`;
             const response = await fetch(url, {
                 method: "get",
                 mode: "cors",
@@ -54,17 +54,17 @@ export const GetExchange_SUCCESS = (data) => {
 
     const exchange = data
     return (dispatch) => {
-        if (exchange.buyList!=undefined && exchange.buyList.success) {
+        if (exchange.buyList != undefined && exchange.buyList.success) {
             dispatch(GetBuyList(exchange.buyList.list))
         }
-        if (exchange.sellList!=undefined &&exchange.sellList.success) {
+        if (exchange.sellList != undefined && exchange.sellList.success) {
             dispatch(GetSellList(exchange.sellList.list))
         }
-        if (exchange.txList!=undefined && exchange.txList.success) {
+        if (exchange.txList != undefined && exchange.txList.success) {
             dispatch(GetTxList(exchange.txList.list))
-            dispatch(GetNowPrice(exchange.txList.list[exchange.txList.list.length-1].price))
+            dispatch(GetNowPrice(exchange.txList.list[exchange.txList.list.length - 1].price))
         }
-        if (exchange.chartdata!=undefined && exchange.chartdata.length > 0) {
+        if (exchange.chartdata != undefined && exchange.chartdata.length > 0) {
             dispatch(GetChartData(exchange.chartdata))
         }
 
@@ -76,15 +76,15 @@ export const GetExchange_SUCCESS = (data) => {
 export function UpdateExchange(data) {
     const exchange = data
     return (dispatch) => {
-        if (exchange.buyList!=undefined && exchange.buyList.success) {
+        if (exchange.buyList != undefined && exchange.buyList.success) {
             dispatch(GetBuyList(exchange.buyList.list))
         }
-        if (exchange.sellList!=undefined &&exchange.sellList.success) {
+        if (exchange.sellList != undefined && exchange.sellList.success) {
             dispatch(GetSellList(exchange.sellList.list))
         }
-        if (exchange.txList!=undefined && exchange.txList.success) {
+        if (exchange.txList != undefined && exchange.txList.success) {
             dispatch(UpdateTxList(exchange.txList.list))
-            dispatch(UpdateNowPrice(exchange.txList.list[exchange.txList.list.length-1].price))
+            dispatch(UpdateNowPrice(exchange.txList.list[exchange.txList.list.length - 1].price))
             dispatch(UpdateChartData(exchange.txList.list))
         }
     }
@@ -206,7 +206,7 @@ const reducer = (state = initialState, action) => {
         case GET_NOW_PRICE:
             return {
                 ...state,
-                nowPrice:action.data,
+                nowPrice: action.data,
             }
 
         case GET_CHARTDATA:
@@ -232,6 +232,8 @@ const reducer = (state = initialState, action) => {
 
         case UPDATE_CHARTDATA:
             const data = action.data.list;
+
+
             let newChartdata = [...state.series[0].data]
             let cnt = 0;
             while (cnt < data.length) {

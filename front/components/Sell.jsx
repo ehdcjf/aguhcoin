@@ -123,7 +123,7 @@ const Sell = () => {
       alert("매도가격과 주문수량은 필수 입력 사항입니다.");
     } else if (!isLogin) {
       alert("로그인해주세요.");
-    } else if (availableCoin < qty.value) {
+    } else if (myCoin - lockedCoin < qty.value) {
       alert("주문 총액이 주문 가능액을 초과하였습니다.");
     } else {
       const data = {

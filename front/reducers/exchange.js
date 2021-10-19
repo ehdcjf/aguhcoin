@@ -10,7 +10,8 @@ const initialState = {
     }]
 }
 
-// 1. success인지 확인 -> 서버에서 이미 한번 거르므로 필요없음
+
+const server = process.env.NEXT_PUBLIC_APP_SERVER_URI || "http://3.34.76.79:3500"; 
 
 const GET_BUYLIST = "GET_BUYLIST"
 const GET_SELLLIST = "GET_SELLLIST"
@@ -27,13 +28,14 @@ export const GetExchangeAction = () => {
     return async (dispatch) => {
         dispatch(GetExchange_REQUEST());
         try {
-            let url = `http://localhost:3500/exchange/all`;
+            let url = server+`/exchange/all`;
             const response = await fetch(url, {
                 method: "get",
                 mode: "cors",
                 credentials: "include",
             });
             const result = await response.json();
+            console.log(result)
             if (result.success) {
                 dispatch(GetExchange_SUCCESS(result));
             }
@@ -41,12 +43,7 @@ export const GetExchangeAction = () => {
             dispatch(GetExchange_ERROR());
         }
     }
-
 }
-
-
-
-
 
 
 
@@ -54,16 +51,16 @@ export const GetExchange_SUCCESS = (data) => {
 
     const exchange = data
     return (dispatch) => {
-        if (exchange.buyList.success) {
+        if (exchange.buyList!=undefined && exchange.buyList.success) {
             dispatch(GetBuyList(exchange.buyList.list))
         }
-        if (exchange.sellList.success) {
+        if (exchange.sellList!=undefined &&exchange.sellList.success) {
             dispatch(GetSellList(exchange.sellList.list))
         }
-        if (exchange.txList.success) {
+        if (exchange.txList!=undefined && exchange.txList.success) {
             dispatch(GetTxList(exchange.txList.list))
         }
-        if (exchange.chartdata.length > 0) {
+        if (exchange.chartdata!=undefined && exchange.chartdata.length > 0) {
             dispatch(GetChartData(exchange.chartdata))
         }
 
@@ -74,15 +71,14 @@ export const GetExchange_SUCCESS = (data) => {
 
 export function UpdateExchange(data) {
     const exchange = data
-    console.log(data)
     return (dispatch) => {
-        if (exchange.buyList.success) {
+        if (exchange.buyList!=undefined && exchange.buyList.success) {
             dispatch(GetBuyList(exchange.buyList.list))
         }
-        if (exchange.sellList.success) {
+        if (exchange.sellList!=undefined &&exchange.sellList.success) {
             dispatch(GetSellList(exchange.sellList.list))
         }
-        if (exchange.txList.success) {
+        if (exchange.txList!=undefined && exchange.txList.success) {
             dispatch(UpdateTxList(exchange.txList.list))
             dispatch(UpdateChartData(exchange.txList.list))
         }

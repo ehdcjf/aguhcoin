@@ -101,7 +101,7 @@ const ButtonBox = styled.div`
 
 const LoginScreen = () => {
     const dispatch = useDispatch();
-    const { isLogin, success } = useSelector((state) => state.user);
+    const { isLogin } = useSelector((state) => state.user);
     
     const useridInput = useInput('');
     const userpw = useInput('');
@@ -122,11 +122,6 @@ const LoginScreen = () => {
                 userpw: userpw.value
             }
             dispatch(UserLoginAction(data));
-        }
-        
-        if (success == false) {
-            alert('존재하지 않는 회원 정보입니다.');
-            return;
         }
     }
 

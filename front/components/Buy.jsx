@@ -1,6 +1,7 @@
 import useInput from "../hooks/useInput";
 import styled from 'styled-components';
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { UpdateLockedAsset } from "../reducers/user";
 
 
 const Buys = styled.div`
@@ -37,7 +38,6 @@ const Buys = styled.div`
     text-align: center;
     color: #222;
     font-size: 18px;
-    float: left;
 }
 
 .sub_header:hover{
@@ -113,9 +113,8 @@ const Buys = styled.div`
 const Buy = () => {
   const qty = useInput("");
   const price = useInput("");
-  const { availableAsset, isLogin, useridx } = useSelector(
-    (state) => state.user
-  );
+  const { availableAsset, isLogin, useridx, } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -125,18 +124,24 @@ const Buy = () => {
 
     if (price.value == "" || qty.value == "") {
       alert("매수가격과 주문수량은 필수 입력 사항입니다.");
-    } else if (!isLogin) {
+      return; 
+    } 
+    if (!isLogin) {
       alert("로그인해주세요.");
-    } else if (availableAsset < qty.value * price.value) {
+      return ; 
+    } 
+    if (availableAsset < qty.value * price.value) {
       alert("주문 총액이 주문 가능액을 초과하였습니다.");
-    } else {
+      return; 
+    } 
+
       const data = {
         price: price.value,
         qty: qty.value,
         user_idx: useridx,
       };
-
-      let url = `http://localhost:3500/exchange/buy`;
+      const server = process.env.NEXT_PUBLIC_APP_SERVER_URI || "http://3.34.76.79:3500"; 
+      let url = server+`/exchange/buy`;
       const response = await fetch(url, {
         method: "POST",
         mode: "cors",
@@ -145,11 +150,9 @@ const Buy = () => {
         body: JSON.stringify({ ...data }),
       });
       const result = await response.json();
-      console.log("매수매도?", result);
-      if (result.success) {
-      } else {
-      }
-    }
+      alert(result.msg);
+      dispatch(UpdateLockedAsset(result))
+      
   };
 
   return (

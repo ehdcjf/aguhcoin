@@ -1,6 +1,8 @@
 const initialState = {
+    isError:false, 
+    isLoading:false,
     isLogin: false,
-    success: null,
+    check: null,
     userid: null,
     useridx: null,
     myAsset: 0,
@@ -8,8 +10,13 @@ const initialState = {
     availableAsset: 0,
     myCoin: 0,
     lockedCoin: 0,
-    availableCoin: 0
+    availableCoin: 0,
+    msg:"",
+    joinSuccess:false,
 }
+
+const server = process.env.NEXT_PUBLIC_APP_SERVER_URI || "http://3.34.76.79:3500"; 
+
 
 const DUPLICATECHECK_REQUEST = "DUPLICATECHECK_REQUEST";
 const DUPLICATECHECK_SUCCESS = "DUPLICATECHECK_SUCCESS";
@@ -23,8 +30,9 @@ const USER_LOGIN_ERROR = "USER_LOGIN_ERROR";
 const USER_LOGOUT_REQUEST = "USER_LOGOUT_REQUEST";
 const USER_LOGOUT_SUCCESS = "USER_LOGOUT_SUCCESS";
 const USER_LOGOUT_ERROR = "USER_LOGOUT_ERROR";
-
 const GET_TOTAL_ASSET = "GET_TOTAL_ASSET"
+const UPDATE_LOCKED_ASSET = 'UPDATE_LOCKED_ASSET';
+const UPDATE_LOCKED_COIN = 'UPDATE_LOCKED_COIN';
 
 
 // Join -> DuplicateCheck(), 회원가입 아이디 유효성 검사
@@ -33,7 +41,7 @@ export const DuplicateCheckAction = data => {
         dispatch(DuplicateCheck_REQUEST());
 
         try {
-            let url = `http://localhost:3500/user/idcheck`;
+            let url = server+`/user/idcheck`;
             const response = await fetch(url, {
                 method: "POST",
                 mode: "cors",
@@ -42,10 +50,19 @@ export const DuplicateCheckAction = data => {
                 body: JSON.stringify({ ...data }),
             });
             const result = await response.json();
-
-            dispatch(DuplicateCheck_SUCCESS(result));
+            if(result.success){
+                dispatch(DuplicateCheck_SUCCESS(result));
+            }else{
+                dispatch(DuplicateCheck_ERROR(result));
+                console.log(result.error)
+                alert(result.error);
+            }
         } catch (e) {
-            dispatch(DuplicateCheck_ERROR());
+            const result = { 
+                error:"서버 접속 오류"
+            }
+            dispatch(DuplicateCheck_ERROR(result));
+            alert(result.error);
         }
     }
 }
@@ -61,9 +78,10 @@ export const DuplicateCheck_SUCCESS = data => {
         data: data,
     }
 }
-export const DuplicateCheck_ERROR = () => {
+export const DuplicateCheck_ERROR = (data) => {
     return {
         type: DUPLICATECHECK_ERROR,
+        data:data,
     }
 }
 
@@ -73,7 +91,7 @@ export const UserJoinAction = data => {
         dispatch(UserJoin_REQUEST());
 
         try {
-            let url = `http://localhost:3500/user/join`;
+            let url =  server+`/user/join`;
             const response = await fetch(url, {
                 method: "POST",
                 mode: "cors",
@@ -82,10 +100,19 @@ export const UserJoinAction = data => {
                 body: JSON.stringify({ ...data }),
             });
             const result = await response.json();
-
-            dispatch(UserJoin_SUCCESS(result));
+            if(result.success){
+                dispatch(UserJoin_SUCCESS(result));
+            }else{
+            dispatch(UserJoin_ERROR(result));
+            console.log(result.error);
+            alert(result.error);
+            }
         } catch (e) {
-            dispatch(UserJoin_ERROR());
+            const result = {
+                error:'회원가입에 실패'
+            }
+            dispatch(UserJoin_ERROR(result));
+            alert(result.error);
         }
     }
 }
@@ -101,9 +128,10 @@ export const UserJoin_SUCCESS = data => {
         data: data,
     }
 }
-export const UserJoin_ERROR = () => {
+export const UserJoin_ERROR = (data) => {
     return {
         type: USER_JOIN_ERROR,
+        data:data,
     }
 }
 
@@ -113,7 +141,7 @@ export const UserLoginAction = data => {
         dispatch(UserLogin_REQUEST());
 
         try {
-            let url = 'http://localhost:3500/user/login';
+            let url = server+'/user/login';
             const response = await fetch(url, {
                 method: "POST",
                 mode: "cors",
@@ -122,8 +150,13 @@ export const UserLoginAction = data => {
                 body: JSON.stringify({ ...data }),
             });
             const result = await response.json();
+            if(result.success){
+                dispatch(UserLogin_SUCCESS(result));
+            }else{
+                dispatch(UserLogin_ERROR(result));
+                alert('존재하지 않는 회원 정보입니다.');
+            }
 
-            dispatch(UserLogin_SUCCESS(result));
             if (result.totalAsset.success) {
                 dispatch(GetMyAsset(result.totalAsset));
             }
@@ -143,6 +176,23 @@ export const GetMyAsset = (data) => {
     }
 }
 
+export const UpdateLockedAsset = (data)=>{
+    console.log(data)
+    return {
+        type: UPDATE_LOCKED_ASSET,
+        data:data,
+    }
+}
+
+export const UpdateLockedCoin = (data)=>{
+    console.log(data)
+    return {
+        type: UPDATE_LOCKED_COIN,
+        data:data,
+    }
+}
+
+
 
 export const UserLogin_REQUEST = () => {
     return {
@@ -155,9 +205,10 @@ export const UserLogin_SUCCESS = data => {
         data: data,
     }
 }
-export const UserLogin_ERROR = () => {
+export const UserLogin_ERROR = (data) => {
     return {
         type: USER_LOGIN_ERROR,
+        data:data,
     }
 }
 
@@ -167,7 +218,7 @@ export const UserLogoutAction = data => {
         dispatch(UserLogout_REQUEST());
 
         try {
-            let url = 'http://localhost:3500/user/logout';
+            let url = server+'/user/logout';
             const response = await fetch(url, {
                 method: "POST",
                 mode: "cors",
@@ -176,7 +227,6 @@ export const UserLogoutAction = data => {
                 body: JSON.stringify({ ...data }),
             });
             const result = await response.json();
-
             dispatch(UserLogout_SUCCESS(result));
         } catch (e) {
             dispatch(UserLogout_ERROR());
@@ -206,42 +256,47 @@ const reducer = (state = initialState, action) => {
         case DUPLICATECHECK_REQUEST:
             return {
                 ...state,
-                success: null,
+                isLoading:true,
             }
         case DUPLICATECHECK_SUCCESS:
             return {
                 ...state,
-                success: action.data.success,
+                isLoading:false, 
+                check: true,
             }
         case DUPLICATECHECK_ERROR:
             return {
                 ...state,
+                isLoading:false, 
+                check:false,
+                msg:action.data.error,
             }
         case USER_JOIN_REQUEST:
             return {
                 ...state,
-                userid: null,
+                isLoading:true,
             }
         case USER_JOIN_SUCCESS:
             return {
                 ...state,
-                userid: action.data.userid,
+                isLoading:false, 
+                joinSuccess:true,
             }
         case USER_JOIN_ERROR:
             return {
                 ...state,
+                isLoading:false, 
             }
         case USER_LOGIN_REQUEST:
             return {
                 ...state,
-                success: null,
-                userid: null,
-                useridx: null,
+                isLoading:true,
             }
         case USER_LOGIN_SUCCESS:
             return {
                 ...state,
-                isLogin: action.data.isLogin,
+                isLoading:false, 
+                isLogin: true,
                 success: action.data.success,
                 userid: action.data.userid,
                 useridx: action.data.user_idx,
@@ -249,6 +304,9 @@ const reducer = (state = initialState, action) => {
         case USER_LOGIN_ERROR:
             return {
                 ...state,
+                isLoading:false, 
+                isError:true,
+                msg:action.data.error,
             }
         case USER_LOGOUT_REQUEST:
             return {
@@ -257,7 +315,7 @@ const reducer = (state = initialState, action) => {
         case USER_LOGOUT_SUCCESS:
             return {
                 ...state,
-                isLogin: action.data.isLogin,
+                isLogin: false,
                 uesrid: '',
                 useridx: null,
             }
@@ -267,10 +325,28 @@ const reducer = (state = initialState, action) => {
                 ...initialState
             }
         case GET_TOTAL_ASSET:
+
             return {
                 ...state,
                 ...action.data,
             }
+        case UPDATE_LOCKED_ASSET:
+            let newLockedAsset = state.lockedAsset + action.data.asset_result;
+            let newavailableAsset = state.myAsset - newLockedAsset; 
+            return{
+                ...state,
+                lockedAsset:newLockedAsset,
+                availableAsset:newavailableAsset,
+            }
+        case UPDATE_LOCKED_COIN:
+            let newLockedCoin = state.lockedCoin + action.data.coin_result;
+            let newavailableCoin = state.myCoin - newLockedCoin; 
+            return{
+                ...state,
+                lockedCoin:newLockedCoin,
+                availableCoin:newavailableCoin,
+            }
+
         default:
             return state;
     }

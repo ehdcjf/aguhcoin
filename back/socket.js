@@ -44,10 +44,8 @@ function broadcast(message) {  //객체형태로 메시지 전해주기. 그럼 
 }
 
 
-
-
-async function commission(cnt) {
-  let result = await exchangeData.getResult(cnt);
+async function commission(conn,cnt) {
+  let result = await exchangeData.getResult(conn,cnt);
   broadcast(result);
 }
 

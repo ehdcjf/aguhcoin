@@ -20,8 +20,6 @@
     "nodemon": "^2.0.13",
     "nunjucks": "^3.2.3",
     "request": "^2.88.2",
-    "sequelize": "^6.6.5",
-    "sequelize-cli": "^6.2.0",
     "winston": "^3.3.3",
     "ws": "^8.2.2"
   }

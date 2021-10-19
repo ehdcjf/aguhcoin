@@ -48,6 +48,40 @@ function createOptions(method, params = []) {
 
 // })
 
+
+
+const body = createOptions('sendfrom', [order.user_id, myAddress, Coin]);
+const option = {
+  url,
+  method: "POST",
+  headers,
+  body
+}
+const callback = async (error, response, data) => {
+  if (error == null && response.statusCode == 200) {
+    const body = JSON.parse(data);
+    let txid = body.result
+
+    const updateSQL = `
+        UPDATE order_list SET leftover=${sellerLeftover} WHERE id=${order.id}; 
+        UPDATE order_list SET leftover=${buyerLeftover} WHERE id=${nowOrderIndex};\n`
+    const insertSQL = `
+        INSERT INTO asset (user_idx,input,output) VALUES(${order.user_idx},${Asset},0);
+        INSERT INTO coin (user_idx,c_input,c_output) VALUES(${order.user_idx},0,${Coin});
+        INSERT INTO asset (user_idx,input,output) VALUES(${user_idx},0,${Asset});
+        INSERT INTO coin (user_idx,c_input,c_output) VALUES(${user_idx},${Coin},0);
+        INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,txid) 
+        VALUES(${order.id},${order.leftover},${Coin},${nowOrderIndex},${qty},${Coin},${order.price},${txid});`
+
+    const lastSQL = updateSQL + insertSQL
+    await connection.query(lastSQL);
+  } else {
+    flag = true;
+  }
+}
+
+request(option, callback)
+
 module.exports = {
   createOptions,
 }

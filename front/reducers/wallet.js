@@ -7,8 +7,7 @@ const initialState = {
     nontdList: [],
 }
 
-const server = process.env.NEXT_PUBLIC_APP_SERVER_URI || "http://3.34.76.79:3500"; 
-
+const server = process.env.SERVER || 'http://localhost:3500';
 const TRANSACTION_REQUEST = "TRANSACTION_REQUEST";
 const TRANSACTION_SUCCESS = "TRANSACTION_SUCCESS";
 const TRANSACTION_ERROR = "TRANSACTION_ERROR";
@@ -29,7 +28,7 @@ export const TransactionAction = data => {
         dispatch(Transaction_REQUEST());
 
         try {
-            let url =server+'/user/txlog';
+            let url = server + '/user/txlog';
             const response = await axios({
                 method: "POST",
                 url: url,
@@ -37,7 +36,6 @@ export const TransactionAction = data => {
             });
             const result = response.data;
 
-            
             dispatch(Transaction_SUCCESS(result));
         } catch (e) {
             dispatch(Transaction_ERROR());
@@ -68,13 +66,12 @@ export const TransactionCtgAction = data => {
         dispatch(TransactionCtg_REQUEST());
 
         try {
-            let url = server+'/user/txlog';
+            let url = 'http://localhost:3500/user/txlog';
             const response = await axios({
                 method: "POST",
                 url: url,
                 data: { ...data },
             });
-            console.log('리듀서 카테고리별 거래내역', response.data);
             const result = response.data;
 
             dispatch(TransactionCtg_SUCCESS(result));
@@ -107,7 +104,7 @@ export const NonTradingAction = data => {
         dispatch(NonTrading_REQUEST());
 
         try {
-            let url = server+'/user/nontd';
+            let url = 'http://localhost:3500/user/nontd';
             const response = await axios({
                 method: "POST",
                 url: url,
@@ -145,15 +142,13 @@ export const OrderCancleAction = data => {
         dispatch(OrderCancle_REQUEST());
 
         try {
-            let url = server+'/exchange/cancle';
+            let url = 'http://localhost:3500/exchange/cancle';
             const response = await axios({
                 method: "POST",
                 url: url,
                 data: { ...data },
             });
             const result = response.data;
-
-            
 
             dispatch(OrderCancle_SUCCESS(result));
         } catch (e) {

@@ -114,7 +114,6 @@ const Buy = () => {
     (state) => state.user
   );
   const dispatch = useDispatch();
-  console.log(availableAsset);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

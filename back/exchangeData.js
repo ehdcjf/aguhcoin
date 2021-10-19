@@ -21,13 +21,18 @@ async function totalAsset(conn, user_idx) {
   return ret;
 }
 
+
+// 내 총 자산 
 async function calcMyAsset(conn, user_idx) {
+  let ret = 0;
   const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?;`
   const assetParams = [user_idx]
   const [[myAsset]] = await conn.execute(assetSql, assetParams)
-  return +myAsset.asset;
+  if (myAsset.asset != undefined) ret = +myAsset.asset;
+  return ret;
 }
 
+// 예약에 묶여 있는 내 자산 
 async function calcLockAsset(conn, user_idx) {
   const BuyOrderSql = `SELECT leftover,price FROM order_list WHERE user_idx = ?  AND order_type = 0 AND del=0;`;
   const BuyOrderParams = [user_idx];
@@ -38,20 +43,22 @@ async function calcLockAsset(conn, user_idx) {
 
 
 async function calcMyCoin(conn, user_idx) {
+  let ret = 0;
   const hasCoinSql = `SELECT SUM(c_input)-SUM(c_output) as coin from coin WHERE user_idx = ?;`
   const hasCoinParams = [user_idx];
   const [[myCoin]] = await conn.execute(hasCoinSql, hasCoinParams)
-  return +myCoin.coin
+  if (myCoin.coin != undefined) ret = +myCoin.coin;
+  return ret
 }
 
 
 async function calcLockCoin(conn, user_idx) {
-
+  let ret = 0;
   const SellOrderSql = `SELECT SUM(leftover) as leftover FROM order_list WHERE user_idx = ? AND order_type = 1 AND del=0;`;
   const SellOrderParams = [user_idx];
   const [[preSellOrder]] = await conn.execute(SellOrderSql, SellOrderParams);
-  const LockedCoin = +preSellOrder.leftover;
-  return LockedCoin;
+  if (preSellOrder.leftover != undefined) ret = +preSellOrder.leftover;
+  return ret;
 }
 
 async function calcCoinValue(conn, user_idx, cnt) {

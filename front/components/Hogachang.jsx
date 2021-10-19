@@ -4,16 +4,107 @@ import { useSelector } from "react-redux";
 import styled from 'styled-components';
 // import {ResetError} from ''
 
+
+const Hogachang = ()=>{
+    const {  sellList, txList,buyList} = useSelector((state) => state.exchange)
+    // console.log(buyList,sellList);
+
+    // const getPercentage=()=>{
+
+    // }
+
+    
+    const renderSellList = () => {
+        if (sellList.length > 0) {
+            return (sellList.slice(0, 6).map((e, k) => {
+                    return (
+                        <tr key={k}>
+                            <td>{e.leftover}<div className="stick"></div></td>
+                            <td>{e.price}</td>
+                            <td>{}</td>
+                        </tr>
+                    )
+                })
+            )
+        } else {
+            return(
+                <tr>
+                    <td>
+                        없음
+                    </td>
+                </tr>
+            ) 
+        }
+    }
+    const renderBuyList = () => {
+        if (buyList.length > 0) {
+            return (buyList.slice(0, 6).map((e, k) => {
+                return (
+                    <tr key={k}>
+                        <td>{}</td>
+                        <td>{e.price}</td>
+                        <td>{e.leftover}</td>
+                        
+                    </tr>
+                )
+            })
+            )
+        } else {
+            return(
+                <tr>
+                    <td>
+                        없음
+                    </td>
+                </tr>
+            ) 
+        }
+    }
+
+    useEffect(()=>{
+        renderSellList();
+    },[sellList])
+
+    useEffect(()=>{
+        renderBuyList();
+    },[buyList])
+
+    // <table className="table_small">
+    //             <thead>
+    //                 <tr>
+    //                     <td>체결가</td>
+    //                     <td>체결량</td>
+    //                 </tr>
+    //             </thead>
+    //             <tbody>
+    //                 {renderTxList()}
+    //             </tbody>
+    //         </table>
+    return(
+        <HogaChang>
+            <div className="hoga">
+                <span><a>일반 호가</a></span>
+                
+            <table className="table_sell">
+                <tbody>{renderSellList()}</tbody>
+            </table>
+            <table className="table_buy">
+                <tbody>{renderBuyList()}</tbody>
+            </table>
+            </div>
+        </HogaChang>
+    )
+}
+
+
+
 const HogaChang = styled.div`
 .hoga{
     background: white;
     width: 480px;
     height: 500px;
-    /* margin-left: 50px; */
     border: 1px solid black;
     display: inline-block;
     box-sizing: border-box;
-    /* overflow-y: scroll; */
 }
 
 .hoga>span>a{
@@ -29,7 +120,6 @@ const HogaChang = styled.div`
 }
 
 .table_small{
-    /* border: 1px solid #ededed; */
     display: inline-block;
     box-sizing: border-box;
     width: 30%
@@ -64,22 +154,32 @@ const HogaChang = styled.div`
 
 .table_sell{
     box-sizing: border-box;
-    width: 66%;
+    width: 100%;
     text-align: center;
     background: rgba(0, 0, 255, 0.03);
-    color:crimson;
+    color:blue;
 }
 .table_sell:hover{
     cursor: pointer;
     background: rgba(0, 0, 139, 0.116);
 }
 
+/* .stick{
+    width: 50px;
+    height: 20px;
+    background: ;
+} */
+
 .table_buy{
     box-sizing: border-box;
-    width: 66%;
+    width: 100%;
     text-align: center;
-    color: rgba(255, 0, 0, 0.103);
+    background: rgba(255, 0, 0, 0.103);
     color:crimson;
+}
+.table_buy:hover{
+    cursor: pointer;
+    background: rgba(255, 0, 0, 0.13);
 }
 
 
@@ -87,150 +187,30 @@ const HogaChang = styled.div`
     text-align: center;
     padding: 2px;
     box-sizing: border-box;
-    width: 75%;
     border-bottom: 1px solid #ededed;
     border-right: 1px solid #ededed;
-    height: 40px;
+    height: 43px;
+    width: 160px;
 }
-.table_buyl>tr>td{
+
+.table_sell>tbody>tr>td:nth-child(3){
+    width: 160px;
+}
+
+.table_buy>tbody>tr>td{
     text-align: center;
     padding: 2px;
     box-sizing: border-box;
-    width: 100%;
     border-bottom: 1px solid #ededed;
     border-right: 1px solid #ededed;
+    height: 43px;
+    text-align: center;
+    width: 160px;
+}
+
+.table_buy>tbody>tr>td:nth-child(3){
+    width: 160px;
 }
 `
-const Hogachang = ()=>{
-    const { buyList, sellList, txList,isError,msg } = useSelector((state) => state.exchange)
-
-    const renderTxList = () =>{
-        if (txList.length > 0) {
-            return (txList.slice(0, 5).map((e, k) => {
-                return (
-                    <tr key={k}>
-                        <td>{e.price}</td>
-                        <td>{e.buy_commission}</td>
-                    </tr>
-                )
-            })
-            )
-        } else {
-            return(
-                <tr>
-                    <td>
-                        없음
-                    </td>
-                </tr>
-            ) 
-            
-        }
-
-    }
-
-    const renderSellList = () => {
-        if (sellList.length > 0) {
-            return (sellList.slice(0, 6).map((e, k) => {
-                if(e.price==null && e.leftover==null){
-                    return (
-                    <tr key={k} className="table_sell">
-                        <td>{" "}</td>
-                        <td>{" "}</td>
-                    </tr>
-                    )   
-                }else{
-                    return (
-                        <tr key={k} className="table_sell">
-                            <td>{e.price}</td>
-                            <td>{e.leftover}</td>
-                        </tr>
-                    )
-                }
-                
-            })
-
-            )
-        } else {
-            return(
-                <tr>
-                    <td>
-                        없음
-                    </td>
-                </tr>
-            ) 
-        }
-    }
-    const renderBuyList = () => {
-        if (buyList.length > 0) {
-            return (buyList.slice(0, 6).map((e, k) => {
-                return (
-                    <tr key={k} className="table_buy">
-                        <td>{e.price}</td>
-                        <td>{e.leftover}</td>
-                    </tr>
-                )
-            })
-
-            )
-        } else {
-            return(
-                <tr>
-                    <td>
-                        없음
-                    </td>
-                </tr>
-            ) 
-        }
-    }
-
-    useEffect(()=>{
-        renderSellList();
-    },[sellList])
-
-    useEffect(()=>{
-        renderBuyList();
-    },[buyList])
-
-    useEffect(()=>{
-        renderTxList();
-    },[txList])
-
-
-
-
-    // useEffect(()=>{
-    //     if(isError){
-    //         alert(msg);
-    //     dispatch(ResetError()) 
-    //     }
-
-    // },[isError])
-
-    return(
-        <HogaChang>
-            <div className="hoga">
-                <span><a>일반 호가</a></span>
-                <table className="table_small">
-                <caption><span>체결 강도  <a>  +125.20%</a></span></caption>
-                <thead>
-                    <tr>
-                        <td>체결가</td>
-                        <td>체결량</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    {renderTxList()}
-                </tbody>
-            </table>
-            <table className="table_sell">
-                <tbody>{renderSellList()}</tbody>
-            </table>
-            <table className="table_buy">
-                <tbody>{renderBuyList()}</tbody>
-            </table>
-            </div>
-        </HogaChang>
-    )
-}
 
 export default Hogachang

@@ -4,11 +4,11 @@ import Hogachang from "../../components/Hogachang";
 import Chart from "../../components/Chart";
 import Trading from "../../components/Trading";
 import Volume from "../../components/Volume";
-// import styles from '../../styles/main.module.css'
+import styled from "styled-components";
+
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { GetExchangeAction } from "../../reducers/exchange";
-import styled from "styled-components";
 
 const Exchanges = styled.div`
 .contain{

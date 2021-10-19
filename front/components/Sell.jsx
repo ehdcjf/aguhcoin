@@ -1,11 +1,10 @@
 import { useDispatch, useSelector } from "react-redux";
-import styled from 'styled-components';
+import styled from "styled-components";
 import useInput from "../hooks/useInput";
-import {UpdateLockedCoin} from '../reducers/user'
-
+import { UpdateLockedCoin } from "../reducers/user";
 
 const Sells = styled.div`
-  .trading{
+  .trading {
     width: 50%;
     height: 500px;
     display: inline-block;
@@ -13,9 +12,9 @@ const Sells = styled.div`
     border: 1px solid black;
     background: white;
     position: relative;
-}
+  }
 
-/* .sub_header> span > a {
+  /* .sub_header> span > a {
     padding: 2px;
     box-sizing: border-box;
     display: inline-block;
@@ -28,7 +27,7 @@ const Sells = styled.div`
     font-size: 19px;
 } */
 
-.sub_header{
+  .sub_header {
     padding: 3px;
     box-sizing: border-box;
     display: inline-block;
@@ -39,55 +38,53 @@ const Sells = styled.div`
     color: #222;
     font-size: 18px;
     float: left;
-}
+  }
 
-.sub_header:hover{
+  .sub_header:hover {
     cursor: pointer;
     border-bottom: 3px solid crimson;
+  }
 
-}
-
-/* 매수 */
-.buy_contain{
+  /* 매수 */
+  .buy_contain {
     width: 100%;
     height: 400px;
     margin-top: 70px;
     padding: 4px;
-}
-.possible_asset{
+  }
+  .possible_asset {
     display: inline-block;
-}
+  }
 
-.buy_contain>li{
+  .buy_contain > li {
     display: flex;
     padding: 9px;
-    margin-top: 10px; 
-}
+    margin-top: 10px;
+  }
 
-.buy_contain>li>a{
+  .buy_contain > li > a {
     line-height: 40px;
     height: 25px;
     font-size: 14px;
     width: 130px;
     color: gray;
-    
-}
+  }
 
-.buy_contain>li>input{
+  .buy_contain > li > input {
     width: 280px;
     height: 35px;
     border: 2px solid #ededed;
-}
-.cf{
+  }
+  .cf {
     margin-top: 20px;
     /* padding: 8px; */
     width: 420px;
     font-size: 8px;
     display: inline-block;
     text-align: right;
-}
+  }
 
-.buy_button{
+  .buy_button {
     width: 250px;
     height: 34px;
     padding: 4px;
@@ -101,21 +98,21 @@ const Sells = styled.div`
     left: 50%;
     top: 20%;
     transform: translateX(-50%);
-}
-.buy_button:hover{
+  }
+  .buy_button:hover {
     cursor: pointer;
     background: rgb(185, 17, 51);
-}
+  }
 
-.hi{
+  .hi {
     color: turquoise;
-}
-`
+  }
+`;
 const Sell = () => {
   const dispatch = useDispatch();
   const qty = useInput("");
   const price = useInput("");
-  const { availableCoin, isLogin, useridx } = useSelector(
+  const { myCoin, lockedCoin, isLogin, useridx } = useSelector(
     (state) => state.user
   );
 
@@ -134,8 +131,9 @@ const Sell = () => {
         qty: qty.value,
         user_idx: useridx,
       };
-      const server = process.env.NEXT_PUBLIC_APP_SERVER_URI || "http://3.34.76.79:3500"; 
-      let url = server+`/exchange/sell`;
+      const server =
+        process.env.NEXT_PUBLIC_APP_SERVER_URI || "http://3.34.76.79:3500";
+      let url = server + `/exchange/sell`;
       const response = await fetch(url, {
         method: "POST",
         mode: "cors",
@@ -144,9 +142,8 @@ const Sell = () => {
         body: JSON.stringify({ ...data }),
       });
       const result = await response.json();
-        alert(result.msg);
-        dispatch(UpdateLockedCoin(result))
-
+      alert(result.msg);
+      dispatch(UpdateLockedCoin(result));
     }
   };
   return (
@@ -154,7 +151,7 @@ const Sell = () => {
       <ul className="buy_contain">
         <li>
           <a>매도 가능 코인</a>
-          <h3 className="possible_asset">{availableCoin}</h3>
+          <h3 className="possible_asset">{myCoin - lockedCoin}</h3>
         </li>
         <li>
           <a>매도 가격(krw)</a>
@@ -168,11 +165,7 @@ const Sell = () => {
           <a>주문 총액</a>
           <span>{qty.value * price.value}</span>
         </li>
-        <button
-          className="buy_button"
-          type="submit"
-          onClick={handleSubmit}
-        >
+        <button className="buy_button" type="submit" onClick={handleSubmit}>
           매도하기
         </button>
       </ul>

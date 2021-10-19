@@ -1,3 +1,4 @@
+import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 
 const Asset = styled.div`
@@ -75,19 +76,23 @@ const SecondRow = styled.div`
 `
 
 const MyCoinAsset = () => {
+    const {myAsset,myCoin,coinValue} = useSelector(state=>state.user);
+    const {nowPrice} = useSelector(state=>state.exchange);
+
+
     return (
         <Asset>
             <FirstRow>
                 <div>
                     <div>보유 KRW</div>
                     <div>
-                        <p>999,999,999,999<span>KRW</span></p>
+                        <p>{myAsset}<span>KRW</span></p>
                     </div>
                 </div>
                 <div>
                     <div>총 보유자산</div>
                     <div>
-                        <p>999,999,999,999<span>KRW</span></p>
+                        <p>{myCoin*nowPrice+myAsset}<span>KRW</span></p>
                     </div>
                 </div>
             </FirstRow>
@@ -96,13 +101,13 @@ const MyCoinAsset = () => {
                     <div>
                         <div>총매수금액</div>
                         <div>
-                            <p>999,999,999,999<span>KRW</span></p>
+                            <p>{coinValue}<span>KRW</span></p>
                         </div>
                     </div>
                     <div>
                         <div>총평가금액</div>
                         <div>
-                            <p>-<span>KRW</span></p>
+                            <p>{myCoin*nowPrice}<span>KRW</span></p>
                         </div>
                     </div>
                 </div>
@@ -110,13 +115,19 @@ const MyCoinAsset = () => {
                     <div>
                         <div>총평가손익</div>
                         <div>
-                            <p>-<span>KRW</span></p>
+                            <p>{myCoin*nowPrice - coinValue}<span>KRW</span></p>
                         </div>
                     </div>
                     <div>
                         <div>총평가수익률</div>
                         <div>
-                            <p>-<span>%</span></p>
+                        {coinValue<myCoin*nowPrice
+                            ?<p style={{ color: "red" }}>
+                                {Math.floor((coinValue-myCoin*nowPrice)/coinValue*10000)/100}<span>%</span>
+                            </p>
+                            :<p style={{ color: "blue" }}>
+                                -{Math.floor((coinValue-myCoin*nowPrice)/coinValue*10000)/100}<span>%</span>
+                            </p>}
                         </div>
                     </div>
                 </div>

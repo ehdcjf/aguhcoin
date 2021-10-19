@@ -11,24 +11,18 @@ const defaultRet = {
 
 
 
-async function totalAsset(conn, data) {
+async function totalAsset(conn, user_idx) {
   let ret = {}
-  ret.myAsset = await calcMyAsset(conn, data);
-  ret.lockedAsset = await calcLockAsset(conn, data);
-  ret.availableAsset = ret.myAsset-ret.lockedAsset;
-  ret.myCoin = await calcMyCoin(conn, data);
-  ret.lockedCoin = await calcLockCoin(conn, data);
-  ret.availableCoin = ret.myCoin-ret.lockedCoin;
-  if (ret.availableCoin != null && ret.availableAsset != null) {
-    ret.success = true;
-  }else{
-    ret.success = false
-  }
+  ret.myAsset = await calcMyAsset(conn, user_idx);
+  ret.lockedAsset = await calcLockAsset(conn, user_idx);
+  ret.myCoin = await calcMyCoin(conn, user_idx);
+  ret.lockedCoin = await calcLockCoin(conn, user_idx);
+  ret.coinValue = await calcCoinValue(conn, user_idx, ret.myCoin);
   return ret;
 }
 
 async function calcMyAsset(conn, user_idx) {
-  const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
+  const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?;`
   const assetParams = [user_idx]
   const [[myAsset]] = await conn.execute(assetSql, assetParams)
   return +myAsset.asset;
@@ -44,7 +38,7 @@ async function calcLockAsset(conn, user_idx) {
 
 
 async function calcMyCoin(conn, user_idx) {
-  const hasCoinSql = `SELECT SUM(c_input)-SUM(c_output) as coin from coin WHERE user_idx = ?`
+  const hasCoinSql = `SELECT SUM(c_input)-SUM(c_output) as coin from coin WHERE user_idx = ?;`
   const hasCoinParams = [user_idx];
   const [[myCoin]] = await conn.execute(hasCoinSql, hasCoinParams)
   return +myCoin.coin
@@ -53,11 +47,36 @@ async function calcMyCoin(conn, user_idx) {
 
 async function calcLockCoin(conn, user_idx) {
 
-  const SellOrderSql = `SELECT SUM(leftover) as leftover FROM order_list WHERE user_idx = ? AND order_type = 1 AND del=0`;
+  const SellOrderSql = `SELECT SUM(leftover) as leftover FROM order_list WHERE user_idx = ? AND order_type = 1 AND del=0;`;
   const SellOrderParams = [user_idx];
   const [[preSellOrder]] = await conn.execute(SellOrderSql, SellOrderParams);
   const LockedCoin = +preSellOrder.leftover;
   return LockedCoin;
+}
+
+async function calcCoinValue(conn, user_idx, cnt) {
+  let result = 0;
+  const tempCoinSql = `SELECT buy_commission AS qty, tx.price
+                      FROM transaction AS tx
+                      LEFT JOIN order_list
+                      ON tx.buy_orderid = order_list.id
+                      WHERE order_list.user_idx = ?
+                      ORDER BY tx_date DESC; `
+  const [tx] = await conn.execute(tempCoinSql, [user_idx]);
+  if (tx.length > 0) {
+    let leftover = cnt;
+    for (let i = 0; i < tx.length; i++) {
+      let commission = tx[i];
+      if (commission.qty <= leftover) {
+        result += commission.qty * commission.price;
+        leftover -= commission.qty;
+      } else {
+        result = leftover * commission.price;
+        break;
+      }
+    }
+  }
+  return result
 }
 
 
@@ -69,8 +88,8 @@ async function calcLockCoin(conn, user_idx) {
 
 async function getBuyList(conn) {
   let ret = { success: false, list: null };
-  try{
-      const buyListSql = `
+  try {
+    const buyListSql = `
         SELECT price,sum(leftover) AS leftover 
         FROM order_list 
         WHERE order_type=0 AND leftover>0
@@ -78,22 +97,22 @@ async function getBuyList(conn) {
         ORDER BY price DESC
         LIMIT 5;
         `
-      const [temp] = await conn.execute(buyListSql, []);
-      ret.success = true;
-      ret.list = temp;
-    } catch (error) {
-      console.log('Query Error');
-      console.log(error)
-      ret = messageData.errorMessage(error)
-    }
-    return ret;
+    const [temp] = await conn.execute(buyListSql, []);
+    ret.success = true;
+    ret.list = temp;
+  } catch (error) {
+    console.log('Query Error');
+    console.log(error)
+    ret = messageData.errorMessage(error)
   }
+  return ret;
+}
 
 
 async function getSellList(conn) {
   let ret = { success: false, list: null };
-    try {
-      const sellListSql = `
+  try {
+    const sellListSql = `
         SELECT price,sum(leftover) AS leftover 
         FROM order_list 
         WHERE order_type=1 AND leftover>0
@@ -101,94 +120,96 @@ async function getSellList(conn) {
         ORDER BY price ASC
         LIMIT 5;
         `
-      const [temp] = await conn.execute(sellListSql, []);
-      ret.success = true;
-      ret.list = temp.reverse();
-    } catch (error) {
-      console.log('Query Error');
-      console.log(error)
-      ret = messageData.errorMessage(error)
-    }
-    return ret;
-  } 
+    const [temp] = await conn.execute(sellListSql, []);
+    ret.success = true;
+    ret.list = temp.reverse();
+  } catch (error) {
+    console.log('Query Error');
+    console.log(error)
+    ret = messageData.errorMessage(error)
+  }
+  return ret;
+}
 
 
-async function getTransactionList(conn,n) {
-  let ret = { success:false,list:[] };
-    try {
-      let transactionListSql = `
+async function getTransactionList(conn, n) {
+  let ret = { success: false, list: [] };
+  try {
+    let transactionListSql = `
         SELECT  *
         FROM transaction
         ORDER BY id DESC
         `
-      if(n==0) transactionListSql+=';'
-      else transactionListSql+=`LIMIT ${n};`
+    if (n == 0) transactionListSql += ';'
+    else transactionListSql += `LIMIT ${n};`
 
-      const temp = await conn.execute(transactionListSql, []);
-      temp[0].forEach((v, i) => {
-        temp[0][i].tx_date = temp[0][i].tx_date.toLocaleString();
-      })
-      ret.success = true;
-      ret.list = temp[0];
-    } catch (error) {
-      console.log('Query Error');
-      console.log(error)
-      ret = messageData.errorMessage(error)
-    }
-    return ret;
+    const temp = await conn.execute(transactionListSql, []);
+    temp[0].forEach((v, i) => {
+      temp[0][i].tx_date = temp[0][i].tx_date.toLocaleString();
+    })
+    ret.success = true;
+
+    if (n == 0) ret.list = temp[0];
+    else ret.list = temp[0].reverse();
+  } catch (error) {
+    console.log('Query Error');
+    console.log(error)
+    ret = messageData.errorMessage(error)
   }
+  return ret;
+}
 
-async function getResult(conn,n) {  //return array
-  let ret = {}  
+async function getResult(conn, n) {  //return array
+  let ret = {}
   try {
     ret.buyList = await getBuyList(conn);
     ret.sellList = await getSellList(conn);
 
-      if (n == 0) {
-        // 여기 시간 단위로 수정해야됨. 
-        const allTxSql = `
+    if (n == 0) {
+      // 여기 시간 단위로 수정해야됨. 
+      const allTxSql = `
         SELECT *
         FROM transaction 
         ORDER BY tx_date;
         `
-        const [txList] = await conn.execute(allTxSql, []);
-        if (txList.length == 0) { //사실 이런 경우는 없음. 
-          ret.txList = {success:false,list:[]};
-        } else {
-          ret.txList = {success:true,list:txList};
-          ret.chartdata = oneMinInterval(txList);
-        }
+      const [txList] = await conn.execute(allTxSql, []);
+      if (txList.length == 0) { //사실 이런 경우는 없음. 
+        ret.txList = { success: false, list: [] };
       } else {
-        //트랜잭션 생성될때 호출. 
-        let transactionListSql = `
+        ret.txList = { success: true, list: txList };
+        ret.chartdata = oneMinInterval(txList);
+      }
+    } else {
+      //트랜잭션 생성될때 호출. 
+      let transactionListSql = `
         SELECT  *
         FROM transaction
         ORDER BY tx_date DESC
         LIMIT ${n};
         `
-        const [txtemp] = await conn.execute(transactionListSql, []);
-        ret.txList={success:true,list : txtemp.reverse()}
-      }
-
-      if(ret.txList.success){
-        ret.txList.list.forEach((v, i) => {
-          ret.txList.list[i].tx_date = new Date(v.tx_date).toLocaleString();
-        })
-      }
-      ret.success = true;
-    } catch (error) {
-      console.log('Query Error');
-      console.log(error)
-      ret = messageData.errorMessage(error)
+      const [txtemp] = await conn.execute(transactionListSql, []);
+      ret.txList = { success: true, list: txtemp.reverse() }
     }
-    return ret;
-  } 
+
+    if (ret.txList.success) {
+      ret.txList.list.forEach((v, i) => {
+        ret.txList.list[i].tx_date = new Date(v.tx_date).toLocaleString();
+      })
+    }
+    ret.success = true;
+  } catch (error) {
+    console.log('Query Error');
+    console.log(error)
+    ret = messageData.errorMessage(error)
+  }
+  return ret;
+}
 
 
 
 
-function oneMinInterval(data){
-          //x: time, y: [0:open, 1:high, 2:low, 3:close]
+function oneMinInterval(data) {
+  //x: time, y: [0:open, 1:high, 2:low, 3:close]
   let result = [{ x: data[0].tx_date, y: [data[0].price, data[0].price, data[0].price, data[0].price] }];
   let cnt = 1;
   while (cnt < data.length) {

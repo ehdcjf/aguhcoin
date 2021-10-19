@@ -59,7 +59,7 @@ const TransactionList = () => {
   }, []);
 
   const renderTxList = () => {
-    if (txList != undefined) {
+    if (txList != undefined && txList.length>0) {
       return txList.map((e, k) => {
         return (
           <tr>

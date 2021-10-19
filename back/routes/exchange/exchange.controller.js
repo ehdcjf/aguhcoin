@@ -121,7 +121,9 @@ const createOrderBuy = async (req, res) => {
           res.json(messageData.addOrder({asset_result:qty*price}))
         } else {
           let cnt = 0;
-          let flag = false;
+          let updateSQL = '';
+          let insertSQL = '';
+          
           for (let i = 0; i < availableOrder.length; i++) {
             const order = availableOrder[i];
             const sellerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0;
@@ -129,44 +131,24 @@ const createOrderBuy = async (req, res) => {
             const Asset = sellerLeftover > 0 ? qty * order.price : order.leftover * order.price;
             const Coin = sellerLeftover > 0 ? qty : order.leftover;
 
-            const body = createOptions('sendfrom', [order.user_id, myAddress, Coin]);
-            const option = {
-              url,
-              method: "POST",
-              headers,
-              body
-            }
-            const callback = async (error, response, data) => {
-              if (error == null && response.statusCode == 200) {
-                const body = JSON.parse(data);
-                let txid = body.result
-
-                const updateSQL = `
+                updateSQL += `
                     UPDATE order_list SET leftover=${sellerLeftover} WHERE id=${order.id}; 
                     UPDATE order_list SET leftover=${buyerLeftover} WHERE id=${nowOrderIndex};\n`
-                const insertSQL = `
+                insertSQL += `
                     INSERT INTO asset (user_idx,input,output) VALUES(${order.user_idx},${Asset},0);
                     INSERT INTO coin (user_idx,c_input,c_output) VALUES(${order.user_idx},0,${Coin});
                     INSERT INTO asset (user_idx,input,output) VALUES(${user_idx},0,${Asset});
                     INSERT INTO coin (user_idx,c_input,c_output) VALUES(${user_idx},${Coin},0);
-                    INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,txid) 
-                    VALUES(${order.id},${order.leftover},${Coin},${nowOrderIndex},${qty},${Coin},${order.price},${txid});`
+                    INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price) 
+                    VALUES(${order.id},${order.leftover},${Coin},${nowOrderIndex},${qty},${Coin},${order.price});`
 
-                const lastSQL = updateSQL + insertSQL
-                await connection.query(lastSQL);
-              } else {
-                flag = true;
+                qty = buyerLeftover;
+                cnt++;
+                if (qty == 0) {break;}
               }
-            }
-
-            request(option, callback)
-            qty -= order.leftover;
-            cnt++;
-            if (qty == 0 || flag) {
-              break;
-            }
-          }
-
+              
+          const lastSQL = updateSQL + insertSQL
+          await connection.query(lastSQL);
           ws.commission(connection,cnt);
           res.json(messageData.transaction({asset_result:qty*price}))
         }
@@ -218,41 +200,23 @@ const createOrderSell = async (req, res) => {
       const myOrder = preOrder.leftover;
       const available = myCoin.coin - myOrder;
       if (qty > available) {
-
-        // 판매 못할 때.
-        // db 고쳐줄 필요도 없고. ws나  rpc는 필요없음. 
         res.json(messageData.notEnoughCoin());
       } else {
-        // 판매할 수 있다면
-
-        //이 트랜잭션이 진행되는 동안에 다른 트랜잭션이 진행되면 안되므로.. 
-        // start transaction을 해줘야하는지? 그냥 lock 걸면되는지?,,. 
-        // lock 거니까 다른 테이블도 다 lock 걸린다. 트랜잭션이 겹치는 경우는 고려하지 않겠다. 
-        // const LOCKSQL = `LOCK TABLES order_list WRITE;`
-        // await connection.query(LOCKSQL)
-
-
-        // 주문은 시간이 매우 중요하니까 우선 빨리 DB에 넣어줘야할 것 같음. 
         const insertOrderSql = `
         INSERT INTO order_list (user_idx, qty, price, leftover, order_type) VALUES (?,?,?,?,?);`;
         const insertOrderParams = [user_idx, qty, price, qty, 1];
         const [orderResult] = await connection.execute(insertOrderSql, insertOrderParams)
         const nowOrderIndex = orderResult.insertId;
 
-        //거래 가능한 주문의 목록을 가져온다. 가격 - 시간 - 물량 순으로 정렬. 
         const availableOrderSql = `
           SELECT *
           FROM order_list
-          LEFT JOIN user as user
-          ON order_list.user_idx = user.id
           WHERE user_idx NOT IN(?) AND price>=? AND leftover>0 AND order_type=0 AND del=0
           ORDER BY price DESC, order_date ASC, qty DESC;
         `
         const availableOrderParams = [user_idx, price];
         const [availableOrder] = await connection.execute(availableOrderSql, availableOrderParams);
         if (availableOrder.length == 0) {
-          //가능한 거래가 없으므로 종료.
-          //주문 완료에 대한 메시지
           // const UNLOCKSQL = `UNLOCK TABLES;`
           // await connection.query(UNLOCKSQL)
           const result = await exchangeData.getSellList(connection);
@@ -263,57 +227,35 @@ const createOrderSell = async (req, res) => {
           ws.broadcast(data);
           res.json(messageData.addOrder({coin_result:qty}))
         } else {
-
-          const myAccountSql = `SELECT user_id FROM user where id=?`
-          const myAccountParams = [user_idx];
-          const [[myAccountResult]] = await connection.execute(myAccountSql, myAccountParams);
-          const myAccount = myAccountResult.user_id;
-
           let cnt = 0;
+          let updateSQL = '';
+          let insertSQL = ''; 
           for (let i = 0; i < availableOrder.length; i++) {
-            let flag = false;
             const order = availableOrder[i];
             const sellerLeftover = qty - order.leftover > 0 ? qty - order.leftover : 0;
             const buyerLeftover = order.leftover - qty > 0 ? order.leftover - qty : 0;
             const Asset = sellerLeftover > 0 ? order.leftover * price : qty * price;
             const Coin = sellerLeftover > 0 ? order.leftover : qty;
 
-            const body = createOptions('sendfrom', [myAccount, order.user_wallet, Coin]);
-            const option = {
-              url,
-              method: "POST",
-              headers,
-              body
-            }
-            const callback = async (error, response, data) => {
-              if (error == null && response.statusCode == 200) {
-                const body = JSON.parse(data);
-                let txid = body.result
+            updateSQL += `
+            UPDATE order_list SET leftover=${buyerLeftover} WHERE id=${order.id}; 
+            UPDATE order_list SET leftover=${sellerLeftover} WHERE id=${nowOrderIndex};\n`
+            insertSQL += `
+            INSERT INTO asset (user_idx,input,output) VALUES(${order.user_idx},0,${Asset});
+            INSERT INTO coin (user_idx,c_input,c_output) VALUES(${order.user_idx},${Coin},0);
+            INSERT INTO asset (user_idx,input,output) VALUES(${user_idx},${Asset},0);
+            INSERT INTO coin (user_idx,c_input,c_output) VALUES(${user_idx},0,${Coin});
+            INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price) 
+            VALUES(${nowOrderIndex},${qty},${Coin},${order.id},${order.leftover},${Coin},${price});\n`      
+                
+            qty = sellerLeftover;
 
-                const updateSQL = `
-                UPDATE order_list SET leftover=${buyerLeftover} WHERE id=${order.id}; 
-                UPDATE order_list SET leftover=${sellerLeftover} WHERE id=${nowOrderIndex};\n`
-                const insertSQL = `
-                INSERT INTO asset (user_idx,input,output) VALUES(${order.user_idx},0,${Asset});
-                INSERT INTO coin (user_idx,c_input,c_output) VALUES(${order.user_idx},${calcCoin},0);
-                INSERT INTO asset (user_idx,input,output) VALUES(${user_idx},${Asset},0);
-                INSERT INTO coin (user_idx,c_input,c_output) VALUES(${user_idx},0,${calcCoin});
-                INSERT INTO transaction (sell_orderid,sell_amount,sell_commission,buy_orderid,buy_amount,buy_commission,price,txid) 
-                VALUES(${nowOrderIndex},${qty},${calcCoin},${order.id},${order.leftover},${calcCoin},${price},${txid});`
-
-                const lastSQL = updateSQL + insertSQL
-                await connection.query(lastSQL);
-              } else {
-                flag = true;
-              }
-            }
-
-            request(option, callback)
-
-            qty -= order.leftover;
             cnt++;
-            if (qty == 0 || flag) break;
+            if (qty == 0) break;
+
           }
+              const lastSQL = updateSQL + insertSQL;
+              await connection.query(lastSQL);
           // updateSQL += 'UNLOCK TABLES;'
 
           ws.commission(connection,cnt);

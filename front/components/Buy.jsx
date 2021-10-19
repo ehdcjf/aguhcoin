@@ -115,6 +115,7 @@ const Buy = () => {
   const price = useInput("");
   const { availableAsset, isLogin, useridx, } = useSelector((state) => state.user);
   const dispatch = useDispatch();
+  console.log(availableAsset)
 
   const handleSubmit = async (e) => {
     e.preventDefault();

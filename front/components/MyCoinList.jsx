@@ -1,4 +1,6 @@
 import styled from 'styled-components';
+import { useSelector } from 'react-redux';
+
 
 const CoinList = styled.div`
     & > h4 {
@@ -56,6 +58,8 @@ const CoinList = styled.div`
 `
 
 const MyCoinList = () => {
+    const {myAsset,myCoin,coinValue} = useSelector(state=>state.user);
+    const {nowPrice} = useSelector(state=>state.exchange);
     return (
         <CoinList>
             <h4>보유코인 목록</h4>
@@ -86,60 +90,40 @@ const MyCoinList = () => {
                             <p>AGU</p>
                         </td>
                         <td>
-                            999,999,999
+                        {myCoin}
                             <span>AGU</span>
                         </td>
                         <td>
-                            999
+                            {coinValue/myCoin}
                             <span>KRW</span>
                         </td>
                         <td>
-                            999,999
+                            {coinValue}
                             <span>KRW</span>
                         </td>
                         <td>
-                            99,999
+                            {myCoin*nowPrice}
                             <span>KRW</span>
                         </td>
                         <td>
-                            <p style={{ color: "red" }}>
-                                + 1.14<span>%</span>
+                            {coinValue<myCoin*nowPrice
+                            ?<p style={{ color: "red" }}>
+                                {Math.floor((coinValue-myCoin*nowPrice)/coinValue*10000)/100}<span>%</span>
                             </p>
-                            <p style={{ color: "red" }}>
-                                + 99,999<span>KRW</span>
+                            :<p style={{ color: "blue" }}>
+                                -{Math.floor((coinValue-myCoin*nowPrice)/coinValue*10000)/100}<span>%</span>
+                            </p>}
+                            { coinValue<myCoin*nowPrice
+                            ?<p style={{ color: "red" }}>
+                                {coinValue-(myCoin*nowPrice)}<span>KRW</span>
                             </p>
+                            :
+                            <p style={{ color: "blue" }}>
+                               -{coinValue-(myCoin*nowPrice)}<span>KRW</span>
+                            </p>}
                         </td>
                     </tr>
-                    <tr>
-                        <td>
-                            <h5>악어</h5>
-                            <p>AGU</p>
-                        </td>
-                        <td>
-                            999,999,999
-                            <span>AGU</span>
-                        </td>
-                        <td>
-                            999
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            999,999
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            99,999
-                            <span>KRW</span>
-                        </td>
-                        <td>
-                            <p style={{ color: "blue" }}>
-                                - 9.99<span>%</span>
-                            </p>
-                            <p style={{ color: "blue" }}>
-                                - 999,999<span>KRW</span>
-                            </p>
-                        </td>
-                    </tr>
+
                 </tbody>
             </table>
         </CoinList>

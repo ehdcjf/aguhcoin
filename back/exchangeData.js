@@ -11,14 +11,17 @@ const defaultRet = {
 
 
 
-async function totalAsset(conn, data) {
+async function totalAsset(conn, user_idx) {
   let ret = {}
-  ret.myAsset = await calcMyAsset(conn, data);
-  ret.lockedAsset = await calcLockAsset(conn, data);
+  ret.myAsset = await calcMyAsset(conn, user_idx);
+  ret.lockedAsset = await calcLockAsset(conn, user_idx);
   ret.availableAsset = ret.myAsset-ret.lockedAsset;
-  ret.myCoin = await calcMyCoin(conn, data);
-  ret.lockedCoin = await calcLockCoin(conn, data);
+  ret.myCoin = await calcMyCoin(conn, user_idx);
+  ret.lockedCoin = await calcLockCoin(conn, user_idx);
   ret.availableCoin = ret.myCoin-ret.lockedCoin;
+  ret.coinValue = await calcCoinValue(conn,user_idx,ret.myCoin);
+
+
   if (ret.availableCoin != null && ret.availableAsset != null) {
     ret.success = true;
   }else{
@@ -28,7 +31,7 @@ async function totalAsset(conn, data) {
 }
 
 async function calcMyAsset(conn, user_idx) {
-  const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?`
+  const assetSql = `SELECT SUM(input)-SUM(output) as asset from asset WHERE user_idx = ?;`
   const assetParams = [user_idx]
   const [[myAsset]] = await conn.execute(assetSql, assetParams)
   return +myAsset.asset;
@@ -44,7 +47,7 @@ async function calcLockAsset(conn, user_idx) {
 
 
 async function calcMyCoin(conn, user_idx) {
-  const hasCoinSql = `SELECT SUM(c_input)-SUM(c_output) as coin from coin WHERE user_idx = ?`
+  const hasCoinSql = `SELECT SUM(c_input)-SUM(c_output) as coin from coin WHERE user_idx = ?;`
   const hasCoinParams = [user_idx];
   const [[myCoin]] = await conn.execute(hasCoinSql, hasCoinParams)
   return +myCoin.coin
@@ -53,11 +56,36 @@ async function calcMyCoin(conn, user_idx) {
 
 async function calcLockCoin(conn, user_idx) {
 
-  const SellOrderSql = `SELECT SUM(leftover) as leftover FROM order_list WHERE user_idx = ? AND order_type = 1 AND del=0`;
+  const SellOrderSql = `SELECT SUM(leftover) as leftover FROM order_list WHERE user_idx = ? AND order_type = 1 AND del=0;`;
   const SellOrderParams = [user_idx];
   const [[preSellOrder]] = await conn.execute(SellOrderSql, SellOrderParams);
   const LockedCoin = +preSellOrder.leftover;
   return LockedCoin;
+}
+
+async function calcCoinValue(conn,user_idx,cnt){
+  let result = 0;
+  const tempCoinSql = `SELECT buy_commission AS qty, tx.price
+                      FROM transaction AS tx
+                      LEFT JOIN order_list
+                      ON tx.buy_orderid = order_list.id
+                      WHERE order_list.user_idx = ?
+                      ORDER BY tx_date DESC; `
+  const [tx] = await conn.execute(tempCoinSql,[user_idx]);
+  if(tx.length>0){
+    let leftover = cnt;
+    for(let i = 0; i < tx.length; i++){
+      let commission = tx[i];
+      if(commission.qty <= leftover){
+        result += commission.qty * commission.price;
+        leftover -= commission.qty; 
+      }else{
+        result = leftover * commission.price;
+        break; 
+      }
+    }
+  }
+  return result
 }
 
 
@@ -129,7 +157,9 @@ async function getTransactionList(conn,n) {
         temp[0][i].tx_date = temp[0][i].tx_date.toLocaleString();
       })
       ret.success = true;
-      ret.list = temp[0];
+      
+      if(n==0) ret.list = temp[0];
+      else ret.list = temp[0].reverse();
     } catch (error) {
       console.log('Query Error');
       console.log(error)

@@ -6,9 +6,8 @@ import styled from 'styled-components';
 
 
 const Hogachang = ()=>{
-    const {  sellList, txList } = useSelector((state) => state.exchange)
+    const {  sellList, txList,buyList} = useSelector((state) => state.exchange)
     // console.log(buyList,sellList);
-    const buyList = [{price:100, leftover:10},{price:200, leftover:40},{price:500, leftover:60},{price:400, leftover:10}]
 
     // const getPercentage=()=>{
 
@@ -62,11 +61,13 @@ const Hogachang = ()=>{
     }
 
     useEffect(()=>{
-        // console.log('aaaa', sellList)
-        // renderTxList();
         renderSellList();
+    },[sellList])
+
+    useEffect(()=>{
         renderBuyList();
-    },[sellList,buyList,txList])
+    },[buyList])
+
     // <table className="table_small">
     //             <thead>
     //                 <tr>

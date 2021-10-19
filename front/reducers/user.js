@@ -11,6 +11,7 @@ const initialState = {
     myCoin: 0,
     lockedCoin: 0,
     availableCoin: 0,
+    coinValue:0,
     msg:"",
     joinSuccess:false,
 }
@@ -306,7 +307,6 @@ const reducer = (state = initialState, action) => {
                 ...state,
                 isLoading:false, 
                 isError:true,
-                msg:action.data.error,
             }
         case USER_LOGOUT_REQUEST:
             return {

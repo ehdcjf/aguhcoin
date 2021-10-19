@@ -2,6 +2,8 @@ import Head from "next/head";
 import MainLayout from "../components/layout/MainLayout";
 import Image from "next/dist/client/image";
 import styled from "styled-components";
+
+
 const Mainlogo = styled.div`
   margin: 0 auto;
   width: 70vw;
@@ -39,6 +41,7 @@ const Maintext = styled.div`
   }
 `;
 const Index = () => {
+
   return (
     <>
       <Head>

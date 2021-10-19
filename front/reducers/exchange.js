@@ -1,6 +1,7 @@
 const initialState = {
     loadding: true,
     isError: false,
+    nowPrice:0,
     buyList: [],
     sellList: [],
     txList: [],
@@ -22,6 +23,8 @@ const UPDATE_CHARTDATA = "UPDATE_CHARTDATA"
 const GET_EXCHANGE_REQUEST = 'GET_EXCHANGE_REQUEST'
 const LOAD_SUCCESS = 'LOAD_SUCCESS'
 const GET_EXCHANGE_ERROR = 'GET_EXCHANGE_ERROR'
+const GET_NOW_PRICE = 'GET_NOW_PRICE'
+const UPDATE_NOW_PRICE = 'UPDATE_NOW_PRICE'
 
 
 export const GetExchangeAction = () => {
@@ -59,6 +62,7 @@ export const GetExchange_SUCCESS = (data) => {
         }
         if (exchange.txList!=undefined && exchange.txList.success) {
             dispatch(GetTxList(exchange.txList.list))
+            dispatch(GetNowPrice(exchange.txList.list[exchange.txList.list.length-1].price))
         }
         if (exchange.chartdata!=undefined && exchange.chartdata.length > 0) {
             dispatch(GetChartData(exchange.chartdata))
@@ -80,6 +84,7 @@ export function UpdateExchange(data) {
         }
         if (exchange.txList!=undefined && exchange.txList.success) {
             dispatch(UpdateTxList(exchange.txList.list))
+            dispatch(UpdateNowPrice(exchange.txList.list[exchange.txList.list.length-1].price))
             dispatch(UpdateChartData(exchange.txList.list))
         }
     }
@@ -125,6 +130,14 @@ export const GetTxList = (data) => {
         data: data,
     }
 }
+
+export const GetNowPrice = (data) => {
+    return {
+        type: GET_NOW_PRICE,
+        data: data,
+    }
+}
+
 export const GetChartData = (data) => {
     return {
         type: GET_CHARTDATA,
@@ -138,6 +151,15 @@ export const UpdateTxList = (data) => {
         data: data,
     }
 }
+
+export const UpdateNowPrice = (data) => {
+    return {
+        type: UPDATE_NOW_PRICE,
+        data: data,
+    }
+}
+
+
 export const UpdateChartData = (data) => {
     return {
         type: GET_CHARTDATA,
@@ -181,6 +203,11 @@ const reducer = (state = initialState, action) => {
                 ...state,
                 txList: [...action.data]
             }
+        case GET_NOW_PRICE:
+            return {
+                ...state,
+                nowPrice:action.data,
+            }
 
         case GET_CHARTDATA:
             return {
@@ -195,6 +222,13 @@ const reducer = (state = initialState, action) => {
                 ...state,
                 txList: [action.data, ...state.txList]
             }
+
+        case UPDATE_NOW_PRICE:
+            return {
+                ...state,
+                nowPrice: action.data
+            }
+
 
         case UPDATE_CHARTDATA:
             const data = action.data.list;

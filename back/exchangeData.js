@@ -39,13 +39,6 @@ async function totalAsset(conn, data) {
   return ret;
 }
 
-
-
-
-
-
-
-
 async function getBuyList() {
   let ret = { ...defaultRet };
   let connection;
